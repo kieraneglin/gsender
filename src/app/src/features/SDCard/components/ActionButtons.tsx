@@ -9,11 +9,13 @@ import {
 import Button from 'app/components/Button';
 
 export function ActionButtons() {
-    const { isMounted, isConnected, isLoading, setIsLoading } = useSDCard();
+    const { isMounted, isConnected, isLoading, setIsLoading, firmwareType, hasFTP, hasYM } = useSDCard();
     const [uploadModalOpen, setUploadModalOpen] = useState(false);
 
-    const disabled = !isConnected;
-    const uploadDisabled = !isMounted || !isConnected;
+    const isGrblHAL = firmwareType === 'grblHAL';
+    const hasTransfer = hasFTP || hasYM;
+    const disabled = !isConnected || !isGrblHAL || !hasTransfer;
+    const uploadDisabled = !isMounted || disabled;
     return (
         <>
             <div className="flex flex-wrap gap-3">

@@ -42,8 +42,16 @@ export function isFileATCIRelated(filename, atciMacros) {
 }
 
 export const FileList: React.FC = () => {
-    const { files, isLoading, runSDFile, uploadFileToSDCard, isConnected } =
-        useSDCard();
+    const {
+        files,
+        isLoading,
+        runSDFile,
+        uploadFileToSDCard,
+        isConnected,
+        firmwareType,
+        hasFTP,
+        hasYM,
+    } = useSDCard();
     const [dragOver, setDragOver] = useState(false);
     const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -99,6 +107,22 @@ export const FileList: React.FC = () => {
         return (
             <div className="border-gray-300 bg-white dark:bg-dark text-center py-12 text-gray-500 rounded-lg shadow-sm border">
                 Must be connected to use SD card functionality.
+            </div>
+        );
+    }
+
+    if (firmwareType !== 'grblHAL') {
+        return (
+            <div className="border-gray-300 bg-white dark:bg-dark text-center py-12 text-gray-500 rounded-lg shadow-sm border">
+                SD card tools are only available for grblHAL devices.
+            </div>
+        );
+    }
+
+    if (!hasFTP && !hasYM) {
+        return (
+            <div className="border-gray-300 bg-white dark:bg-dark text-center py-12 text-gray-500 rounded-lg shadow-sm border">
+                Enable FTP or YMODEM in firmware to use SD card tools.
             </div>
         );
     }
