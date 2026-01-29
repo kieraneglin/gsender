@@ -912,7 +912,7 @@ export function* initialize(): Generator<any, void, any> {
         },
     );
 
-    controller.addListener('settings:alarm', (data: BasicObject) => {
+    controller.addListener('settings:alarms', (data: BasicObject) => {
         reduxStore.dispatch(updateAlarmDescriptions({ alarms: data }));
     });
 
