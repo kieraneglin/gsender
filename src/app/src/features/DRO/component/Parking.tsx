@@ -29,7 +29,11 @@ function goToParkLocation() {
     controller.command('gcode', code);
 }
 
-export function Parking({ disabled = false, isConnected = false, homingEnabled = false }) {
+export function Parking({
+    disabled = false,
+    isConnected = false,
+    homingEnabled = false,
+}) {
     const disabledRef = useRef(disabled);
 
     useEffect(() => {
@@ -67,8 +71,8 @@ export function Parking({ disabled = false, isConnected = false, homingEnabled =
             isActive: true,
             category: LOCATION_CATEGORY,
             callback: () => {
-                if (disabledRef.current || shortcutIsDisabled()) {
-                goToParkLocation();
+                if (disabledRef.current || shortcutIsDisabled())
+                    goToParkLocation();
             },
         },
     };
