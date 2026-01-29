@@ -2425,15 +2425,22 @@ class GrblHalController {
                 const [files] = args;
 
                 this.command('sdcard:mount');
-                setTimeout(() => {
+                setTimeout(async () => {
                     if (this.runner.isSDMounted()) {
-                        console.log('starting sending');
+                        if (this.connection.isNetwork()) {
+                            console.log('Handle using FTP');
+                            const [address] = this.connection.getFTPInfo();
+                            // TODO: get configured port
+                            await this.ftpClient.openConnection(address, 21, 'grblHAL', 'grblHAL');
+                            await this.ftpClient.sendFiles(files);
+                            return;
+                        }
                         this.ymodem.sendFiles(files, this.connection.getConnectionObject());
                     } else {
                         console.log('Failing, SD not mounted');
                         this.emit('ymodem:error', 'SD Card failed to mount, unable to upload files.');
                     }
-                }, 2500);
+                }, 1500);
             },
             'ymodem:cancel': () => {
                 console.log('cancel upload');
