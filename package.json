@@ -229,6 +229,7 @@
     "@xterm/xterm": "^5.5.0",
     "autoprefixer": "^10.4.19",
     "axios": "^1.2.4",
+    "basic-ftp": "^5.1.0",
     "bcrypt-nodejs": "0.0.3",
     "body-parser": "~1.18.3",
     "buffer-chunks": "^0.1.1",

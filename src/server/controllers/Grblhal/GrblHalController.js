@@ -2357,6 +2357,7 @@ class GrblHalController {
                 this.emit('controller:state', GRBLHAL, this.runner.state);
 
                 if (type === 'cnc') {
+                    console.log('this was called');
                     this.write('$FM\n$F\n');
                     return;
                 }

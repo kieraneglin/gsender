@@ -14,6 +14,7 @@
     "@serialport/parser-readline": "^11.0.0",
     "@sienci/avrgirl-arduino": "^5.0.3",
     "axios": "^1.2.4",
+    "basic-ftp": "^5.1.0",
     "bcrypt-nodejs": "0.0.3",
     "buffer-chunks": "^0.1.1",
     "chalk": "~2.4.2",
