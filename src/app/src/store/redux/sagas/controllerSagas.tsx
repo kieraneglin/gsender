@@ -814,9 +814,6 @@ export function* initialize(): Generator<any, void, any> {
             //     'controller.settings.settings.$22',
             // );
 
-            console.log(error);
-            console.log('YURRR');
-
             const showLineWarnings = store.get(
                 'widgets.visualizer.showLineWarnings',
                 false,
