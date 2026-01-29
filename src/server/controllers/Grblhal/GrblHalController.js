@@ -2411,11 +2411,9 @@ class GrblHalController {
             },
             'ymodem:upload': async () => {
                 const [fileData] = args;
-                console.log('Am I network? ', this.connection.isNetwork());
                 if (this.connection.isNetwork()) {
                     console.log('Handle using FTP');
                     const [address] = this.connection.getFTPInfo();
-                    console.log(`attempting to open ${address}`);
                     // TODO: get configured port
                     await this.ftpClient.openConnection(address, 21, 'grblHAL', 'grblHAL');
                     await this.ftpClient.sendFile(fileData);
