@@ -47,7 +47,16 @@ export class GrblHALFTP extends events.EventEmitter {
         this.emit('complete');
     }
 
-    sendFiles(files = []) {
+    async sendFiles(files = []) {
+        this.emit('start');
+        for (const fileData of files) {
+            const { name, data } = fileData;
+            const dataStream = Readable.from(data);
+            // eslint-disable-next-line no-await-in-loop
+            await this.client.uploadFrom(dataStream, name);
+        }
+        this.client.close();
+        this.client = null;
         this.emit('complete');
     }
 }
