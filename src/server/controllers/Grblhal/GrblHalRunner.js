@@ -572,6 +572,10 @@ class GrblHalRunner extends events.EventEmitter {
         return !_.isEmpty(this.settings.settings);
     }
 
+    getSetting(key, defaultValue = '') {
+        return _.get(this.settings.settings, key, defaultValue);
+    }
+
     hasAXS() {
         const axs = _.get(this.state, 'axes.axes', []);
         return !_.isEmpty(axs);

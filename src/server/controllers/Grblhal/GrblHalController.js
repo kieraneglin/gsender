@@ -2414,8 +2414,8 @@ class GrblHalController {
                 if (this.connection.isNetwork()) {
                     console.log('Handle using FTP');
                     const [address] = this.connection.getFTPInfo();
-                    // TODO: get configured port
-                    await this.ftpClient.openConnection(address, 21, 'grblHAL', 'grblHAL');
+                    const FTPPort = Number(this.runner.getSetting('$308', 21));
+                    await this.ftpClient.openConnection(address, FTPPort, 'grblHAL', 'grblHAL');
                     await this.ftpClient.sendFile(fileData);
                     return;
                 }
@@ -2430,8 +2430,8 @@ class GrblHalController {
                         if (this.connection.isNetwork()) {
                             console.log('Handle using FTP');
                             const [address] = this.connection.getFTPInfo();
-                            // TODO: get configured port
-                            await this.ftpClient.openConnection(address, 21, 'grblHAL', 'grblHAL');
+                            const FTPPort = Number(this.runner.getSetting('$308', 21));
+                            await this.ftpClient.openConnection(address, FTPPort, 'grblHAL', 'grblHAL');
                             await this.ftpClient.sendFiles(files);
                             return;
                         }
