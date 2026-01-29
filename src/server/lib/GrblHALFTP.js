@@ -31,17 +31,23 @@ export class GrblHALFTP extends events.EventEmitter {
             console.log('Type', info.type);
             console.log('Transferred', info.bytes);
             console.log('Transferred Overall', info.bytesOverall);
+            const progress = (info.bytesOverall / info.bytes) * 100;
+            this.logger(`Progress: ${progress.toFixed(1)}`);
+            this.emit('progress', progress);
         });
     }
 
     async sendFile(fileData) {
-        console.log(fileData);
         const { name, data } = fileData;
         const dataStream = Readable.from(data);
+        this.emit('start');
         await this.client.uploadFrom(dataStream, name);
         this.client.close();
         this.client = null;
+        this.emit('complete');
     }
 
-    sendFiles(files = []) {}
+    sendFiles(files = []) {
+        this.emit('complete');
+    }
 }

@@ -218,8 +218,12 @@ class GrblHalController {
     // Macro button resume
     programResumeTimeout = null;
 
+    // SD card communication protocols
     ymodem = null;
+
     ymodemTransferInProgress = false;
+
+    ftpClient = null;
 
     constructor(engine, connection, options) {
         log.debug('constructor');
@@ -1263,6 +1267,24 @@ class GrblHalController {
             setTimeout(() => {
                 this.command('sdcard:list');
             }, 150);
+        });
+
+        // FTP client
+        this.ftpClient = new GrblHALFTP();
+        this.ftpClient.on('start', (err) => {
+            this.emit('ymodem:start');
+        });
+        this.ftpClient.on('error', (err) => {
+            this.emit('ymodem:error', err);
+        });
+        this.ftpClient.on('complete', () => {
+            this.emit('ymodem:complete');
+            setTimeout(() => {
+                this.command('sdcard:list');
+            }, 150);
+        });
+        this.ftpClient.on('progress', (progress) => {
+            this.emit('ymodem:progress', progress);
         });
     }
 
@@ -2392,12 +2414,11 @@ class GrblHalController {
                 console.log('Am I network? ', this.connection.isNetwork());
                 if (this.connection.isNetwork()) {
                     console.log('Handle using FTP');
-                    const ftpClient = new GrblHALFTP();
                     const [address] = this.connection.getFTPInfo();
                     console.log(`attempting to open ${address}`);
                     // TODO: get configured port
-                    await ftpClient.openConnection(address, 21, 'grblHAL', 'grblHAL');
-                    ftpClient.sendFile(fileData);
+                    await this.ftpClient.openConnection(address, 21, 'grblHAL', 'grblHAL');
+                    await this.ftpClient.sendFile(fileData);
                     return;
                 }
                 this.ymodem.sendFile(fileData, this.connection.getConnectionObject());
