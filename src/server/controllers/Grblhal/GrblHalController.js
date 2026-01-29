@@ -88,6 +88,7 @@ import ToolChanger from '../../lib/ToolChanger';
 import { GCODE_TRANSLATION_TYPE, translateGcode } from '../../lib/gcode-translation';
 
 import { YModem } from 'server/lib/YModemUSB';
+import { GrblHALFTP } from '../../lib/GrblHALFTP';
 // % commands
 const WAIT = '%wait';
 const PREHOOK_COMPLETE = '%pre_complete';
@@ -2386,8 +2387,19 @@ class GrblHalController {
 
                 this.writeln(`$FD=${filePath}`);
             },
-            'ymodem:upload': () => {
+            'ymodem:upload': async () => {
                 const [fileData] = args;
+                console.log('Am I network? ', this.connection.isNetwork());
+                if (this.connection.isNetwork()) {
+                    console.log('Handle using FTP');
+                    const ftpClient = new GrblHALFTP();
+                    const [address] = this.connection.getFTPInfo();
+                    console.log(`attempting to open ${address}`);
+                    // TODO: get configured port
+                    await ftpClient.openConnection(address, 21, 'grblHAL', 'grblHAL');
+                    ftpClient.sendFile(fileData);
+                    return;
+                }
                 this.ymodem.sendFile(fileData, this.connection.getConnectionObject());
             },
             'ymodem:uploadFiles': () => {

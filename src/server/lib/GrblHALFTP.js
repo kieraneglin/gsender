@@ -1,5 +1,6 @@
 import * as events from 'events';
 import { Client } from 'basic-ftp';
+import { Readable } from 'stream';
 
 export class GrblHALFTP extends events.EventEmitter {
     constructor() {
@@ -8,7 +9,7 @@ export class GrblHALFTP extends events.EventEmitter {
         this.logger = console.log;
     }
 
-    async openConnection(address, port, user, pass, secure = true) {
+    async openConnection(address, port, user, pass, secure = false) {
         if (this.client) {
             this.client.close();
             this.client = null;
@@ -24,9 +25,23 @@ export class GrblHALFTP extends events.EventEmitter {
             password: pass,
             secure: secure,
         });
+
+        this.client.trackProgress(info => {
+            console.log('File', info.name);
+            console.log('Type', info.type);
+            console.log('Transferred', info.bytes);
+            console.log('Transferred Overall', info.bytesOverall);
+        });
     }
 
-    sendFile(fileData) {}
+    async sendFile(fileData) {
+        console.log(fileData);
+        const { name, data } = fileData;
+        const dataStream = Readable.from(data);
+        await this.client.uploadFrom(dataStream, name);
+        this.client.close();
+        this.client = null;
+    }
 
-    sendFiles() {}
+    sendFiles(files = []) {}
 }
