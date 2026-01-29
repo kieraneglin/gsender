@@ -85,23 +85,27 @@ export const PositionInput: React.FC<PositionInputProps> = ({
                             disabled={disabled}
                         />
                     </div>
-                    {!hideZ && (
-                        <div className="flex items-center gap-1">
-                            <Label className="text-xs text-muted-foreground w-4">
-                                Z:
-                            </Label>
-                            <Input
-                                type="number"
-                                step="0.1"
-                                value={unitPosition.z}
-                                onChange={(e) =>
-                                    handleAxisChange('z', e.target.value)
-                                }
-                                className="w-20 h-8 text-xs border-gray-300 focus:border-blue-500 focus:ring-blue-500 portrait:w-24"
-                                disabled={disabled || disableZ}
-                            />
-                        </div>
-                    )}
+                {!hideZ && (
+                    <div
+                        className={`flex items-center gap-1${
+                            disableZ ? ' portrait:hidden' : ''
+                        }`}
+                    >
+                        <Label className="text-xs text-muted-foreground w-4">
+                            Z:
+                        </Label>
+                        <Input
+                            type="number"
+                            step="0.1"
+                            value={unitPosition.z}
+                            onChange={(e) =>
+                                handleAxisChange('z', e.target.value)
+                            }
+                            className="w-20 h-8 text-xs border-gray-300 focus:border-blue-500 focus:ring-blue-500 portrait:w-24"
+                            disabled={disabled || disableZ}
+                        />
+                    </div>
+                )}
                 </div>
                 <Button
                     size="sm"
