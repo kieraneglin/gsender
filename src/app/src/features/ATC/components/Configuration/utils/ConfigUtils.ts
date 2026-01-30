@@ -28,9 +28,12 @@ function calculateOffsetValue(data: OffsetManagement): number {
 
 export function generateP100(config: ConfigState, useValues: boolean): Macro {
     const key = useValues ? 'value' : 'default';
+    // When false, we use values for rack size and enable state
+    // and defaults for rest
+    // This is because of the first time setup wizard
     const content = [
-        `#<_tc_slots> = ${config.variables._tc_slots[key]}`,
-        `#<_tc_rack_enable> = ${config.variables._tc_rack_enable[key]}`,
+        `#<_tc_slots> = ${config.variables._tc_slots.value}`,
+        `#<_tc_rack_enable> = ${config.variables._tc_rack_enable.value}`,
         `#<_pres_sense> = ${config.variables._pres_sense[key]}`,
         `#<_holder_sense> = ${config.variables._holder_sense[key]}`,
         `#<_tc_slot_offset> = ${config.variables._tc_slot_offset[key]}`,
