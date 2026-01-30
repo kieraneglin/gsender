@@ -229,7 +229,7 @@ export const ConfigProvider: React.FC<ConfigProviderProps> = ({ children }) => {
         setProgress(0);
         setStatus({ type: 'idle', message: 'Applying configuration...' });
 
-        const content = generateAllMacros(config);
+        const content = generateAllMacros(config, true);
 
         const handleComplete = () => {
             controller.removeListener('ymodem:complete', handleComplete);
