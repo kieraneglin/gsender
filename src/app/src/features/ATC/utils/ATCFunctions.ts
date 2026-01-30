@@ -146,6 +146,38 @@ export function sendATCHomingDialog() {
     }
 }
 
+// Keep in sync with src/app/src/workers/colors.worker.js.
+const toolpathColors = [
+    new THREE.Color(0.29, 0.56, 0.89), // #4A90E2
+    new THREE.Color(0.89, 0.47, 0.25), // #E37840
+    new THREE.Color(0.84, 0.26, 0.59), // #D74296
+    new THREE.Color(0.26, 0.84, 0.73), // #42D7BA
+    new THREE.Color(0.65, 0.84, 0.26), // #A7D742
+    new THREE.Color(0.84, 0.35, 0.26), // #D75A42
+    new THREE.Color(0.63, 0.26, 0.84), // #A142D7
+    new THREE.Color(0.26, 0.59, 0.84), // #4296D7
+    new THREE.Color(0.84, 0.73, 0.26), // #D7BA42
+    new THREE.Color(0.26, 0.84, 0.39), // #42D763
+    new THREE.Color(0.84, 0.26, 0.77), // #D742C4
+    new THREE.Color(0.84, 0.26, 0.26), // #D74242
+];
+
+/**
+ * Always returns the index into `toolpathColors` for a given tool-change counter.
+ * Wraps via modulus when the counter exceeds the palette length.
+ */
+export const getComplementaryColour = (tcCounter) => {
+    const len = toolpathColors.length;
+    if (len === 0) return 0;
+    return ((tcCounter % len) + len) % len;
+};
+
+export const getToolpathColor = (tcCounter) => {
+    const paletteIndex = getComplementaryColour(tcCounter);
+    const color = toolpathColors[paletteIndex];
+    return color ? color.clone() : new THREE.Color('#FFF');
+};
+
 /**
  * Generates a complementary color from a given Three.js Color instance.
  * Each call produces a different variation of the complementary color.
