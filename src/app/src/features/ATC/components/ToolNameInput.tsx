@@ -118,7 +118,7 @@ export function ToolNameInput({
                     {filteredOptions.map((option) => (
                         <div
                             key={option}
-                            className="cursor-pointer px-2 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-100 dark:hover:bg-gray-700"
+                            className="cursor-pointer px-2 py-2 portrait:py-3 text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-100 dark:hover:bg-gray-700"
                             onMouseDown={(e) => {
                                 e.preventDefault();
                                 setToolName(id, option);
