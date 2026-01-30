@@ -327,7 +327,7 @@ class GrblHalRunner extends events.EventEmitter {
             // Ignore prb output for tool 0 (empty) since nothing to update
             // Ignore PRB if no success on probe
             const currentTool = this.state.status.currentTool;
-            console.log(value);
+
             if (name === 'PRB' && value.result === 1 && currentTool > 0) {
                 const nextSettings = {
                     ...this.settings,
