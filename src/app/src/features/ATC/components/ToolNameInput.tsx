@@ -4,20 +4,52 @@ import {
     setToolName,
 } from 'app/features/ATC/utils/ATCFunctions.ts';
 import { Input } from 'app/components/shadcn/Input.tsx';
+import pubsub from 'pubsub-js';
 
 const MOCK_TOOL_OPTIONS = [
-    '1/8in End Mill',
-    '1/4in End Mill',
-    '1/2in End Mill',
-    '90deg V-Bit',
-    '30deg V-Bit',
-    'Downcut Spiral',
-    'Upcut Spiral',
-    'Ball Nose 1/8in',
-    'Ball Nose 1/4in',
-    'Surfacing Bit 1in',
-    'Drill Bit 1/8in',
-    'Chamfer Bit 45deg',
+    'Surfacing Bit - 1-1/2"',
+    'End Mill (Ball Nose) - 1/8"',
+    'End Mill (Up Cut) - 1/4"',
+    'Surfacing Bit - 22mm',
+    'End Mill (Up Cut) - 1/8"',
+    'End Mill (Up Cut) - 3/8"',
+    'End Mill (Down Cut) - 3/8"',
+    'End Mill (Down Cut) - 1/4"',
+    'End Mill (Down Cut) - 1/8"',
+    'End Mill (Down Cut) - 1/16"',
+    'End Mill (Compression) - 3/8"',
+    'End Mill (Compression) - 1/4"',
+    'End Mill (Compression) - 1/8"',
+    'End Mill (Roughing) - 3/8"',
+    'End Mill (Roughing) - 1/4"',
+    'End Mill (Roughing) - 1/8"',
+    'End Mill (Corncob) - 1/16" / 1.6mm',
+    'End Mill (Single Flute) - 1/4"',
+    'End Mill (Up Cut) - 1/16"',
+    'End Mill (Tapered Ball Nose) - 3/8"',
+    'End Mill (Tapered Ball Nose) - 1/4"',
+    'End Mill (Tapered Ball Nose) - 1/8"',
+    'End Mill (Single Flute) - 1/8"',
+    'End Mill (Ball Nose) - 1/4"',
+    'End Mill (Ball Nose) - 3/8"',
+    'V-Bit - 120 Degree',
+    'V-Bit - 90 Degree',
+    'V-Bit - 60 Degree',
+    'V-Bit - 30 Degree',
+    'V-Bit (Down Cut) - 90 Degree',
+    'V-Bit (Down Cut) - 60 Degree',
+    'V-Bit (Down Cut) - 30 Degree',
+    'Round Groove Bit - 1" x 1-1/4"',
+    'Round Groove Bit - 3/4" x 1-1/4"',
+    'Round Groove Bit - 1/2" x 1-1/4"',
+    'Bowl Bit - 1" x 3/4" x R3/8"',
+    'Bowl Bit - 5/8" x 5/8" x R1/4"',
+    'Bowl Bit - 3/8" x 1/2" x R1/8"',
+    'Roundover Bit - R3/8"',
+    'Roundover Bit - R1/4"',
+    'Roundover Bit - R1/8"',
+    'Drill Bit - 1/4"',
+    'Drill Bit - 1/8"',
 ];
 
 export function ToolNameInput({
@@ -35,6 +67,17 @@ export function ToolNameInput({
         const initialName = storedName === '-' ? nickname : storedName;
         setName(initialName === '-' ? '' : initialName);
     }, []);
+
+    useEffect(() => {
+        const token = pubsub.subscribe('toolnameinput:open', (_msg, openId) => {
+            if (openId !== id) {
+                setOpen(false);
+            }
+        });
+        return () => {
+            pubsub.unsubscribe(token);
+        };
+    }, [id]);
 
     function handleNameRemap(e) {
         const value = e.target.value;
@@ -58,23 +101,24 @@ export function ToolNameInput({
                 type="text"
                 value={name}
                 onChange={handleNameRemap}
-                onFocus={() => setOpen(true)}
-                onClick={() => setOpen(true)}
+                onFocus={() => {
+                    setOpen(true);
+                    pubsub.publish('toolnameinput:open', id);
+                }}
+                onClick={() => {
+                    setOpen(true);
+                    pubsub.publish('toolnameinput:open', id);
+                }}
                 onBlur={() => setOpen(false)}
                 disabled={id < 1}
                 wrapperClassName="relative"
             />
             {open && id >= 1 && (
                 <div className="absolute left-0 right-0 top-full z-50 mt-1 max-h-56 overflow-auto rounded-md border border-gray-200 bg-white shadow-md dark:border-gray-600 dark:bg-dark">
-                    {filteredOptions.length === 0 && (
-                        <div className="px-2 py-1 text-xs text-gray-500">
-                            No matches
-                        </div>
-                    )}
                     {filteredOptions.map((option) => (
                         <div
                             key={option}
-                            className="cursor-pointer px-2 py-1 text-xs text-gray-700 hover:bg-gray-100 dark:text-gray-100 dark:hover:bg-gray-700"
+                            className="cursor-pointer px-2 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-100 dark:hover:bg-gray-700"
                             onMouseDown={(e) => {
                                 e.preventDefault();
                                 setToolName(id, option);

@@ -9,6 +9,7 @@ import {
 } from 'app/features/ATC/components/ToolTable.tsx';
 import { Confirm } from 'app/components/ConfirmationDialog/ConfirmationDialogLib.ts';
 import * as THREE from 'three';
+import pubsub from 'pubsub-js';
 
 export function unimplemented() {
     toast.info('Unimplemented :(');
@@ -63,6 +64,7 @@ export function setToolName(id, value) {
         [id]: value,
     };
     store.set(`widgets.atc.toolMap`, toolMap);
+    pubsub.publish('toolmap:updated', { id, value, toolMap });
 }
 
 export function lookupSpecificTool(

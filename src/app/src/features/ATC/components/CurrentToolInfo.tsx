@@ -8,10 +8,12 @@ import { useToolChange } from 'app/features/ATC/utils/ToolChangeContext.tsx';
 import { Wrench } from 'lucide-react';
 import Button from 'app/components/Button';
 import { toolStateThemes } from 'app/features/ATC/utils/ATCiConstants.ts';
+import pubsub from 'pubsub-js';
 
 export function CurrentToolInfo({ status = 'probed', disabled }) {
     const { rackSize, connected } = useToolChange();
     const [spindleTool, setSpindleTool] = useState(0);
+    const [toolMapVersion, setToolMapVersion] = useState(0);
     const [selectedTool, setSelectedTool] = useState<ToolInstance>({
         id: 0,
         nickname: '-',
@@ -58,7 +60,16 @@ export function CurrentToolInfo({ status = 'probed', disabled }) {
                 setSelectedTool(populatedTool);
             }
         }
-    }, [spindleTool, toolTable, connected, rackSize]);
+    }, [spindleTool, toolTable, connected, rackSize, toolMapVersion]);
+
+    useEffect(() => {
+        const token = pubsub.subscribe('toolmap:updated', () => {
+            setToolMapVersion((prev) => prev + 1);
+        });
+        return () => {
+            pubsub.unsubscribe(token);
+        };
+    }, []);
 
     const getWidgetState = () => {
         if (currentTool === 0) {
