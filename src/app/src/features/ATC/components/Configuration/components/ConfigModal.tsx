@@ -37,13 +37,6 @@ export const ConfigModal: React.FC<ConfigModalProps> = ({
             });
         });
 
-        controller.addListener('ymodem:complete', () => {
-            setStatus({ type: 'idle', message: '' });
-            setTimeout(() => {
-                //controller.command('gcode', ['G65 P100', 'G65 P200']);
-            }, 1000);
-        });
-
         return () => {
             controller.removeListener('sdcard:json');
             controller.removeListener('ymodem:error');
