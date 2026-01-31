@@ -159,12 +159,14 @@ jobs:
         if: github.ref_type == 'branch'
         run: yarn run build-latest
       - name: Build macOS binaries
-        run: yarn run build:macos-arm64
-      - name: Log macOS build outputs
         shell: bash
         run: |
+          set +e
+          yarn run build:macos-arm64
+          status=$?
           ls -al output output/mac* || true
           find output -maxdepth 3 -name "*.app" -print || true
+          exit $status
       - name: Prepare release assets
         shell: bash
         run: |
