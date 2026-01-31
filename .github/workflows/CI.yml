@@ -117,6 +117,7 @@ jobs:
           draft: true
   build-macos:
     name: Build macOS packages
+    environment: CI
     runs-on: macos-latest
     strategy:
       matrix:
@@ -124,6 +125,11 @@ jobs:
     env:
       GITHUB_TOKEN: ${{ secrets.CI_TOKEN }}
       NODE_OPTIONS: --max-old-space-size=8192
+      APPLE_APP_SPECIFIC_PASSWORD: ${{ secrets.APPLE_APP_SPECIFIC_PASSWORD }}
+      APPLE_ID: ${{ secrets.APPLE_ID }}
+      APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+      CSC_KEY_PASSWORD: ${{ secrets.CSC_KEY_PASSWORD }}
+      CSC_LINK: ${{ secrets.CSC_LINK }}
     permissions:
       contents: write
     steps:
@@ -173,7 +179,19 @@ jobs:
         if: github.ref_type == 'branch'
         run: yarn run build-latest
       - name: Build macOS binaries
-        run: yarn run build:macos
+        shell: bash
+        run: |
+          set +e
+          DEBUG=electron-builder,electron-osx-sign yarn run build:macos-arm64
+          status=$?
+          ls -al output output/mac* || true
+          find output -maxdepth 4 -name "*.app" -print || true
+          if [ -d "output/mac-arm64/gSender Edge.app" ]; then
+            ls -al "output/mac-arm64/gSender Edge.app" || true
+            ls -al "output/mac-arm64/gSender Edge.app/Contents" || true
+            ls -al "output/mac-arm64/gSender Edge.app/Contents/MacOS" || true
+          fi
+          exit $status
       - name: Prepare release assets
         shell: bash
         run: |

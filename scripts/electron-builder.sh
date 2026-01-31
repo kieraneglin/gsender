@@ -74,6 +74,10 @@ fi
 
 # Run electron-builder with optimizations
 echo "Building with electron-builder..."
+CSC_IDENTITY_AUTO_DISCOVERY_VALUE=false
+if [ -n "$CSC_LINK" ] || [ -n "$CSC_NAME" ]; then
+    CSC_IDENTITY_AUTO_DISCOVERY_VALUE=true
+fi
 cross-env USE_HARD_LINKS=false \
-    CSC_IDENTITY_AUTO_DISCOVERY=false \
+    CSC_IDENTITY_AUTO_DISCOVERY=$CSC_IDENTITY_AUTO_DISCOVERY_VALUE \
     yarn electron-builder -- "$@"
