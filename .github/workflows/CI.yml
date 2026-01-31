@@ -162,10 +162,15 @@ jobs:
         shell: bash
         run: |
           set +e
-          yarn run build:macos-arm64
+          DEBUG=electron-builder,electron-osx-sign yarn run build:macos-arm64
           status=$?
           ls -al output output/mac* || true
-          find output -maxdepth 3 -name "*.app" -print || true
+          find output -maxdepth 4 -name "*.app" -print || true
+          if [ -d "output/mac-arm64/gSender Edge.app" ]; then
+            ls -al "output/mac-arm64/gSender Edge.app" || true
+            ls -al "output/mac-arm64/gSender Edge.app/Contents" || true
+            ls -al "output/mac-arm64/gSender Edge.app/Contents/MacOS" || true
+          fi
           exit $status
       - name: Prepare release assets
         shell: bash
