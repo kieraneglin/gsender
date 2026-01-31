@@ -107,6 +107,7 @@ jobs:
           draft: true
   build-macos:
     name: Build macOS packages
+    environment: CI
     runs-on: macos-latest
     strategy:
       matrix:
