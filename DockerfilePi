@@ -10,7 +10,10 @@ WORKDIR /app
 COPY . .
 
 RUN yarn install
-RUN yarn run build
+RUN npm run package-sync
+RUN yarn --cwd src install --production --ignore-scripts --non-interactive
+RUN if [ "$GITHUB_REF_TYPE" = "tag" ]; then npm run prebuild-prod; else npm run prebuild-latest; fi
+RUN if [ "$GITHUB_REF_TYPE" = "tag" ]; then yarn run build; else yarn run build-latest; fi
 RUN yarn run build:linux-arm64
 
 # rename package to PI-64Bit
