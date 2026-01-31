@@ -137,7 +137,10 @@
       "icon": "electron-build/icon.icns",
       "electronUpdaterCompatibility": ">=2.16",
       "darkModeSupport": true,
-      "mergeASARs": false
+      "mergeASARs": false,
+      "hardenedRuntime": true,
+      "entitlements": "electron-build/entitlements.mac.plist",
+      "entitlementsInherit": "electron-build/entitlements.mac.plist"
     },
     "dmg": {
       "background": "electron-build/background.png",
