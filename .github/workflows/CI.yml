@@ -19,7 +19,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        node-version: [20.x]
+        node-version: [22.x]
     env:
       GITHUB_TOKEN: ${{ secrets.CI_TOKEN }}
       NODE_OPTIONS: --max-old-space-size=8192
@@ -52,6 +52,16 @@ jobs:
         run: |
           yarn install
           yarn lint
+      - name: Sync app package and install app deps
+        run: |
+          npm run package-sync
+          yarn --cwd src install --production --ignore-scripts --non-interactive
+      - name: Prebuild (tag)
+        if: github.ref_type == 'tag'
+        run: npm run prebuild-prod
+      - name: Prebuild (branch)
+        if: github.ref_type == 'branch'
+        run: npm run prebuild-latest
       - name: Run "build" script
         if: github.ref_type == 'tag'
         run: yarn run build
@@ -110,7 +120,7 @@ jobs:
     runs-on: macos-latest
     strategy:
       matrix:
-        node-version: [20.x]
+        node-version: [22.x]
     env:
       GITHUB_TOKEN: ${{ secrets.CI_TOKEN }}
       NODE_OPTIONS: --max-old-space-size=8192
@@ -146,6 +156,16 @@ jobs:
         run: |
           yarn install
           yarn lint
+      - name: Sync app package and install app deps
+        run: |
+          npm run package-sync
+          yarn --cwd src install --production --ignore-scripts --non-interactive
+      - name: Prebuild (tag)
+        if: github.ref_type == 'tag'
+        run: npm run prebuild-prod
+      - name: Prebuild (branch)
+        if: github.ref_type == 'branch'
+        run: npm run prebuild-latest
       - name: Run "build" script
         if: github.ref_type == 'tag'
         run: yarn run build
@@ -208,7 +228,7 @@ jobs:
     runs-on: windows-latest
     strategy:
       matrix:
-        node-version: [20.x]
+        node-version: [22.x]
     env:
       GITHUB_TOKEN: ${{ secrets.CI_TOKEN }}
       NODE_OPTIONS: --max-old-space-size=8192
@@ -242,6 +262,16 @@ jobs:
       - name: Install necessary dependencies and perform initial checks
         run: |
           yarn install
+      - name: Sync app package and install app deps
+        run: |
+          npm run package-sync
+          yarn --cwd src install --production --ignore-scripts --non-interactive
+      - name: Prebuild (tag)
+        if: github.ref_type == 'tag'
+        run: npm run prebuild-prod
+      - name: Prebuild (branch)
+        if: github.ref_type == 'branch'
+        run: npm run prebuild-latest
       - name: Run "build-latest" script
         if: github.ref_type == 'tag'
         run: yarn run build

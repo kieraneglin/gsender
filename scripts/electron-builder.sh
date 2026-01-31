@@ -22,6 +22,12 @@ DIST_DIR="$__dirname/../dist/gsender"
 NODE_MODULES_DIR="$DIST_DIR/node_modules"
 PACKAGE_JSON="$DIST_DIR/package.json"
 YARN_LOCK="$DIST_DIR/yarn.lock"
+MAIN_JS="$DIST_DIR/main.js"
+
+if [ ! -f "$MAIN_JS" ]; then
+    echo "main.js missing; building electron main bundle"
+    node "$__dirname/../esbuild.config.js" --production --target=electron
+fi
 
 pushd "$DIST_DIR"
 
