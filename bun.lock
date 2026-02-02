@@ -48,6 +48,7 @@
         "@xterm/xterm": "^5.5.0",
         "autoprefixer": "^10.4.19",
         "axios": "^1.2.4",
+        "basic-ftp": "^5.1.0",
         "bcrypt-nodejs": "0.0.3",
         "body-parser": "~1.18.3",
         "buffer-chunks": "^0.1.1",
@@ -1480,6 +1481,8 @@
     "baseline-browser-mapping": ["baseline-browser-mapping@2.9.5", "", { "bin": { "baseline-browser-mapping": "dist/cli.js" } }, "sha512-D5vIoztZOq1XM54LUdttJVc96ggEsIfju2JBvht06pSzpckp3C7HReun67Bghzrtdsq9XdMGbSSB3v3GhMNmAA=="],
 
     "basic-auth": ["basic-auth@2.0.1", "", { "dependencies": { "safe-buffer": "5.1.2" } }, "sha512-NF+epuEdnUYVlGuhaxbbq+dvJttwLnGY+YixlXlME5KpQ5W3CnXA5cVTneY3SPbPDRkcjMbifrwmFYcClgOZeg=="],
+
+    "basic-ftp": ["basic-ftp@5.1.0", "", {}, "sha512-RkaJzeJKDbaDWTIPiJwubyljaEPwpVWkm9Rt5h9Nd6h7tEXTJ3VB4qxdZBioV7JO5yLUaOKwz7vDOzlncUsegw=="],
 
     "bcrypt-nodejs": ["bcrypt-nodejs@0.0.3", "", {}, "sha512-NmTbLm867btBHCBZ222FQXkQKzecB0KG6pTXFa6NeTVZaSnLfCsx7EK2PL3J+kX8xJThUquEBbhimRCKKZX9zA=="],
 
