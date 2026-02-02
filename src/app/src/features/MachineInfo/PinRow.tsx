@@ -27,7 +27,11 @@ export function PinIndicator({ on = false }: PinIndicatorProps) {
                 className="absolute inset-0 flex items-center justify-center text-white"
                 aria-hidden="true"
             >
-                {on ? <FaCheck className="w-2 h-2" /> : <FaTimes className="w-2 h-2" />}
+                {on ? (
+                    <FaCheck className="w-2.5 h-2.5" />
+                ) : (
+                    <FaTimes className="w-2.5 h-2.5" />
+                )}
             </span>
         </div>
     );
