@@ -127,9 +127,6 @@
       "createStartMenuShortcut": false,
       "include": "electron-build/installer.nsh"
     },
-    "publish": {
-      "provider": "github"
-    },
     "mac": {
       "category": "public.app-category.productivity",
       "target": [
