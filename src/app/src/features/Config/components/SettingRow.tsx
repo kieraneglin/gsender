@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { JSX } from 'react';
 import {
     gSenderSetting,
     gSenderSettingsValues,
@@ -147,6 +147,7 @@ export function SettingRow({
         isSettingDefault,
         getEEPROMDefaultValue,
         EEPROM,
+        isFirmwareCurrent,
     } = useSettings();
 
     const displaySetting = { ...setting };
@@ -246,7 +247,10 @@ export function SettingRow({
     }
 
     if (connected && setting.type === 'eeprom') {
-        const idToUse = setting.remap ? setting.remap : setting.eID;
+        let idToUse = setting.eID;
+        if (Object.hasOwn(setting, 'remap') && isFirmwareCurrent) {
+            idToUse = setting.remap;
+        }
         return (
             <EEPROMSettingRow
                 eID={idToUse}
