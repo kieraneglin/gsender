@@ -297,6 +297,13 @@ export const SettingsMenu: SettingsMenuSection[] = [
                         type: 'boolean',
                     },
                     {
+                        label: 'Rotary diameter offset',
+                        key: 'widgets.visualizer.rotaryDiameterOffsetEnabled',
+                        description:
+                            'Apply rotary visualization offset when a cylinder diameter is found in the file.',
+                        type: 'boolean',
+                    },
+                    {
                         label: 'Lightweight options',
                         key: 'widgets.visualizer.liteOption',
                         description:

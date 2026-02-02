@@ -35,6 +35,7 @@ interface WorkerData {
     accelerations?: any;
     maxFeedrates?: any;
     atcEnabled?: boolean;
+    rotaryDiameterOffsetEnabled?: boolean;
     isSecondary: boolean;
     activeVisualizer: VISUALIZER_TYPES_T;
 }
@@ -76,6 +77,7 @@ const parseGcodeComments = (line: string): string =>
 const parseRotaryMetadata = (raw: string): RotaryMetadata => {
     const diameterMatch = raw.match(/Cylinder\s*Dia\s*:\s*([0-9.+-]+)/i);
     const diameter = diameterMatch ? Number(diameterMatch[1]) : Number.NaN;
+    
     const radius =
         Number.isFinite(diameter) && diameter > 0 ? diameter / 2 : null;
 
@@ -99,12 +101,14 @@ self.onmessage = function ({ data }: { data: WorkerData }) {
         accelerations,
         maxFeedrates,
         atcEnabled,
+        rotaryDiameterOffsetEnabled = true,
         isSecondary,
         activeVisualizer,
     } = data;
 
     const { radius: rotaryRadius, hasYAxisMoves } = parseRotaryMetadata(content);
-    const shouldOffsetRotaryRadius = rotaryRadius !== null && !hasYAxisMoves;
+    const shouldOffsetRotaryRadius =
+        rotaryDiameterOffsetEnabled && rotaryRadius !== null && !hasYAxisMoves;
     const applyRotaryRadiusOffset = (value: number): number =>
         shouldOffsetRotaryRadius ? value + (rotaryRadius as number) : value;
 

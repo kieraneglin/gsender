@@ -232,6 +232,10 @@ export function* initialize(): Generator<any, void, any> {
                 _get(reduxState, 'controller.settings.settings.$113', 3000.0),
             ),
         };
+        const rotaryDiameterOffsetEnabled = store.get(
+            'widgets.visualizer.rotaryDiameterOffsetEnabled',
+            false,
+        );
         const atcFlag: string = get(
             reduxStore,
             'controller.settings.info.NEWOPT.ATC',
@@ -286,6 +290,7 @@ export function* initialize(): Generator<any, void, any> {
                     accelerations,
                     maxFeedrates,
                     atcEnabled,
+                    rotaryDiameterOffsetEnabled,
                 });
             } else {
                 reduxStore.dispatch(
@@ -338,6 +343,7 @@ export function* initialize(): Generator<any, void, any> {
             accelerations,
             maxFeedrates,
             atcEnabled,
+            rotaryDiameterOffsetEnabled,
         });
     };
 
