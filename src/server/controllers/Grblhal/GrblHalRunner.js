@@ -325,8 +325,10 @@ class GrblHalRunner extends events.EventEmitter {
             // Update tool offsets for current tool based on PRB results
             // This is necessary in order to update offsets mid tool change or toolpath
             // Ignore prb output for tool 0 (empty) since nothing to update
+            // Ignore PRB if no success on probe
             const currentTool = this.state.status.currentTool;
-            if (name === 'PRB' && currentTool > 0) {
+
+            if (name === 'PRB' && value.result === 1 && currentTool > 0) {
                 const nextSettings = {
                     ...this.settings,
                     toolTable: {
@@ -572,6 +574,10 @@ class GrblHalRunner extends events.EventEmitter {
         return !_.isEmpty(this.settings.settings);
     }
 
+    getSetting(key, defaultValue = '') {
+        return _.get(this.settings.settings, key, defaultValue);
+    }
+
     hasAXS() {
         const axs = _.get(this.state, 'axes.axes', []);
         return !_.isEmpty(axs);
@@ -582,12 +588,10 @@ class GrblHalRunner extends events.EventEmitter {
     }
 
     clearSDStatus() {
-        console.log('clearSDStatus');
         this.state.status.sdCard = false;
     }
 
     setSDStatus() {
-        console.log('setSDStatus');
         this.state.status.sdCard = true;
     }
 

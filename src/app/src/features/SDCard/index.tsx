@@ -8,7 +8,6 @@ const SDCardElement = () => {
     const { isMounted, setUploadProgress, setUploadState, isConnected } =
         useSDCard();
     useEffect(() => {
-        console.log('Headed to SD card element');
         if (isConnected) {
             controller.command('sdcard:list');
         }

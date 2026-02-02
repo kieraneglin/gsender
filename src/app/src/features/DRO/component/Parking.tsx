@@ -11,7 +11,7 @@ import {
 } from 'app/constants';
 import useKeybinding from 'app/lib/useKeybinding';
 import useShuttleEvents from 'app/hooks/useShuttleEvents';
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import Tooltip from 'app/components/Tooltip';
 import { get, includes } from 'lodash';
 import reduxStore from 'app/store/redux';
@@ -34,6 +34,12 @@ export function Parking({
     isConnected = false,
     homingEnabled = false,
 }) {
+    const disabledRef = useRef(disabled);
+
+    useEffect(() => {
+        disabledRef.current = disabled;
+    }, [disabled]);
+
     const shortcutIsDisabled = () => {
         const isConnected = get(
             reduxStore.getState(),
@@ -65,10 +71,8 @@ export function Parking({
             isActive: true,
             category: LOCATION_CATEGORY,
             callback: () => {
-                if (shortcutIsDisabled()) {
-                    return;
-                }
-                goToParkLocation();
+                if (disabledRef.current || shortcutIsDisabled())
+                    goToParkLocation();
             },
         },
     };
@@ -88,7 +92,7 @@ export function Parking({
                 disabled={disabled}
                 icon={<RiParkingFill className="w-4 h-4" />}
                 variant="alt"
-                className="portrait:min-w-14"
+                size="responsive"
                 onClick={goToParkLocation}
             />
         </Tooltip>

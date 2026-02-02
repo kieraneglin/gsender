@@ -216,6 +216,7 @@ export function* initialize(): Generator<any, void, any> {
             xAccel: _get(reduxState, 'controller.settings.settings.$120'),
             yAccel: _get(reduxState, 'controller.settings.settings.$121'),
             zAccel: _get(reduxState, 'controller.settings.settings.$122'),
+            aAccel: _get(reduxState, 'controller.settings.settings.$123'),
         };
         const maxFeedrates = {
             xMaxFeed: Number(
@@ -226,6 +227,9 @@ export function* initialize(): Generator<any, void, any> {
             ),
             zMaxFeed: Number(
                 _get(reduxState, 'controller.settings.settings.$112', 3000.0),
+            ),
+            aMaxFeed: Number(
+                _get(reduxState, 'controller.settings.settings.$113', 3000.0),
             ),
         };
         const atcFlag: string = get(
@@ -814,9 +818,6 @@ export function* initialize(): Generator<any, void, any> {
             //     'controller.settings.settings.$22',
             // );
 
-            console.log(error);
-            console.log('YURRR');
-
             const showLineWarnings = store.get(
                 'widgets.visualizer.showLineWarnings',
                 false,
@@ -915,7 +916,7 @@ export function* initialize(): Generator<any, void, any> {
         },
     );
 
-    controller.addListener('settings:alarm', (data: BasicObject) => {
+    controller.addListener('settings:alarms', (data: BasicObject) => {
         reduxStore.dispatch(updateAlarmDescriptions({ alarms: data }));
     });
 

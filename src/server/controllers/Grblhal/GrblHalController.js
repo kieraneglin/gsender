@@ -88,6 +88,7 @@ import ToolChanger from '../../lib/ToolChanger';
 import { GCODE_TRANSLATION_TYPE, translateGcode } from '../../lib/gcode-translation';
 
 import { YModem } from 'server/lib/YModemUSB';
+import { GrblHALFTP } from '../../lib/GrblHALFTP';
 // % commands
 const WAIT = '%wait';
 const PREHOOK_COMPLETE = '%pre_complete';
@@ -217,8 +218,12 @@ class GrblHalController {
     // Macro button resume
     programResumeTimeout = null;
 
+    // SD card communication protocols
     ymodem = null;
+
     ymodemTransferInProgress = false;
+
+    ftpClient = null;
 
     constructor(engine, connection, options) {
         log.debug('constructor');
@@ -1262,6 +1267,24 @@ class GrblHalController {
             setTimeout(() => {
                 this.command('sdcard:list');
             }, 150);
+        });
+
+        // FTP client
+        this.ftpClient = new GrblHALFTP();
+        this.ftpClient.on('start', (err) => {
+            this.emit('ymodem:start');
+        });
+        this.ftpClient.on('error', (err) => {
+            this.emit('ymodem:error', err);
+        });
+        this.ftpClient.on('complete', () => {
+            this.emit('ymodem:complete');
+            setTimeout(() => {
+                this.command('sdcard:list');
+            }, 150);
+        });
+        this.ftpClient.on('progress', (progress) => {
+            this.emit('ymodem:progress', progress);
         });
     }
 
@@ -2357,6 +2380,7 @@ class GrblHalController {
                 this.emit('controller:state', GRBLHAL, this.runner.state);
 
                 if (type === 'cnc') {
+                    console.log('this was called');
                     this.write('$FM\n$F\n');
                     return;
                 }
@@ -2385,23 +2409,38 @@ class GrblHalController {
 
                 this.writeln(`$FD=${filePath}`);
             },
-            'ymodem:upload': () => {
+            'ymodem:upload': async () => {
                 const [fileData] = args;
+                if (this.connection.isNetwork()) {
+                    console.log('Handle using FTP');
+                    const [address] = this.connection.getFTPInfo();
+                    const FTPPort = Number(this.runner.getSetting('$308', 21));
+                    await this.ftpClient.openConnection(address, FTPPort, 'grblHAL', 'grblHAL');
+                    await this.ftpClient.sendFile(fileData);
+                    return;
+                }
                 this.ymodem.sendFile(fileData, this.connection.getConnectionObject());
             },
             'ymodem:uploadFiles': () => {
                 const [files] = args;
 
                 this.command('sdcard:mount');
-                setTimeout(() => {
+                setTimeout(async () => {
                     if (this.runner.isSDMounted()) {
-                        console.log('starting sending');
+                        if (this.connection.isNetwork()) {
+                            console.log('Handle using FTP');
+                            const [address] = this.connection.getFTPInfo();
+                            const FTPPort = Number(this.runner.getSetting('$308', 21));
+                            await this.ftpClient.openConnection(address, FTPPort, 'grblHAL', 'grblHAL');
+                            await this.ftpClient.sendFiles(files);
+                            return;
+                        }
                         this.ymodem.sendFiles(files, this.connection.getConnectionObject());
                     } else {
                         console.log('Failing, SD not mounted');
                         this.emit('ymodem:error', 'SD Card failed to mount, unable to upload files.');
                     }
-                }, 2500);
+                }, 1500);
             },
             'ymodem:cancel': () => {
                 console.log('cancel upload');
