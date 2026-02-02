@@ -130,7 +130,7 @@ export function GoTo({ units, wpos, disabled }: GotoProps) {
                         disabled={disabled}
                         icon={<FaPaperPlane />}
                         variant="secondary"
-                        className="portrait:min-w-14"
+                        size="responsive"
                     />
                 </PopoverTrigger>
             </Tooltip>

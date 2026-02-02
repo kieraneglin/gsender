@@ -103,10 +103,13 @@ export function JogWheel({
         <svg
             viewBox="0 0 200 200"
             fill="none"
-            className={cn('hover:transition-all duration-200 w-[180px] portrait:w-[210px] h-[180px] portrait:h-[210px]', {
-                'cursor-pointer': canClick,
-                'cursor-not-allowed': !canClick,
-            })}
+            className={cn(
+                'hover:transition-all duration-200 w-[180px] portrait:w-[210px] h-[180px] portrait:h-[210px]',
+                {
+                    'cursor-pointer': canClick,
+                    'cursor-not-allowed': !canClick,
+                },
+            )}
             xmlns="http://www.w3.org/2000/svg"
         >
             <path

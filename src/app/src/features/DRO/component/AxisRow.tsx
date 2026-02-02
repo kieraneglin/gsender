@@ -53,7 +53,7 @@ export function AxisRow({
                             zeroWCS(axis, 0);
                         }
                     }}
-                    className="portrait:min-w-14"
+                    size="responsive"
                     disabled={disabled}
                     variant={homingMode ? 'alt' : 'secondary'}
                     tooltip={{
@@ -71,7 +71,7 @@ export function AxisRow({
                         <Button
                             disabled={disabled}
                             variant="secondary"
-                            size="sm"
+                            size="responsive"
                         >
                             <span className="font-bold font-mono text-xl transition-all transition-duration-300">
                                 {`${label}0`}
@@ -114,7 +114,7 @@ export function AxisRow({
                 disabled={disabled || disableGotoZero}
                 onClick={() => gotoZero(axis)}
                 variant="alt"
-                className="portrait:min-w-14"
+                size="responsive"
                 tooltip={{
                     content: `Go to ${label}-axis zero`,
                 }}
