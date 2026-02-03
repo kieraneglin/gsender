@@ -346,6 +346,9 @@ const controllerSlice = createSlice({
             );
             state.sdcard.files = filteredFiles;
         },
+        emptyAllSDFiles: (state) => {
+            state.sdcard.files = [];
+        },
     },
 });
 
@@ -366,6 +369,7 @@ export const {
     updateSDCardMountStatus,
     addSDCardFileToList,
     clearSDCardFiles,
+    emptyAllSDFiles,
 } = controllerSlice.actions;
 
 export default controllerSlice.reducer;

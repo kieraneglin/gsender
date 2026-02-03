@@ -3,12 +3,15 @@ import { FileList } from 'app/features/SDCard/components/FileList.tsx';
 import { useSDCard } from 'app/features/SDCard/hooks/useSDCard.ts';
 import { useEffect } from 'react';
 import controller from 'app/lib/controller.ts';
+import redux from 'app/store/redux';
+import { emptyAllSDFiles } from 'app/store/redux/slices/controller.slice.ts';
 
 const SDCardElement = () => {
     const { isMounted, setUploadProgress, setUploadState, isConnected } =
         useSDCard();
     useEffect(() => {
         if (isConnected) {
+            redux.dispatch(emptyAllSDFiles());
             controller.command('sdcard:list');
         }
     }, []);
