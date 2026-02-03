@@ -1,4 +1,4 @@
-import React, { MouseEventHandler } from 'react';
+import React, { MouseEventHandler, useEffect } from 'react';
 import { Menu } from './components/Menu';
 import { Section } from './components/Section';
 import { Search } from 'app/features/Config/components/Search.tsx';
@@ -18,6 +18,7 @@ import {
 } from 'app/components/shadcn/Tabs';
 import { gSenderSetting, SettingsMenuSection } from './assets/SettingsMenu';
 import { convertEIDToNumber } from 'app/lib/numeral';
+import controller from 'app/lib/controller.ts';
 
 export function Config() {
     const { ref: inViewRef } = useInView({
@@ -27,6 +28,10 @@ export function Config() {
     const connected = useTypedSelector(
         (state: RootState) => state.connection.isConnected,
     );
+
+    const firmwareType = useTypedSelector(
+        (state: RootState) => state.controller.type,
+    );
     const [visibleSection, setVisibleSection] = React.useState('h-section-0');
     const [activeTab, setActiveTab] = React.useState('config');
 
@@ -35,6 +40,16 @@ export function Config() {
             setVisibleSection(entry.target.getAttribute('id'));
         }
     }
+
+    useEffect(() => {
+        if (connected) {
+            if (firmwareType === 'grblHAL') {
+                controller.command('gcode', ['$$', '$ESH', '$ES']);
+            } else {
+                controller.command('gcode', '$$');
+            }
+        }
+    }, []);
 
     const { settings, EEPROM } = useSettings();
 
