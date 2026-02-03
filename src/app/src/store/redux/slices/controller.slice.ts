@@ -347,6 +347,7 @@ const controllerSlice = createSlice({
             state.sdcard.files = filteredFiles;
         },
         emptyAllSDFiles: (state) => {
+            console.log('emptying SD list');
             state.sdcard.files = [];
         },
     },
