@@ -69,7 +69,7 @@ onmessage = function ({ data }) {
         theme,
         toolchanges,
     } = data;
-    let tcCounter = 0;
+    let tcCounter = 1;
     let savedColors = [];
 
     const updateLaserModeColors = () => {
