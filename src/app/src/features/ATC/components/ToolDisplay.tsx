@@ -1,7 +1,7 @@
 import Button from 'app/components/Button';
 import { unloadTool } from 'app/features/ATC/utils/ATCFunctions.ts';
 import LoadToolPopover from 'app/features/ATC/components/LoadToolPopover.tsx';
-import { DownloadCloud, UploadCloud } from 'lucide-react';
+import { Download, Upload } from 'lucide-react';
 import { CurrentToolInfo } from 'app/features/ATC/components/CurrentToolInfo.tsx';
 import { useToolChange } from 'app/features/ATC/utils/ToolChangeContext.tsx';
 export function ToolDisplay() {
@@ -18,7 +18,6 @@ export function ToolDisplay() {
                     disabled={disabled}
                     buttonSize="md"
                     buttonClassName="h-11 text-sm"
-                    buttonIcon={<DownloadCloud className="h-4 w-4 mr-2" />}
                 />
                 <Button
                     className="flex flex-row gap-2 items-center h-11 text-sm"
@@ -27,7 +26,7 @@ export function ToolDisplay() {
                     onClick={unloadTool}
                     disabled={disabled}
                 >
-                    <UploadCloud className="h-4 w-4 mr-2" />
+                    <Upload className="h-4 w-4 mr-2" />
                     Unload
                 </Button>
             </div>
