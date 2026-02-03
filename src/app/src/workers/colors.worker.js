@@ -69,10 +69,8 @@ onmessage = function ({ data }) {
         theme,
         toolchanges,
     } = data;
-    let tcCounter = 0;
+    let tcCounter = 1;
     let savedColors = [];
-    console.log(Object.keys(data));
-    console.log(toolchanges);
 
     const updateLaserModeColors = () => {
         const defaultColor = new THREE.Color(theme.get(LASER_PART));

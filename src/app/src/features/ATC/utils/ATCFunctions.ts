@@ -155,7 +155,7 @@ const toolpathColors = [
     new THREE.Color(0.84, 0.26, 0.59), // #D74296
     new THREE.Color(0.26, 0.84, 0.73), // #42D7BA
     new THREE.Color(0.65, 0.84, 0.26), // #A7D742
-    new THREE.Color(0.77, 0.30, 0.21), // #C44C36
+    new THREE.Color(0.77, 0.3, 0.21), // #C44C36
     new THREE.Color(0.63, 0.26, 0.84), // #A142D7
     new THREE.Color(0.26, 0.59, 0.84), // #4296D7
     new THREE.Color(0.84, 0.73, 0.26), // #D7BA42
