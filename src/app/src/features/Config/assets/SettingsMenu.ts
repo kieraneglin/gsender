@@ -297,6 +297,13 @@ export const SettingsMenu: SettingsMenuSection[] = [
                         type: 'boolean',
                     },
                     {
+                        label: 'Rotary diameter offset',
+                        key: 'widgets.visualizer.rotaryDiameterOffsetEnabled',
+                        description:
+                            'Apply rotary visualization offset when a cylinder diameter is found in the file.',
+                        type: 'boolean',
+                    },
+                    {
                         label: 'Lightweight options',
                         key: 'widgets.visualizer.liteOption',
                         description:
@@ -745,7 +752,10 @@ export const SettingsMenu: SettingsMenuSection[] = [
                                 '',
                             );
                             // Hidden if we are using AutoZero or BitZero touchplate
-                            return probeType === TOUCHPLATE_TYPE_AUTOZERO || probeType === TOUCHPLATE_TYPE_BITZERO;
+                            return (
+                                probeType === TOUCHPLATE_TYPE_AUTOZERO ||
+                                probeType === TOUCHPLATE_TYPE_BITZERO
+                            );
                         },
                     },
                     {
@@ -761,7 +771,10 @@ export const SettingsMenu: SettingsMenuSection[] = [
                                 '',
                             );
                             // Hidden if we are using AutoZero or BitZero touchplate
-                            return probeType === TOUCHPLATE_TYPE_AUTOZERO || probeType === TOUCHPLATE_TYPE_BITZERO;
+                            return (
+                                probeType === TOUCHPLATE_TYPE_AUTOZERO ||
+                                probeType === TOUCHPLATE_TYPE_BITZERO
+                            );
                         },
                     },
                     {
@@ -777,7 +790,10 @@ export const SettingsMenu: SettingsMenuSection[] = [
                                 '',
                             );
                             // Hidden if we are using AutoZero or BitZero touchplate
-                            return probeType === TOUCHPLATE_TYPE_AUTOZERO || probeType === TOUCHPLATE_TYPE_BITZERO;
+                            return (
+                                probeType === TOUCHPLATE_TYPE_AUTOZERO ||
+                                probeType === TOUCHPLATE_TYPE_BITZERO
+                            );
                         },
                     },
                     {
@@ -793,7 +809,10 @@ export const SettingsMenu: SettingsMenuSection[] = [
                                 '',
                             );
                             // Hidden if we are using AutoZero or BitZero touchplate
-                            return probeType === TOUCHPLATE_TYPE_AUTOZERO || probeType === TOUCHPLATE_TYPE_BITZERO;
+                            return (
+                                probeType === TOUCHPLATE_TYPE_AUTOZERO ||
+                                probeType === TOUCHPLATE_TYPE_BITZERO
+                            );
                         },
                     },
                     {

@@ -365,6 +365,7 @@ const defaultState: State = {
             cameraMode: 'pan', // 'pan' or 'rotate',
             theme: 'Dark',
             SVGEnabled: false,
+            rotaryDiameterOffsetEnabled: false,
             jobEndModal: true,
             maintenanceTaskNotifications: true,
             checkFile: false,

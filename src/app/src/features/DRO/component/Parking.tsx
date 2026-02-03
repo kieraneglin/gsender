@@ -92,7 +92,7 @@ export function Parking({
                 disabled={disabled}
                 icon={<RiParkingFill className="w-4 h-4" />}
                 variant="alt"
-                className="portrait:min-w-14"
+                size="responsive"
                 onClick={goToParkLocation}
             />
         </Tooltip>

@@ -56,7 +56,7 @@ export interface JogValueObject {
     feedrate: number;
 }
 
-export function Jogging({ hideRotary = false}) {
+export function Jogging({ hideRotary = false }) {
     const { mode } = useWorkspaceState();
     const rotaryWidgetState = useWidgetState('rotary');
     const [initialized, setInitialized] = useState(false);
@@ -945,12 +945,13 @@ export function Jogging({ hideRotary = false}) {
 
     const isRotaryMode = mode === 'ROTARY';
     const showA =
-        !hideRotary && (firmwareType === 'grblHAL' || isRotaryMode) &&
+        !hideRotary &&
+        (firmwareType === 'grblHAL' || isRotaryMode) &&
         rotaryWidgetState.tab.show;
 
     return (
         <>
-            <div className="flex flex-row w-full gap-2 max-xl:gap-2 justify-around items-center select-none xl:mt-4 max-xl:scale-90">
+            <div className="flex flex-row w-full gap-2 justify-around items-center select-none max-xl:scale-90">
                 <div className="min-w-[180px] portrait:min-w-[210px] relative">
                     <JogWheel
                         distance={jogSpeed.xyStep}
