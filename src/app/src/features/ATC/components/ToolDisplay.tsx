@@ -16,13 +16,13 @@ export function ToolDisplay() {
                     setIsOpen={setLoadToolOpen}
                     tools={tools}
                     disabled={disabled}
-                    buttonSize="lg"
-                    buttonClassName="h-14 text-base"
+                    buttonSize="md"
+                    buttonClassName="h-12 text-sm"
                 />
                 <Button
-                    className="flex flex-row gap-2 items-center h-14 text-base"
+                    className="flex flex-row gap-2 items-center h-12 text-sm"
                     variant="secondary"
-                    size="lg"
+                    size="md"
                     onClick={unloadTool}
                     disabled={disabled}
                 >

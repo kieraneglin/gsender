@@ -33,7 +33,7 @@ export function CurrentToolInfo({ disabled }: { disabled?: boolean }) {
     //const currentTool = 1;
 
     useEffect(() => {
-        if (currentTool) {
+        if (currentTool !== undefined && currentTool !== null) {
             setSpindleTool(currentTool);
         }
     }, [currentTool]);
@@ -49,9 +49,12 @@ export function CurrentToolInfo({ disabled }: { disabled?: boolean }) {
         controller.command('gcode', [`G65P301Q${id}`, '$#']);
     };
 
+    const isEmptyTool =
+        currentTool === undefined || currentTool === null || currentTool <= 0;
+
     useEffect(() => {
-        if (currentTool) {
-            let populatedTool = lookupSpecificTool(
+        if (!isEmptyTool) {
+            const populatedTool = lookupSpecificTool(
                 spindleTool,
                 toolTable,
                 rackSize,
@@ -60,7 +63,7 @@ export function CurrentToolInfo({ disabled }: { disabled?: boolean }) {
                 setSelectedTool(populatedTool);
             }
         }
-    }, [spindleTool, toolTable, connected, rackSize, toolMapVersion]);
+    }, [spindleTool, toolTable, connected, rackSize, toolMapVersion, isEmptyTool]);
 
     useEffect(() => {
         const token = pubsub.subscribe('toolmap:updated', () => {
@@ -72,7 +75,7 @@ export function CurrentToolInfo({ disabled }: { disabled?: boolean }) {
     }, []);
 
     const getWidgetState = () => {
-        if (currentTool === 0) {
+        if (isEmptyTool) {
             return toolStateThemes.empty;
         }
         const state = toolStateThemes[selectedTool.status];
@@ -84,7 +87,7 @@ export function CurrentToolInfo({ disabled }: { disabled?: boolean }) {
 
     const state = getWidgetState();
     const formattedOffset =
-        currentTool === 0 ? '-' : selectedTool.toolOffsets.z.toFixed(3);
+        isEmptyTool ? '-' : selectedTool.toolOffsets.z.toFixed(3);
     const BadgeIcon = state.icon;
 
     return (
@@ -101,7 +104,7 @@ export function CurrentToolInfo({ disabled }: { disabled?: boolean }) {
                             <span
                                 className={`${state.textColor} font-semibold text-lg`}
                             >
-                                {currentTool === 0
+                                {isEmptyTool
                                     ? 'Empty'
                                     : `T${selectedTool.id}`}
                             </span>
@@ -121,20 +124,20 @@ export function CurrentToolInfo({ disabled }: { disabled?: boolean }) {
                     </span>
                 </div>
 
-                <div className="mt-4 grid grid-cols-[1fr_auto] items-center gap-3">
-                    <div className="rounded-lg px-3 py-2 border border-gray-200 bg-white shadow-inner pointer-events-none select-none">
+                <div className="mt-3 grid grid-cols-[1fr_auto] items-center gap-3">
+                    <div className="rounded-lg px-2 py-1.5 border border-gray-200 bg-white shadow-inner pointer-events-none select-none">
                         <div
-                            className={`${state.textColor} font-mono text-2xl font-bold text-center`}
+                            className={`${state.textColor} font-mono text-xl font-bold text-center`}
                         >
                             {formattedOffset}
                         </div>
                     </div>
                     <Button
                         onClick={() => probeTool(currentTool)}
-                        disabled={disabled || currentTool === 0}
+                        disabled={disabled || isEmptyTool}
                         variant="primary"
                         size="custom"
-                        className="h-11 px-6 text-base"
+                        className="h-10 px-5 text-sm"
                     >
                         Probe
                     </Button>
