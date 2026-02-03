@@ -63,7 +63,14 @@ export function CurrentToolInfo({ disabled }: { disabled?: boolean }) {
                 setSelectedTool(populatedTool);
             }
         }
-    }, [spindleTool, toolTable, connected, rackSize, toolMapVersion, isEmptyTool]);
+    }, [
+        spindleTool,
+        toolTable,
+        connected,
+        rackSize,
+        toolMapVersion,
+        isEmptyTool,
+    ]);
 
     useEffect(() => {
         const token = pubsub.subscribe('toolmap:updated', () => {
@@ -86,14 +93,15 @@ export function CurrentToolInfo({ disabled }: { disabled?: boolean }) {
     };
 
     const state = getWidgetState();
-    const formattedOffset =
-        isEmptyTool ? '-' : selectedTool.toolOffsets.z.toFixed(3);
+    const formattedOffset = isEmptyTool
+        ? '-'
+        : selectedTool.toolOffsets.z.toFixed(3);
     const BadgeIcon = state.icon;
 
     return (
         <div className="w-full">
             <div
-                className={`${state.backgroundColor} ${state.borderColor} bg-opacity-10 border rounded-xl p-3 transition-all duration-200`}
+                className={`${state.backgroundColor} ${state.borderColor} bg-opacity-10 border rounded p-3 transition-all duration-200`}
             >
                 <div className="flex items-center justify-between gap-2">
                     <div className="flex items-center gap-3">
@@ -104,9 +112,7 @@ export function CurrentToolInfo({ disabled }: { disabled?: boolean }) {
                             <span
                                 className={`${state.textColor} font-semibold text-base`}
                             >
-                                {isEmptyTool
-                                    ? 'Empty'
-                                    : `T${selectedTool.id}`}
+                                {isEmptyTool ? 'Empty' : `T${selectedTool.id}`}
                             </span>
                             {selectedTool.nickname && (
                                 <span className="text-gray-600 text-xs">
