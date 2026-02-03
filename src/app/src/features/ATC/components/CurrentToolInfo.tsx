@@ -10,7 +10,7 @@ import Button from 'app/components/Button';
 import { toolStateThemes } from 'app/features/ATC/utils/ATCiConstants.ts';
 import pubsub from 'pubsub-js';
 
-export function CurrentToolInfo({ status = 'probed', disabled }) {
+export function CurrentToolInfo({ disabled }: { disabled?: boolean }) {
     const { rackSize, connected } = useToolChange();
     const [spindleTool, setSpindleTool] = useState(0);
     const [toolMapVersion, setToolMapVersion] = useState(0);
@@ -88,13 +88,15 @@ export function CurrentToolInfo({ status = 'probed', disabled }) {
     const BadgeIcon = state.icon;
 
     return (
-        <div className={'w-4/5'}>
+        <div className="w-full">
             <div
-                className={`${state.backgroundColor} ${state.borderColor} bg-opacity-10 border rounded-lg p-2 transition-all duration-200`}
+                className={`${state.backgroundColor} ${state.borderColor} bg-opacity-10 border rounded-xl p-4 transition-all duration-200`}
             >
-                <div className="flex items-center justify-between mb-3">
-                    <div className="flex items-center gap-2">
-                        <Wrench className={`${state.textColor} w-5 h-5`} />
+                <div className="flex items-center justify-between gap-3">
+                    <div className="flex items-center gap-3">
+                        <div className="h-10 w-10 rounded-lg border border-gray-200 bg-white/80 flex items-center justify-center">
+                            <Wrench className={`${state.textColor} w-5 h-5`} />
+                        </div>
                         <div className="flex flex-col">
                             <span
                                 className={`${state.textColor} font-semibold text-lg`}
@@ -112,25 +114,27 @@ export function CurrentToolInfo({ status = 'probed', disabled }) {
                     </div>
 
                     <span
-                        className={`${state.backgroundColor} ${state.borderColor} border-2 min-w-20 ${state.textColor} text-xs font-bold px-2 py-1 rounded-full flex items-center gap-1`}
+                        className={`${state.backgroundColor} ${state.borderColor} border-2 min-w-20 ${state.textColor} text-xs font-bold px-3 py-1 rounded-full flex items-center gap-1`}
                     >
                         <BadgeIcon className="w-3 h-3" />
                         {state.label}
                     </span>
                 </div>
 
-                <div className="flex items-center justify-between gap-3">
-                    <div className="w-32 bg-white rounded-lg px-2 py-1 shadow-inner border border-gray-200 pointer-events-none select-none">
+                <div className="mt-4 grid grid-cols-[1fr_auto] items-center gap-3">
+                    <div className="rounded-lg px-3 py-2 border border-gray-200 bg-white shadow-inner pointer-events-none select-none">
                         <div
-                            className={`${state.textColor} font-mono text-xl font-bold text-center`}
+                            className={`${state.textColor} font-mono text-2xl font-bold text-center`}
                         >
                             {formattedOffset}
                         </div>
                     </div>
                     <Button
                         onClick={() => probeTool(currentTool)}
-                        disabled={currentTool === 0}
+                        disabled={disabled || currentTool === 0}
                         variant="primary"
+                        size="custom"
+                        className="h-11 px-6 text-base"
                     >
                         Probe
                     </Button>

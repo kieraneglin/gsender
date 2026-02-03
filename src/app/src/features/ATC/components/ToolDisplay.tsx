@@ -1,37 +1,28 @@
 import Button from 'app/components/Button';
-import {
-    getToolAxisOffset,
-    lookupToolName,
-    unimplemented,
-    unloadTool,
-} from 'app/features/ATC/utils/ATCFunctions.ts';
-import { useTypedSelector } from 'app/hooks/useTypedSelector.ts';
-import { RootState } from 'app/store/redux';
-import { LoadToolFlyout } from 'app/features/ATC/components/LoadToolFlyout.tsx';
+import { unloadTool } from 'app/features/ATC/utils/ATCFunctions.ts';
 import LoadToolPopover from 'app/features/ATC/components/LoadToolPopover.tsx';
 import { PiEmpty } from 'react-icons/pi';
-import { useState } from 'react';
 import { CurrentToolInfo } from 'app/features/ATC/components/CurrentToolInfo.tsx';
 import { useToolChange } from 'app/features/ATC/utils/ToolChangeContext.tsx';
 export function ToolDisplay() {
-    const { tools, disabled, loadToolOpen, setLoadToolOpen, setLoadToolMode } =
-        useToolChange();
+    const { tools, disabled, loadToolOpen, setLoadToolOpen } = useToolChange();
 
     return (
-        <div className="w-full flex flex-col gap-1">
-            <div className="flex flex-col gap-1">
-                <CurrentToolInfo disabled={disabled} />
-            </div>
-            <div className="flex flex-row gap-4 w-full">
+        <div className="w-full h-full flex flex-col gap-4">
+            <CurrentToolInfo disabled={disabled} />
+            <div className="mt-auto grid w-full grid-cols-1 gap-3 sm:grid-cols-2">
                 <LoadToolPopover
                     isOpen={loadToolOpen}
                     setIsOpen={setLoadToolOpen}
                     tools={tools}
                     disabled={disabled}
+                    buttonSize="lg"
+                    buttonClassName="h-14 text-base"
                 />
                 <Button
-                    className="flex flex-row gap-2 items-center"
-                    variant="primary"
+                    className="flex flex-row gap-2 items-center h-14 text-base"
+                    variant="secondary"
+                    size="lg"
                     onClick={unloadTool}
                     disabled={disabled}
                 >
