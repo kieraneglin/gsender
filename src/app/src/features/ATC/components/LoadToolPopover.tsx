@@ -33,6 +33,7 @@ interface ToolChangerPopoverProps {
     tools?: ToolInstance[];
     buttonSize?: ButtonProps['size'];
     buttonClassName?: string;
+    buttonIcon?: React.ReactNode;
 }
 
 const ToolChangerPopover: React.FC<ToolChangerPopoverProps> = ({
@@ -42,6 +43,7 @@ const ToolChangerPopover: React.FC<ToolChangerPopoverProps> = ({
     tools = [],
     buttonSize,
     buttonClassName,
+    buttonIcon,
 }) => {
     const { mode, setLoadToolMode } = useToolChange();
     const [selectedToolId, setSelectedToolId] = useState<string>('1');
@@ -124,7 +126,7 @@ const ToolChangerPopover: React.FC<ToolChangerPopoverProps> = ({
                     className={buttonClassName}
                     onClick={handleLoadOpen}
                 >
-                    <Download className="w-4 h-4 mr-2" />
+                    {buttonIcon ?? <Download className="w-4 h-4 mr-2" />}
                     Load
                 </Button>
             </PopoverTrigger>

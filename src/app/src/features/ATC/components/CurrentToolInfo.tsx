@@ -93,16 +93,16 @@ export function CurrentToolInfo({ disabled }: { disabled?: boolean }) {
     return (
         <div className="w-full">
             <div
-                className={`${state.backgroundColor} ${state.borderColor} bg-opacity-10 border rounded-xl p-4 transition-all duration-200`}
+                className={`${state.backgroundColor} ${state.borderColor} bg-opacity-10 border rounded-xl p-3 transition-all duration-200`}
             >
-                <div className="flex items-center justify-between gap-3">
+                <div className="flex items-center justify-between gap-2">
                     <div className="flex items-center gap-3">
-                        <div className="h-10 w-10 rounded-lg border border-gray-200 bg-white/80 flex items-center justify-center">
+                        <div className="h-9 w-9 rounded-lg border border-gray-200 bg-white/80 flex items-center justify-center">
                             <Wrench className={`${state.textColor} w-5 h-5`} />
                         </div>
                         <div className="flex flex-col">
                             <span
-                                className={`${state.textColor} font-semibold text-lg`}
+                                className={`${state.textColor} font-semibold text-base`}
                             >
                                 {isEmptyTool
                                     ? 'Empty'
@@ -117,17 +117,17 @@ export function CurrentToolInfo({ disabled }: { disabled?: boolean }) {
                     </div>
 
                     <span
-                        className={`${state.backgroundColor} ${state.borderColor} border-2 min-w-20 ${state.textColor} text-xs font-bold px-3 py-1 rounded-full flex items-center gap-1`}
+                        className={`${state.backgroundColor} ${state.borderColor} border-2 min-w-18 ${state.textColor} text-xs font-bold px-2.5 py-1 rounded-full flex items-center gap-1`}
                     >
                         <BadgeIcon className="w-3 h-3" />
                         {state.label}
                     </span>
                 </div>
 
-                <div className="mt-3 grid grid-cols-[1fr_auto] items-center gap-3">
-                    <div className="rounded-lg px-2 py-1.5 border border-gray-200 bg-white shadow-inner pointer-events-none select-none">
+                <div className="mt-2.5 grid grid-cols-[1fr_auto] items-center gap-3">
+                    <div className="rounded-lg px-2 py-1 border border-gray-200 bg-white shadow-inner pointer-events-none select-none">
                         <div
-                            className={`${state.textColor} font-mono text-xl font-bold text-center`}
+                            className={`${state.textColor} font-mono text-lg font-bold text-center`}
                         >
                             {formattedOffset}
                         </div>
@@ -137,7 +137,7 @@ export function CurrentToolInfo({ disabled }: { disabled?: boolean }) {
                         disabled={disabled || isEmptyTool}
                         variant="primary"
                         size="custom"
-                        className="h-10 px-5 text-sm"
+                        className="h-9 px-4 text-sm"
                     >
                         Probe
                     </Button>
