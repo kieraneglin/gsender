@@ -112,14 +112,14 @@ export function Config() {
                     <TabsList className="w-full pb-0 border-b rounded-b-none">
                         <TabsTrigger
                             value="config"
-                            className="w-full"
+                            className="w-full dark:text-white"
                             onClick={() => setActiveTab('config')}
                         >
                             All Config
                         </TabsTrigger>
                         <TabsTrigger
                             value="eeprom"
-                            className="w-full"
+                            className="w-full dark:text-white"
                             onClick={() => setActiveTab('eeprom')}
                         >
                             EEPROM
