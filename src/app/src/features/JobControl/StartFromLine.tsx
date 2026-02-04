@@ -221,7 +221,7 @@ const StartFromLine = ({
                         <div className="mb-4">
                             <p className="text-[#E2943B]">
                                 Calculates all your CNC movements, attributes,
-                                and gS automations to pick up right where you
+                                and gSender automations to pick up right where you
                                 left off.
                             </p>
                         </div>
