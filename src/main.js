@@ -117,9 +117,9 @@ const main = () => {
         );
     }
 
-    if (process.platform === 'linux') {
+    /*if (process.platform === 'linux') {
         app.commandLine.appendSwitch('--no-sandbox');
-    }
+    }*/
 
     // Create the user data directory if it does not exist
     const userData = app.getPath('userData');
