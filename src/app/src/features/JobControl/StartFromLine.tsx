@@ -181,7 +181,6 @@ const StartFromLine = ({
                                     }}
                                     min={1}
                                     max={lineTotal}
-                                    className="w-20"
                                 />
                             </div>
                         </div>
@@ -210,7 +209,7 @@ const StartFromLine = ({
                                                     ),
                                                 }));
                                             }}
-                                            className="w-20"
+                                            suffix={units}
                                         />
                                     </>
                                 </Tooltip>
