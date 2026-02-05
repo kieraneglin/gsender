@@ -472,6 +472,7 @@ export function* initialize(): Generator<any, void, any> {
                 'widgets.visualizer.showLineWarnings',
             );
             const delay: number = store.get('widgets.spindle.delay');
+            const useAaxisForGrbl: boolean = store.get('workspace.rotaryAxis.useAaxisForGrbl', false);
             // Reset homing run flag to prevent rapid position without running homing
             reduxStore.dispatch(resetHoming());
 
@@ -486,6 +487,8 @@ export function* initialize(): Generator<any, void, any> {
             if (delay !== undefined) {
                 controller.command('settings:updated', { spindleDelay: delay });
             }
+
+            controller.command('settings:updated', { useAaxisForGrbl });
 
             updateToolchangeContext();
 
