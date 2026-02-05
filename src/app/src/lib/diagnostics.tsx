@@ -25,6 +25,7 @@ import React, { useState } from 'react';
 import { PiFileZipFill } from 'react-icons/pi';
 import isEmpty from 'lodash/isEmpty';
 import get from 'lodash/get';
+import { resolveGrblCoreDefaults } from 'app/features/Config/utils/grblCoreMigration.ts';
 import partition from 'lodash/partition';
 import uniqueId from 'lodash/uniqueId';
 import isEqual from 'lodash/isEqual';
@@ -434,10 +435,18 @@ const isEEPROMValueDifferent = (
     machineProfile: MachineProfile,
     controllerType: string,
 ): boolean => {
+    const firmwareSemver = get(
+        reduxStore.getState(),
+        'controller.settings.version.semver',
+        undefined,
+    );
     const profileDefaults =
         controllerType === 'Grbl'
             ? machineProfile.eepromSettings
-            : machineProfile.grblHALeepromSettings;
+            : resolveGrblCoreDefaults({
+                  firmwareSemver,
+                  baseDefaults: machineProfile.grblHALeepromSettings || {},
+              }).defaults;
 
     if (!profileDefaults) {
         return false;
@@ -470,10 +479,18 @@ const createTableRows = (
             controllerType,
         );
 
+        const firmwareSemver = get(
+            reduxStore.getState(),
+            'controller.settings.version.semver',
+            undefined,
+        );
         const profileDefaults =
             controllerType === 'Grbl'
                 ? machineProfile.eepromSettings
-                : machineProfile.grblHALeepromSettings;
+                : resolveGrblCoreDefaults({
+                      firmwareSemver,
+                      baseDefaults: machineProfile.grblHALeepromSettings || {},
+                  }).defaults;
         const defaultValue = get(profileDefaults, key, '-');
 
         const rowStyle =
