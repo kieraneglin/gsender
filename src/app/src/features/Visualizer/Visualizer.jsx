@@ -2163,8 +2163,6 @@ class Visualizer extends Component {
         // This ensures the visual stays in sync with the actual axis position
         gsap.to(this.visualizer.group.rotation, {
             x: radians,
-            duration: 0.25,
-            ease: 'power1.inOut',
             overwrite: true,
             onUpdate: () => this.updateScene({ forceUpdate: true }),
         });
