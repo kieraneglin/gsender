@@ -105,6 +105,7 @@ import { outlineResponse } from '../../workers/Outline.response';
 import { uploadGcodeFileToServer } from 'app/lib/fileupload';
 import { toast } from 'app/lib/toaster';
 import { getZUpTravel } from 'app/lib/SoftLimits.js';
+import { mm2in } from 'app/lib/units';
 
 class Visualizer extends Component {
     static propTypes = {
@@ -843,7 +844,12 @@ class Visualizer extends Component {
     }
 
     recolorGridLabels(units) {
-        const { mm, in: inches } = this.machineProfile;
+        const { mm } = this.machineProfile;
+        const inches = {
+            width: mm2in(mm.width),
+            depth: mm2in(mm.depth),
+            height: mm2in(mm.height),
+        };
 
         const axisLengthX =
             units === IMPERIAL_UNITS
@@ -907,7 +913,12 @@ class Visualizer extends Component {
     }
 
     recolorGridNumbers(units) {
-        const { mm, in: inches } = this.machineProfile;
+        const { mm } = this.machineProfile;
+        const inches = {
+            width: mm2in(mm.width),
+            depth: mm2in(mm.depth),
+            height: mm2in(mm.height),
+        };
 
         const imperialGridCountX = Math.ceil(inches.width);
         const metricGridCountX = Math.ceil(mm.width / 10) * 10;
@@ -1418,7 +1429,12 @@ class Visualizer extends Component {
     }
 
     createCoordinateSystem(units) {
-        const { mm, in: inches } = this.machineProfile;
+        const { mm } = this.machineProfile;
+        const inches = {
+            width: mm2in(mm.width),
+            depth: mm2in(mm.depth),
+            height: mm2in(mm.height),
+        };
 
         const imperialGridCountX = Math.ceil(inches.width);
         const metricGridCountX = Math.ceil(mm.width / 10) * 10;
@@ -1507,7 +1523,12 @@ class Visualizer extends Component {
     }
 
     createGridLineNumbers(units) {
-        const { mm, in: inches } = this.machineProfile;
+        const { mm } = this.machineProfile;
+        const inches = {
+            width: mm2in(mm.width),
+            depth: mm2in(mm.depth),
+            height: mm2in(mm.height),
+        };
 
         const imperialGridCountX = Math.ceil(inches.width);
         const metricGridCountX = Math.ceil(mm.width / 10) * 10;
