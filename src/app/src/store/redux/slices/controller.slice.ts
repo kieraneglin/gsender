@@ -160,11 +160,6 @@ const updateMachineLimitsFromEEPROM = ({
         height: zmax,
         width: xmax,
     };
-    machineProfile.in = {
-        depth: Number(mm2in(ymax).toFixed(2)),
-        height: Number(mm2in(zmax).toFixed(2)),
-        width: Number(mm2in(xmax).toFixed(2)),
-    };
     store.set('workspace.machineProfile', machineProfile);
     store.emit('dimensions');
 };
