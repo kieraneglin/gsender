@@ -349,7 +349,7 @@
     "three": "^0.146.0",
     "universal-logger": "~1.0.1",
     "universal-logger-browser": "~1.0.2",
-    "usb": "^3.0.0-alpha.2",
+    "usb": "^2.17.0",
     "use-long-press": "^3.2.0",
     "uuid": "~3.3.2",
     "vaul": "^0.9.1",
