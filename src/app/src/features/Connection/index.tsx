@@ -16,7 +16,11 @@ import { DisconnectButton } from './components/DisconnectButton';
 import { Port } from './definitions';
 import WidgetConfig from '../WidgetConfig/WidgetConfig';
 import pubsub from 'pubsub-js';
-import { Popover, PopoverTrigger, PopoverContent } from 'app/components/shadcn/Popover';
+import {
+    Popover,
+    PopoverTrigger,
+    PopoverContent,
+} from 'app/components/shadcn/Popover';
 
 export enum ConnectionState {
     DISCONNECTED,
@@ -46,7 +50,6 @@ function Connection(props: ConnectionProps) {
     // Add listener for reconnect request
     useEffect(() => {
         pubsub.subscribe('reconnect', () => {
-            console.log('requesting reconnect');
             attemptAutoConnect(true);
         });
 
@@ -67,7 +70,7 @@ function Connection(props: ConnectionProps) {
     const [activePort, setActivePort] = useState('');
 
     const [isOpen, setIsOpen] = useState(false);
-    
+
     const closeTimeoutRef = useRef<NodeJS.Timeout | null>(null);
     const isHoveringRef = useRef(false);
 
@@ -215,7 +218,7 @@ function Connection(props: ConnectionProps) {
                     />
                 )}
                 <PopoverTrigger asChild>
-                    <button 
+                    <button
                         className="h-12 max-xl:h-10 relative border border-gray-400 bg-gray-100 font-bold px-4 py-2 max-sm:p-1 ring-1 ring-gray-900/5 gap-4 justify-between items-center rounded-lg leading-none flex flex-row items-top portrait:min-w-[170px] portrait:max-sm:min-w-max min-w-[250px] max-xl:min-w-[180px] max-sm:min-w-0 dark:bg-dark text-black dark:text-white cursor-pointer"
                         onClick={handleClick}
                     >
@@ -237,13 +240,20 @@ function Connection(props: ConnectionProps) {
                             <span className="max-sm:hidden">Connecting...</span>
                         )}
                         {connectionState === ConnectionState.ERROR && (
-                            <span className="max-sm:hidden">Unable to connect.</span>
+                            <span className="max-sm:hidden">
+                                Unable to connect.
+                            </span>
                         )}
                         {connectionState == ConnectionState.CONNECTED && (
-                            <ConnectionInfo port={activePort} firmwareType={firmware} />
+                            <ConnectionInfo
+                                port={activePort}
+                                firmwareType={firmware}
+                            />
                         )}
                         {connectionState == ConnectionState.CONNECTED && (
-                            <DisconnectButton disconnectHandler={onDisconnectClick} />
+                            <DisconnectButton
+                                disconnectHandler={onDisconnectClick}
+                            />
                         )}
                     </button>
                 </PopoverTrigger>

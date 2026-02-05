@@ -574,7 +574,6 @@ function generateSupportFile() {
     let fileStop = {};
 
     getEvents().then((events) => {
-        console.log(events);
         if (events) {
             fileStart = events['gcode:start'];
             filePause = events['gcode:pause'];

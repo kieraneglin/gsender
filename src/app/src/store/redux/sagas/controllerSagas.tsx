@@ -366,7 +366,6 @@ export function* initialize(): Generator<any, void, any> {
                 line: error.line,
                 controller: error.controller,
             };
-            console.log(alarmError);
             api.alarmList.update(alarmError);
         } catch (error) {
             console.error(error);
@@ -472,7 +471,10 @@ export function* initialize(): Generator<any, void, any> {
                 'widgets.visualizer.showLineWarnings',
             );
             const delay: number = store.get('widgets.spindle.delay');
-            const useAaxisForGrbl: boolean = store.get('workspace.rotaryAxis.useAaxisForGrbl', false);
+            const useAaxisForGrbl: boolean = store.get(
+                'workspace.rotaryAxis.useAaxisForGrbl',
+                false,
+            );
             // Reset homing run flag to prevent rapid position without running homing
             reduxStore.dispatch(resetHoming());
 
