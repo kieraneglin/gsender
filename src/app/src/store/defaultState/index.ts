@@ -153,6 +153,7 @@ const defaultState: State = {
             defaultFirmwareSettings: DEFAULT_FIRMWARE_SETTINGS,
             forceHardLimits: false,
             forceSoftLimits: false,
+            useAaxisForGrbl: false,
         },
         shouldWarnZero: false,
         diagnostics: {
