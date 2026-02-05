@@ -7,6 +7,13 @@ export interface GrblCoreMigration {
     valueOverrides: Record<EEPROM, string | null>;
 }
 
+/*
+EEPROM defaults missing (21):
+$394, $484, $485, $538, $539, $650, $673, $675, $676,
+$680, $681, $683, $684, $685, $686, $687, $709, $760, $761,
+$762, $763
+ */
+
 // remap key->key
 // remap key-> new value
 // remap key -> null = removed in core
