@@ -747,12 +747,18 @@ function generateSupportFile() {
                                 <Text
                                     style={[
                                         styles.text,
-                                        machineProfile.spindle
+                                        store.get(
+                                            'workspace.spindleFunctions',
+                                            false,
+                                        )
                                             ? styles.statusEnabled
                                             : styles.statusDisabled,
                                     ]}
                                 >
-                                    {machineProfile.spindle
+                                    {store.get(
+                                        'workspace.spindleFunctions',
+                                        false,
+                                    )
                                         ? 'Available'
                                         : 'Not Available'}
                                 </Text>

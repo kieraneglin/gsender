@@ -73,7 +73,6 @@ export interface MachineProfile {
         depth: number;
         height: number;
     };
-    spindle: boolean;
     eepromSettings?: EEPROMSettings;
     grblHALeepromSettings?: EEPROMSettings;
     orderedSettings?: Map<EEPROM | string, any>;

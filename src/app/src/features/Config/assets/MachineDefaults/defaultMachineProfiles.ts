@@ -38,7 +38,6 @@ export default [
             depth: 1248,
             height: 170,
         },
-        spindle: false,
         eepromSettings: altmillSettings.DEFAULT,
         grblHALeepromSettings: altmillSettings.DEFAULT,
         orderedSettings: altmillSettings.ALTMILL_ORDERED,
@@ -54,7 +53,6 @@ export default [
             depth: 1248,
             height: 170,
         },
-        spindle: false,
         eepromSettings: altmillSettings.DEFAULT_2X4,
         grblHALeepromSettings: altmillSettings.DEFAULT_2X4,
         orderedSettings: altmillSettings.ALTMILL_ORDERED,
@@ -70,7 +68,6 @@ export default [
             depth: 1248,
             height: 170,
         },
-        spindle: false,
         eepromSettings: altmillSettings.DEFAULT_4X8,
         grblHALeepromSettings: altmillSettings.DEFAULT_4X8,
         orderedSettings: altmillSettings.ALTMILL_ORDERED,
@@ -86,7 +83,6 @@ export default [
             depth: 345,
             height: 114.3,
         },
-        spindle: false,
         eepromSettings: longMillGrblEEPROM.LONGMILL_MK2_12x30,
         grblHALeepromSettings: longMillGrblHALEEPROM.LONGMILL_MK2_12x30,
     },
@@ -101,7 +97,6 @@ export default [
             depth: 845,
             height: 114.3,
         },
-        spindle: false,
         eepromSettings: longMillGrblEEPROM.LONGMILL_MK2_30x30,
         grblHALeepromSettings: longMillGrblHALEEPROM.LONGMILL_MK2_30x30,
     },
@@ -116,7 +111,6 @@ export default [
             depth: 845,
             height: 114.3,
         },
-        spindle: false,
         eepromSettings: longMillGrblEEPROM.LONGMILL_MK2_48x30,
         grblHALeepromSettings: longMillGrblHALEEPROM.LONGMILL_MK2_48x30,
     },
@@ -131,7 +125,6 @@ export default [
             depth: 345,
             height: 114.3,
         },
-        spindle: false,
         eepromSettings: longMillGrblEEPROM.LONGMILL_MK1_12x12,
         grblHALeepromSettings: longMillGrblHALEEPROM.LONGMILL_MK1_12x12,
     },
@@ -146,7 +139,6 @@ export default [
             depth: 345,
             height: 114.3,
         },
-        spindle: false,
         eepromSettings: longMillGrblEEPROM.LONGMILL_MK1_12x30,
         grblHALeepromSettings: longMillGrblHALEEPROM.LONGMILL_MK1_12x30,
     },
@@ -161,7 +153,6 @@ export default [
             depth: 845,
             height: 114.3,
         },
-        spindle: false,
         eepromSettings: longMillGrblEEPROM.LONGMILL_MK1_30x30,
         grblHALeepromSettings: longMillGrblHALEEPROM.LONGMILL_MK1_30x30,
     },
@@ -176,7 +167,6 @@ export default [
             depth: 845,
             height: 114.3,
         },
-        spindle: false,
         eepromSettings: longMillGrblEEPROM.LONGMILL_MK1_48x30,
         grblHALeepromSettings: longMillGrblHALEEPROM.LONGMILL_MK1_48x30,
     },
@@ -191,7 +181,6 @@ export default [
             depth: 185,
             height: 90,
         },
-        spindle: false,
         eepromSettings: millOneGrblEEPROM.MILL_ONE_V1_AND_V2,
     },
     {
@@ -205,7 +194,6 @@ export default [
             depth: 185,
             height: 90,
         },
-        spindle: false,
         eepromSettings: millOneGrblEEPROM.MILL_ONE_V1_AND_V2,
     },
     {
@@ -219,7 +207,6 @@ export default [
             depth: 185,
             height: 90,
         },
-        spindle: false,
         eepromSettings: millOneGrblEEPROM.MILL_ONE_V3,
     },
     {
@@ -233,7 +220,6 @@ export default [
             depth: 450,
             height: 465,
         },
-        spindle: false,
     },
     {
         id: 31,
@@ -246,7 +232,6 @@ export default [
             depth: 304.8,
             height: 63.5,
         },
-        spindle: false,
     },
     {
         id: 32,
@@ -259,7 +244,6 @@ export default [
             depth: 609.6,
             height: 101.6,
         },
-        spindle: true,
     },
     {
         id: 33,
@@ -272,7 +256,6 @@ export default [
             depth: 609.6,
             height: 101.6,
         },
-        spindle: true,
     },
     {
         id: 34,
@@ -285,7 +268,6 @@ export default [
             depth: 819.15,
             height: 113.35,
         },
-        spindle: false,
     },
     {
         id: 35,
@@ -298,7 +280,6 @@ export default [
             depth: 270,
             height: 80,
         },
-        spindle: false,
     },
     {
         id: 36,
@@ -311,7 +292,6 @@ export default [
             depth: 270,
             height: 47,
         },
-        spindle: false,
     },
     {
         id: 37,
@@ -324,7 +304,6 @@ export default [
             depth: 260,
             height: 50,
         },
-        spindle: false,
     },
     {
         id: 41,
@@ -337,7 +316,6 @@ export default [
             depth: 368.3,
             height: 177.8,
         },
-        spindle: false,
     },
     {
         id: 43,
@@ -350,7 +328,6 @@ export default [
             depth: 406.4,
             height: 83.82,
         },
-        spindle: false,
     },
     {
         id: 44,
@@ -363,7 +340,6 @@ export default [
             depth: 609.6,
             height: 90.17,
         },
-        spindle: true,
     },
     {
         id: 47,
@@ -376,7 +352,6 @@ export default [
             depth: 100,
             height: 45,
         },
-        spindle: false,
     },
     {
         id: 50,
@@ -389,7 +364,6 @@ export default [
             depth: 356,
             height: 203,
         },
-        spindle: false,
     },
     {
         id: 51,
@@ -402,6 +376,5 @@ export default [
             depth: 450,
             height: 465,
         },
-        spindle: false,
     },
 ];
