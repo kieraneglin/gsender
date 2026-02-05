@@ -35,6 +35,7 @@ export const GRBLCORE_MIGRATION: GrblCoreMigration = {
         $665: '$537',
     },
     valueOverrides: {
+        $394: '11',
         $484: '0',
         $485: '1',
         $535: '02:08:dc:cf:7b:8d',
