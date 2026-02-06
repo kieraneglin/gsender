@@ -1034,7 +1034,7 @@ export function Jogging({ hideRotary = false }) {
                         />
                     </div>
                 </div>
-                <div className="flex float-right portrait:scale-100 max-xl:scale-90 short:scale-90">
+                <div className="flex float-right portrait:scale-100 max-xl:scale-90">
                     <SpeedSelector handleClick={updateJogValues} />
                 </div>
             </div>
