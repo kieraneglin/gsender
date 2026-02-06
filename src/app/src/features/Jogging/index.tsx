@@ -951,7 +951,7 @@ export function Jogging({ hideRotary = false }) {
 
     return (
         <>
-            <div className="flex flex-row w-full gap-2 justify-around items-center select-none max-xl:scale-90">
+            <div className="flex flex-row w-full gap-2 justify-around items-center select-none max-xl:scale-90 short:scale-90">
                 <div className="min-w-[180px] portrait:min-w-[210px] relative">
                     <JogWheel
                         distance={jogSpeed.xyStep}
@@ -1034,7 +1034,7 @@ export function Jogging({ hideRotary = false }) {
                         />
                     </div>
                 </div>
-                <div className="flex float-right portrait:scale-100 max-xl:scale-90">
+                <div className="flex float-right portrait:scale-100 max-xl:scale-90 short:scale-90">
                     <SpeedSelector handleClick={updateJogValues} />
                 </div>
             </div>
