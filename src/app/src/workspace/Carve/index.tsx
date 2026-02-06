@@ -21,7 +21,7 @@ export const Carve = () => {
                     'flex',
                     isPortrait
                         ? 'h-[45%] max-h-[45%] pb-0 block portrait:h-[45%] portrait:max-h-[45%] portrait:pb-0 portrait:block'
-                        : 'h-[75%] max-xl:h-[76%] max-xl:max-h-[76%] max-h-[75%] pb-10 max-xl:pb-6',
+                        : 'h-[75%] max-xl:h-[76%] short:h-[76%] max-h-[75%] max-xl:max-h-[76%] short:max-h-[76%] pb-10 max-xl:pb-6 short:pb-6',
                 )}
             >
                 <div
