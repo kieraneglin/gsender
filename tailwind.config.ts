@@ -19,6 +19,9 @@ export default {
   ],*/
   theme: {
     extend: {
+      screens: {
+        "short": { raw: "(max-height: 820px)" },
+      },
       transitionProperty: {
         width: "width",
       },
