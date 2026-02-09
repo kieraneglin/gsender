@@ -90,7 +90,7 @@ export const Tabs = ({ items = [] }: TabbedProps) => {
     return (
         <div className="w-full">
             <div className="relative">
-                <div className="flex items-center absolute top-[-41px] max-xl:top-[-34px] portrait:top-[-62px] left-0 right-0 z-10">
+                <div className="flex items-center absolute top-[-41px] max-xl:top-[-33px] portrait:top-[-62px] left-0 right-0 z-10">
                     <button
                         className={`flex-shrink-0 p-1 rounded-full bg-transparent portrait:bg-white transition-colors duration-200 ${
                             canScrollLeft
@@ -116,7 +116,7 @@ export const Tabs = ({ items = [] }: TabbedProps) => {
                                 <button
                                     key={item.label}
                                     ref={(el) => (tabRefs.current[index] = el)}
-                                    className={`flex-grow pt-1 px-4 text-base font-medium max-xl:text-sm portrait:text-xl max-xl:pt-2 ${
+                                    className={`flex-grow pt-1 px-4 max-xl:px-3 text-base font-medium max-xl:text-sm portrait:text-xl max-xl:pt-2 ${
                                         activeTab === item.label
                                             ? 'text-blue-600 border-b-2 border-blue-600 dark:text-blue-400 dark:border-blue-400'
                                             : 'text-gray-600 border-b-2 border-transparent hover:text-gray-800 dark:text-gray-300 dark:hover:text-gray-100'
