@@ -43,13 +43,19 @@ export function Config() {
         }
     }
 
-    useEffect(() => {
+    /*useEffect(() => {
         if (connected) {
             if (firmwareType === 'grblHAL') {
                 controller.command('gcode', ['$$', '$ESH', '$ES']);
             } else {
                 controller.command('gcode', '$$');
             }
+        }
+    }, []);*/
+
+    useEffect(() => {
+        if (connected) {
+            controller.command('gcode', ['$$']);
         }
     }, []);
 
