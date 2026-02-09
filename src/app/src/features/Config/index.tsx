@@ -53,6 +53,12 @@ export function Config() {
         }
     }, []);*/
 
+    useEffect(() => {
+        if (connected) {
+            controller.command('gcode', ['$$']);
+        }
+    }, []);
+
     const { settings, EEPROM, machineProfile } = useSettings();
     const reportedEEPROM = useTypedSelector(
         (state: RootState) => state.controller.settings.settings,
