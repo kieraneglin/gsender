@@ -21,7 +21,7 @@ export default {
     theme: {
         screens: {
             ...defaultTheme.screens,
-            'max-xl': { raw: '(max-width: 1280px), (max-height: 820px)' },
+            'max-xl': { raw: '(max-width: 1280px), (max-height: 880px)' },
         },
         extend: {
             transitionProperty: {
