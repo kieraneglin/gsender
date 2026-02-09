@@ -41,7 +41,7 @@ export function Config() {
         }
     }
 
-    useEffect(() => {
+    /*useEffect(() => {
         if (connected) {
             if (firmwareType === 'grblHAL') {
                 controller.command('gcode', ['$$', '$ESH', '$ES']);
@@ -49,7 +49,7 @@ export function Config() {
                 controller.command('gcode', '$$');
             }
         }
-    }, []);
+    }, []);*//
 
     const { settings, EEPROM } = useSettings();
 
