@@ -36,6 +36,7 @@ import { toast } from 'app/lib/toaster';
 
 import ProbeCircuitStatus from './ProbeCircuitStatus';
 import ProbeImage from './ProbeImage';
+import ProbeDirectionSelection from './ProbeDirectionSelection';
 import { Actions, State } from './definitions';
 import { PROBING_CATEGORY } from 'app/constants';
 import useKeybinding from 'app/lib/useKeybinding';
@@ -63,6 +64,7 @@ const RunProbe = ({ actions, state }: RunProbeProps) => {
         selectedProbeCommand,
         touchplate,
         connectivityTest,
+        direction,
     } = state;
     const { probePinStatus } = useTypedSelector((state) => ({
         probePinStatus: state.controller.state.status?.pinState.P ?? false,
@@ -77,10 +79,6 @@ const RunProbe = ({ actions, state }: RunProbeProps) => {
     }, [connectivityTest, probePinStatus, actions]);
 
     const [testInterval, setTestInterval] = useState<NodeJS.Timeout>(null);
-
-    // useEffect(() => {
-    //     useKeybinding(shuttleControlEvents);
-    // }, []);
 
     const shuttleControlEvents = {
         START_PROBE: {
@@ -143,6 +141,14 @@ const RunProbe = ({ actions, state }: RunProbeProps) => {
     //const probeCommands = actions.generateProbeCommands();
     //console.log(probeCommands.length);
     const probeCommand = availableProbeCommands[selectedProbeCommand];
+    const directionLabels = [
+        'Bottom Left',
+        'Top Left',
+        'Top Right',
+        'Bottom Right',
+    ];
+    const directionLabel = directionLabels[direction] || 'Unknown';
+    const showDirectionWarning = direction !== 0;
 
     const probeActive = actions.returnProbeConnectivity();
 
@@ -159,6 +165,30 @@ const RunProbe = ({ actions, state }: RunProbeProps) => {
                 <DialogHeader className="text-robin-700 flex items-start justify-center">
                     <DialogTitle>{`Probe - ${probeCommand.id}`}</DialogTitle>
                 </DialogHeader>
+                {showDirectionWarning && (
+                    <div
+                        className="flex items-center p-4 text-sm text-yellow-800 border border-yellow-300 rounded-lg bg-yellow-50 w-full"
+                        role="alert"
+                    >
+                        <svg
+                            className="flex-shrink-0 inline w-4 h-4 me-3"
+                            aria-hidden="true"
+                            xmlns="http://www.w3.org/2000/svg"
+                            fill="currentColor"
+                            viewBox="0 0 20 20"
+                        >
+                            <path d="M10 .5a9.5 9.5 0 1 0 9.5 9.5A9.51 9.51 0 0 0 10 .5ZM9.5 4a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3ZM12 15H8a1 1 0 0 1 0-2h1v-3H8a1 1 0 0 1 0-2h2a1 1 0 0 1 1 1v4h1a1 1 0 0 1 0 2Z" />
+                        </svg>
+                        <span className="sr-only">Warning</span>
+                        <div>
+                            <span className="font-medium">
+                                Non-default probe direction!
+                            </span>{' '}
+                            Probing from {directionLabel}. Verify this is
+                            correct before starting.
+                        </div>
+                    </div>
+                )}
                 <div className="grid grid-cols-[1.5fr_1fr] gap-2 w-[600px] min-h-[200px]">
                     <div className="flex flex-col justify-between pb-4">
                         <div className="text-black leading-snug dark:text-white">
@@ -188,6 +218,14 @@ const RunProbe = ({ actions, state }: RunProbeProps) => {
                         </Button>
                     </div>
                     <div className="flex flex-col sm:m-auto sm:mb-4">
+                        {touchplateType !== 'Z Probe' && (
+                            <ProbeDirectionSelection
+                                direction={direction}
+                                onClick={actions.nextProbeDirection}
+                                isAbsolute={false}
+                                containerClassName="self-end mb-2"
+                            />
+                        )}
                         <ProbeImage
                             probeCommand={probeCommand}
                             touchplateType={touchplateType}
