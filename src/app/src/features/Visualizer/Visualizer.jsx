@@ -106,6 +106,7 @@ import { uploadGcodeFileToServer } from 'app/lib/fileupload';
 import { toast } from 'app/lib/toaster';
 import { getZUpTravel } from 'app/lib/SoftLimits.js';
 import { mm2in } from 'app/lib/units';
+import { Confirm } from 'app/components/ConfirmationDialog/ConfirmationDialogLib';
 
 class Visualizer extends Component {
     static propTypes = {
@@ -176,6 +177,12 @@ class Visualizer extends Component {
     machineConnected = false;
 
     showSoftLimitsWarning = this.visualizerConfig.get('showSoftLimitsWarning');
+
+    checkModeInterval = null;
+
+    counter = 0;
+
+    waitingForCheck = false;
 
     setRef = (node) => {
         this.node = node;
@@ -369,6 +376,7 @@ class Visualizer extends Component {
         const prevState = prevProps.state;
         const state = this.props.state;
         const isConnected = this.props.isConnected;
+        const { activeState } = state;
 
         // Check if scene needs to be recreated (e.g., if renderer was lost)
         if (this.node && !this.isSceneInitialized() && this.props.show) {
@@ -533,7 +541,6 @@ class Visualizer extends Component {
         {
             // Update position
             const { state } = this.props;
-            const { activeState } = state;
             const { machinePosition, workPosition } = this.props;
 
             let newPos = workPosition;
@@ -635,6 +642,11 @@ class Visualizer extends Component {
             if (this.props.cameraPosition === 'Right') {
                 this.toRightSideView();
             }
+        }
+
+        if (activeState === GRBL_ACTIVE_STATE_CHECK && this.waitingForCheck) {
+            this.waitingForCheck = false;
+            this.runCheck();
         }
     }
 
@@ -2321,6 +2333,13 @@ class Visualizer extends Component {
         this.updateScene();
     }
 
+    runCheck() {
+        controller.command('gcode:start');
+        toast.info('Running Check mode', {
+            position: 'bottom-right',
+        });
+    }
+
     handleSceneRender(vizualization, colorArray, savedColors, callback) {
         const { controllerType, fileType, workPosition } = this.props;
         const workspaceMode = store.get(
@@ -2421,10 +2440,41 @@ class Visualizer extends Component {
         typeof callback === 'function' && callback({ bbox: bbox });
 
         if (store.get('widgets.visualizer.checkFile')) {
-            controller.command('gcode:test');
-            toast.info('Running Check mode', {
-                position: 'bottom-right',
-            });
+            // wait for connection
+            // if none after 5 tries, then we must not be connected, so dont prompt
+            // have to do it this way bc the code setting "isConnected" to true is async and gets done after this code runs, generally
+            clearInterval(this.checkModeInterval); // start with a clear to prevent multiple pop ups
+            this.checkModeInterval = setInterval(() => {
+                if (this.counter < 5) {
+                    if (this.props.isConnected) {
+                        Confirm({
+                            title: 'Start Check Mode',
+                            content:
+                                'Run a validation check ($C) on this file?',
+                            confirmLabel: 'Start Check',
+                            cancelLabel: 'Cancel',
+                            onConfirm: () => {
+                                const { activeState } = this.props.state;
+                                if (activeState === GRBL_ACTIVE_STATE_CHECK) {
+                                    this.runCheck();
+                                } else {
+                                    controller.command('gcode', [
+                                        '%global.state.testWCS=modal.wcs',
+                                        '$C',
+                                    ]);
+                                    this.waitingForCheck = true;
+                                }
+                            },
+                        });
+                        this.counter = 0;
+                        clearInterval(this.checkModeInterval);
+                    }
+                    this.counter++;
+                } else {
+                    this.counter = 0;
+                    clearInterval(this.checkModeInterval);
+                }
+            }, 500);
         }
     }
 
