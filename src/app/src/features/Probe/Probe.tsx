@@ -126,7 +126,7 @@ const Probe = ({ state, actions }: ProbeProps) => {
     const probeCommand = availableProbeCommands[selectedProbeCommand];
 
     return (
-        <div className="w-full h-full max-xl:pt-2">
+        <div className="w-full h-full max-xl:pt-1">
             <div className="grid grid-cols-[5fr_3fr] w-full h-full max-xl:max-h-[144px]">
                 {/* <div className="w-full h-full m-auto grid gap-4">
                     <div className="h-full grid grid-rows[4fr_2fr] self-center gap-2"> */}
