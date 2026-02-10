@@ -126,7 +126,7 @@ const Probe = ({ state, actions }: ProbeProps) => {
     const probeCommand = availableProbeCommands[selectedProbeCommand];
 
     return (
-        <div className="w-full h-full">
+        <div className="w-full h-full max-xl:pt-2">
             <div className="grid grid-cols-[5fr_3fr] w-full h-full">
                 {/* <div className="w-full h-full m-auto grid gap-4">
                     <div className="h-full grid grid-rows[4fr_2fr] self-center gap-2"> */}
@@ -157,7 +157,7 @@ const Probe = ({ state, actions }: ProbeProps) => {
                         ))}
                     </div>
                     <div
-                        className={cx('flex items-center', {
+                        className={cx('flex items-center max-xl:px-6', {
                             hidden: !probeCommand?.tool,
                         })}
                     >
@@ -176,7 +176,7 @@ const Probe = ({ state, actions }: ProbeProps) => {
                         </Button>
                     </div>
                 </div>
-                <div className="flex w-full h-full min-h-full">
+                <div className="flex w-full h-full min-h-full max-xl:pt-2">
                     <ProbeImage
                         touchplateType={touchplateType}
                         probeCommand={probeCommand}
