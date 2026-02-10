@@ -495,7 +495,7 @@ const JoystickOptions = () => {
                 />
             </div>
 
-            <div className="grid grid-cols-4 items-center gap-2">
+            <div className="grid grid-cols-4 items-center mb-2 gap-2">
                 <div className="leading-normal dark:text-white">
                     Movement override
                 </div>
@@ -520,11 +520,11 @@ const JoystickOptions = () => {
                 />
             </div>
 
-            <div className="float-left mr-2">
+            <div className="grid grid-cols-4 items-center gap-2">
                 <div className="leading-normal dark:text-white">Fixed speed mode</div>
                 <div className="col-span-3">
                     <Switch
-                        className="leading-normal dark:text-white"
+                        className="float-left mr-2"
                         checked={fixedSpeedMode}
                         onChange={(checked) =>
                             handleChange('fixedSpeedMode', checked)
