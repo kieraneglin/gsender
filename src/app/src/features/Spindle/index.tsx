@@ -24,11 +24,8 @@ import {
 import SpindleControls from './components/SpindleControls';
 import LaserControls from './components/LaserControls';
 import ModalToggle from './components/ModalToggle';
-// import ActiveIndicator from './components/ActiveIndicator';
 import SpindleSelector from './components/SpindleSelector';
 import { roundMetric, round } from '../../lib/rounding';
-import useKeybinding from 'app/lib/useKeybinding';
-import useShuttleEvents from 'app/hooks/useShuttleEvents';
 import findIndex from 'lodash/findIndex';
 import get from 'lodash/get';
 import reduxStore from 'app/store/redux';
@@ -82,7 +79,6 @@ const SpindleWidget = () => {
         units,
         availableSpindles,
         $13,
-        spindle,
         laserMax,
         laserMin,
         laserXOffset,
@@ -101,15 +97,6 @@ const SpindleWidget = () => {
         units: state.controller.modal.units ?? {},
         availableSpindles: state.controller.spindles ?? [],
         $13: state.controller.settings.settings.$13 ?? '0',
-        spindle: state.controller.spindles.find((s) => s.enabled) ?? {
-            label: 'Default Spindle',
-            id: '0',
-            enabled: true,
-            capabilities: '',
-            laser: false,
-            raw: '',
-            order: 0,
-        },
         laserMax: Number(state.controller.settings.settings.$730 ?? 255),
         laserMin: Number(state.controller.settings.settings.$731 ?? 0),
         laserXOffset: Number(state.controller.settings.settings.$741 ?? 0),
@@ -118,6 +105,40 @@ const SpindleWidget = () => {
 
     const [isLaserOn, setIsLaserOn] = useState<boolean>(false);
     const [isSpindleOn, setIsSpindleOn] = useState<boolean>(false);
+    const pendingSpindleIdRef = useRef<string | number | null>(null);
+    const lastKnownSpindleRef = useRef<{
+        label: string;
+        id: string | number;
+        enabled: boolean;
+        capabilities: string;
+        laser: boolean;
+        raw: string;
+        order: number;
+    } | null>(null);
+
+    const fallbackSpindle = {
+        label: 'Default Spindle',
+        id: '0',
+        enabled: true,
+        capabilities: '',
+        laser: false,
+        raw: '',
+        order: 0,
+    };
+
+    const enabledSpindle =
+        availableSpindles.find((s) => s.enabled) ?? null;
+    const pendingSpindle =
+        pendingSpindleIdRef.current !== null
+            ? availableSpindles.find(
+                  (s) => s.id === pendingSpindleIdRef.current,
+              ) ?? null
+            : null;
+    const spindle =
+        enabledSpindle ??
+        pendingSpindle ??
+        lastKnownSpindleRef.current ??
+        fallbackSpindle;
 
     useEffect(() => {
         const tokens = [
@@ -182,6 +203,27 @@ const SpindleWidget = () => {
     useEffect(() => {
         stateRef.current = state;
     }, [state]);
+
+    useEffect(() => {
+        if (enabledSpindle) {
+            lastKnownSpindleRef.current = enabledSpindle;
+            if (pendingSpindleIdRef.current === enabledSpindle.id) {
+                pendingSpindleIdRef.current = null;
+            }
+            return;
+        }
+
+        if (pendingSpindle) {
+            lastKnownSpindleRef.current = pendingSpindle;
+        }
+    }, [enabledSpindle, pendingSpindle]);
+
+    useEffect(() => {
+        if (!isConnected) {
+            pendingSpindleIdRef.current = null;
+            lastKnownSpindleRef.current = null;
+        }
+    }, [isConnected]);
 
     const updateSpindleSpeed = useCallback(
         (speed: number) => {
@@ -518,6 +560,7 @@ const SpindleWidget = () => {
             label: string;
             value: string | number;
         }) => {
+            pendingSpindleIdRef.current = selectedSpindle.value;
             const isModernFirmware = firmwarePastVersion(
                 ATCI_SUPPORTED_VERSION,
             );
