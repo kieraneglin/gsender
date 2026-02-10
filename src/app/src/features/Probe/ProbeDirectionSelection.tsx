@@ -10,7 +10,7 @@ interface Props {
 const ProbeDirectionSelection: React.FC<Props> = ({ direction, onClick }) => {
     return (
         <Tooltip content="Set probing corner">
-            <div className="absolute top-0 right-0">
+            <div className="absolute top-0 right-0 max-xl:pt-1">
                 <button
                     type="button"
                     className={cx(
