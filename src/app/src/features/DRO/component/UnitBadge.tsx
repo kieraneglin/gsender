@@ -35,7 +35,7 @@ export function UnitBadge({ isRemote }: Props) {
                     Units:
                     <br /> {units}
                 </div>
-                <div className={"max-xl:block hidden p-1"}>
+                <div className={"max-xl:block hidden px-1 py-1.5"}>
                     {unitLabel}
                 </div>
             </div>
