@@ -18,7 +18,7 @@ export function Stats() {
             <div className="grid grid-cols-6 grid-rows-6 gap-4">
                 <div
                     id="mainStats"
-                    className="col-span-4 max-xl:col-span-6 row-span-6 px-8 mb-2 gap-4 flex flex-col"
+                    className="col-span-4 max-xl:col-span-6 row-span-6 px-8 max-xl:px-4 mb-2 gap-4 flex flex-col"
                 >
                     <h1 className="text-3xl font-bold dark:text-white">Your Machine</h1>
                     <StatCard>
