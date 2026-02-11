@@ -3,7 +3,6 @@ import includes from 'lodash/includes';
 import mapValues from 'lodash/mapValues';
 import { useTypedSelector } from 'app/hooks/useTypedSelector';
 import { useWorkspaceState } from 'app/hooks/useWorkspaceState';
-import { AxisRow } from 'app/features/DRO/component/AxisRow.tsx';
 import { defaultDROPosition } from 'app/features/DRO/utils/DRO';
 import { mapPositionToUnits } from 'app/lib/units.ts';
 import {
@@ -34,10 +33,6 @@ export function ATCConfigDRO() {
         wposController || defaultDROPosition,
         (pos) => mapPositionToUnits(pos, preferredUnits),
     );
-    const mpos = mapValues(
-        mposController || defaultDROPosition,
-        (pos) => mapPositionToUnits(pos, preferredUnits),
-    );
 
     const canClick = (() => {
         if (!isConnected) return false;
@@ -47,31 +42,22 @@ export function ATCConfigDRO() {
     })();
 
     return (
-        <div className="flex flex-col w-full gap-1 portrait:gap-2 space-between">
-            <AxisRow
-                label="X"
-                axis="X"
-                mpos={get(mpos, 'x', '0')}
-                wpos={get(wpos, 'x', '0')}
-                disabled={!canClick}
-                homingMode={false}
-            />
-            <AxisRow
-                label="Y"
-                axis="Y"
-                mpos={get(mpos, 'y', '0')}
-                wpos={get(wpos, 'y', '0')}
-                disabled={!canClick}
-                homingMode={false}
-            />
-            <AxisRow
-                label="Z"
-                axis="Z"
-                mpos={get(mpos, 'z', '0')}
-                wpos={get(wpos, 'z', '0')}
-                disabled={!canClick}
-                homingMode={false}
-            />
+        <div className="bg-white dark:bg-dark rounded-lg border border-gray-200 dark:border-gray-700 p-3">
+            <div className="flex flex-col w-full gap-2">
+                {(['x', 'y', 'z'] as const).map((axis) => (
+                    <div
+                        key={axis}
+                        className="border border-gray-200 dark:border-gray-700 rounded-md w-full flex items-center justify-between px-3 py-2"
+                    >
+                        <span className="text-sm font-semibold text-gray-700 dark:text-gray-300">
+                            {axis.toUpperCase()}
+                        </span>
+                        <span className="font-mono text-sm text-gray-900 dark:text-white">
+                            {get(wpos, axis, '0')}
+                        </span>
+                    </div>
+                ))}
+            </div>
         </div>
     );
 }
