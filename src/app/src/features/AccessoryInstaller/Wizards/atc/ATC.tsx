@@ -135,10 +135,6 @@ export function useSienciATCWizard(): Wizard {
                             secondaryContent: [
                                 {
                                     type: 'component',
-                                    content: ATCConfigDRO,
-                                },
-                                {
-                                    type: 'component',
                                     content: Jogging,
                                     props: {
                                         hideRotary: true,
