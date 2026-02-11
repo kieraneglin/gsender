@@ -44,12 +44,12 @@ export interface Workspace {
         skipDialog: boolean;
     };
     toolChangeOption:
-        | 'Ignore'
-        | 'Pause'
-        | 'Standard Re-zero'
-        | 'Flexible Re-zero'
-        | 'Fixed Tool Sensor'
-        | 'Code';
+    | 'Ignore'
+    | 'Pause'
+    | 'Standard Re-zero'
+    | 'Flexible Re-zero'
+    | 'Fixed Tool Sensor'
+    | 'Code';
     toolChangePosition: BasicPosition;
     toolChangeHooks: {
         preHook: string;

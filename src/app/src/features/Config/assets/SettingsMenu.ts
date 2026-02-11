@@ -715,10 +715,7 @@ export const SettingsMenu: SettingsMenuSection[] = [
                                 '',
                             );
                             // Hidden if we are using AutoZero or BitZero touchplate
-                            return (
-                                probeType === TOUCHPLATE_TYPE_AUTOZERO ||
-                                probeType === TOUCHPLATE_TYPE_BITZERO
-                            );
+                            return probeType === TOUCHPLATE_TYPE_AUTOZERO || probeType === TOUCHPLATE_TYPE_BITZERO;
                         },
                     },
                     {
@@ -734,10 +731,7 @@ export const SettingsMenu: SettingsMenuSection[] = [
                                 '',
                             );
                             // Hidden if we are using AutoZero or BitZero touchplate
-                            return (
-                                probeType === TOUCHPLATE_TYPE_AUTOZERO ||
-                                probeType === TOUCHPLATE_TYPE_BITZERO
-                            );
+                            return probeType === TOUCHPLATE_TYPE_AUTOZERO || probeType === TOUCHPLATE_TYPE_BITZERO;
                         },
                     },
                     {
@@ -753,10 +747,7 @@ export const SettingsMenu: SettingsMenuSection[] = [
                                 '',
                             );
                             // Hidden if we are using AutoZero or BitZero touchplate
-                            return (
-                                probeType === TOUCHPLATE_TYPE_AUTOZERO ||
-                                probeType === TOUCHPLATE_TYPE_BITZERO
-                            );
+                            return probeType === TOUCHPLATE_TYPE_AUTOZERO || probeType === TOUCHPLATE_TYPE_BITZERO;
                         },
                     },
                     {
@@ -772,10 +763,7 @@ export const SettingsMenu: SettingsMenuSection[] = [
                                 '',
                             );
                             // Hidden if we are using AutoZero or BitZero touchplate
-                            return (
-                                probeType === TOUCHPLATE_TYPE_AUTOZERO ||
-                                probeType === TOUCHPLATE_TYPE_BITZERO
-                            );
+                            return probeType === TOUCHPLATE_TYPE_AUTOZERO || probeType === TOUCHPLATE_TYPE_BITZERO;
                         },
                     },
                     {
