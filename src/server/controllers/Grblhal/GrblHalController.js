@@ -1644,7 +1644,7 @@ class GrblHalController {
                 //const dwell = '%wait ; Wait for the planner to empty';
 
                 // add delay to spindle startup if enabled
-                const preferences = store.get('preferences', {});
+                //const preferences = store.get('preferences', {});
                 /*const delay = _.get(preferences, 'spindleDelay', 0);
 
                 if (Number(delay)) {
