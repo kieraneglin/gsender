@@ -165,33 +165,37 @@ const RunProbe = ({ actions, state }: RunProbeProps) => {
                 <DialogHeader className="text-robin-700 flex items-start justify-center">
                     <DialogTitle>{`Probe - ${probeCommand.id}`}</DialogTitle>
                 </DialogHeader>
-                {showDirectionWarning && (
-                    <div
-                        className="flex items-center p-4 text-sm text-yellow-800 border border-yellow-300 rounded-lg bg-yellow-50 w-full"
-                        role="alert"
-                    >
-                        <svg
-                            className="flex-shrink-0 inline w-4 h-4 me-3"
-                            aria-hidden="true"
-                            xmlns="http://www.w3.org/2000/svg"
-                            fill="currentColor"
-                            viewBox="0 0 20 20"
-                        >
-                            <path d="M10 .5a9.5 9.5 0 1 0 9.5 9.5A9.51 9.51 0 0 0 10 .5ZM9.5 4a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3ZM12 15H8a1 1 0 0 1 0-2h1v-3H8a1 1 0 0 1 0-2h2a1 1 0 0 1 1 1v4h1a1 1 0 0 1 0 2Z" />
-                        </svg>
-                        <span className="sr-only">Warning</span>
-                        <div>
-                            <span className="font-medium">
-                                Non-default probe direction!
-                            </span>{' '}
-                            Probing from {directionLabel}. Verify this is
-                            correct before starting.
-                        </div>
-                    </div>
-                )}
+
                 <div className="grid grid-cols-[1.5fr_1fr] gap-2 w-[600px] min-h-[200px]">
                     <div className="flex flex-col justify-between pb-4">
                         <div className="text-black leading-snug dark:text-white">
+                            <div
+                                className={cx(
+                                    'flex items-center p-4 text-sm text-yellow-800 border border-yellow-300 rounded-lg bg-yellow-50 w-full mb-3',
+                                    {
+                                        invisible: !showDirectionWarning,
+                                    },
+                                )}
+                                role={showDirectionWarning ? 'alert' : undefined}
+                                aria-hidden={!showDirectionWarning}
+                            >
+                                <svg
+                                    className="flex-shrink-0 inline w-4 h-4 me-3"
+                                    aria-hidden="true"
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    fill="currentColor"
+                                    viewBox="0 0 20 20"
+                                >
+                                    <path d="M10 .5a9.5 9.5 0 1 0 9.5 9.5A9.51 9.51 0 0 0 10 .5ZM9.5 4a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3ZM12 15H8a1 1 0 0 1 0-2h1v-3H8a1 1 0 0 1 0-2h2a1 1 0 0 1 1 1v4h1a1 1 0 0 1 0 2Z" />
+                                </svg>
+                                <span className="sr-only">Warning</span>
+                                <div>
+                                    <span className="font-medium">
+                                        Warning - Probing {directionLabel} corner
+                                    </span>
+                                    <div>Verify this is correct before starting.</div>
+                                </div>
+                            </div>
                             <p className="mb-3">
                                 1. Check the tool is positioned correctly
                                 (pictured).
@@ -218,13 +222,16 @@ const RunProbe = ({ actions, state }: RunProbeProps) => {
                         </Button>
                     </div>
                     <div className="flex flex-col sm:m-auto sm:mb-4">
+
                         {touchplateType !== 'Z Probe' && (
+                            <div className="flex justify-center items-center mb-1">
                             <ProbeDirectionSelection
                                 direction={direction}
                                 onClick={actions.nextProbeDirection}
                                 isAbsolute={false}
-                                containerClassName="self-end mb-2"
+                                containerClassName="self-end mb-2 inline-flex items-center justify-center rounded-lg border border-gray-300 p-1"
                             />
+                            </div>
                         )}
                         <ProbeImage
                             probeCommand={probeCommand}
