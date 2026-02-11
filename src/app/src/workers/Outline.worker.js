@@ -25,7 +25,14 @@ import chunk from 'lodash/chunk';
 import concaveman from 'concaveman';
 
 self.onmessage = ({ data }) => {
-    const { isLaser = false, parsedData = [], mode, bbox, zTravel } = data;
+    const {
+        isLaser = false,
+        parsedData = [],
+        mode,
+        bbox,
+        zTravel,
+        outlineSpeed = null,
+    } = data;
 
     const getOutlineGcode = (concavity = 20) => {
         let vertices = [];
@@ -36,54 +43,74 @@ self.onmessage = ({ data }) => {
         let fileHull = concaveman(vertices);
         fileHull = fileHull.slice(1); // Pop the first element since it's the same as the last and will result in weird movements.
 
-        const gCode = convertPointsToGCode(fileHull, isLaser);
+        const gCode = convertPointsToGCode(fileHull, isLaser, outlineSpeed);
 
         return gCode;
     };
 
     const getSimpleOutline = () => {
+        const movementModal = outlineSpeed ? 'G1' : 'G0';
+        const feedrateCmd = outlineSpeed ? `F${outlineSpeed}` : '';
+
         if (parsedData && parsedData.length <= 0) {
-            return [
+            const gcode = [
                 '%X0=posx,Y0=posy,Z0=posz',
                 '%MM=modal.distance',
                 `G21 G91 G0 Z${zTravel}`,
                 'G90',
-                'G0 X0 Y0',
-                `G0 X[${bbox.min.x}] Y[${bbox.max.y}]`,
-                `G0 X[${bbox.max.x}] Y[${bbox.max.y}]`,
-                `G0 X[${bbox.max.x}] Y[${bbox.min.y}]`,
-                `G0 X[${bbox.min.x}] Y[${bbox.min.y}]`,
-                'G0 X[X0] Y[Y0]',
+            ];
+            if (outlineSpeed) {
+                gcode.push(`${movementModal} ${feedrateCmd}`);
+            }
+            gcode.push(
+                `${movementModal} X0 Y0`,
+                `${movementModal} X[${bbox.min.x}] Y[${bbox.max.y}]`,
+                `${movementModal} X[${bbox.max.x}] Y[${bbox.max.y}]`,
+                `${movementModal} X[${bbox.max.x}] Y[${bbox.min.y}]`,
+                `${movementModal} X[${bbox.min.x}] Y[${bbox.min.y}]`,
+                `${movementModal} X[X0] Y[Y0]`,
                 `G21 G91 G0 Z-${zTravel}`,
                 '[MM]',
-            ];
+            );
+            return gcode;
         } else {
-            return [
+            const gcode = [
                 '%X0=posx,Y0=posy,Z0=posz',
                 '%MM=modal.distance',
                 `G21 G91 G0 Z${zTravel}`,
                 'G90',
-                'G0 X0 Y0',
-                'G0 X[xmin] Y[ymax]',
-                'G0 X[xmax] Y[ymax]',
-                'G0 X[xmax] Y[ymin]',
-                'G0 X[xmin] Y[ymin]',
-                'G0 X[X0] Y[Y0]',
+            ];
+            if (outlineSpeed) {
+                gcode.push(`${movementModal} ${feedrateCmd}`);
+            }
+            gcode.push(
+                `${movementModal} X0 Y0`,
+                `${movementModal} X[xmin] Y[ymax]`,
+                `${movementModal} X[xmax] Y[ymax]`,
+                `${movementModal} X[xmax] Y[ymin]`,
+                `${movementModal} X[xmin] Y[ymin]`,
+                `${movementModal} X[X0] Y[Y0]`,
                 `G21 G91 G0 Z-${zTravel}`,
                 '[MM]',
-            ];
+            );
+            return gcode;
         }
     };
 
-    function convertPointsToGCode(points, isLaser = false) {
+    function convertPointsToGCode(points, isLaser = false, customSpeed = null) {
         const gCode = [];
-        const movementModal = isLaser ? 'G1' : 'G0'; // G1 is necessary for laser outline since G0 won't enable it
+        // Use G1 if we have a custom speed, or if laser is enabled
+        const movementModal = customSpeed || isLaser ? 'G1' : 'G0';
         gCode.push('%X0=posx,Y0=posy,Z0=posz');
         gCode.push('%MM=modal.distance');
         gCode.push(`G21 G91 G0 Z${zTravel}`);
-        // Laser outline requires some additional preamble for feedrate and enabling the laser
+
+        // Set feedrate: use custom speed if provided, otherwise use laser default
         if (isLaser) {
-            gCode.push('G1F3000 M3 S1');
+            const feedrate = customSpeed || 3000;
+            gCode.push(`G1F${feedrate} M3 S1`);
+        } else if (customSpeed) {
+            gCode.push(`G1F${customSpeed}`);
         }
         points.forEach((point) => {
             const [x, y] = point;
