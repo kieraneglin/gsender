@@ -71,7 +71,7 @@ export function WizardLanding({
                     <div className="flex flex-col gap-3 mt-12 max-w-md">
                         {subWizards.map((subWizard, index) => {
                             const isActive = index === 0;
-                            const isDisabledBySequence = index > 0;
+                            const isDisabledBySequence = index < 0;
                             const isDisabled =
                                 validationsFailed || isDisabledBySequence;
 
