@@ -71,7 +71,7 @@ export function useSienciATCWizard(): Wizard {
                             ],
                         },
                         {
-                            id: 'restart-rehome',
+                            id: 'rehome',
                             title: 'Rehome',
                             component: RestartAndRehome,
                             secondaryContent: [
