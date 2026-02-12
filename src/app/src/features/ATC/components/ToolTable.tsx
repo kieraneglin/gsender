@@ -129,7 +129,10 @@ const ToolSection = ({
                                         <div className="portrait:block hidden">
                                             <ToolStatusBadges
                                                 probeState={tool.status}
-                                                isManual={tool.isManual}
+                                                isManual={
+                                                    tool.isManual &&
+                                                    allowManualBadge
+                                                }
                                                 size="sm"
                                             />
                                         </div>
@@ -140,7 +143,10 @@ const ToolSection = ({
                                     <TableCell className="portrait:hidden">
                                         <ToolStatusBadges
                                             probeState={tool.status}
-                                            isManual={tool.isManual}
+                                            isManual={
+                                                tool.isManual &&
+                                                allowManualBadge
+                                            }
                                             size="sm"
                                         />
                                     </TableCell>
@@ -175,7 +181,8 @@ export interface ToolTableProps {
 }
 
 export function ToolTable({ tools = [], disabled }: ToolTableProps) {
-    const { rackSize } = useToolChange();
+    const { rackSize, connected, atcAvailable } = useToolChange();
+    const allowManualBadge = connected && atcAvailable;
 
     const [onRackTools, offRackTools] = partition(
         tools,

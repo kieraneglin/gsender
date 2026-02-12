@@ -54,15 +54,18 @@ const ToolChangerPopover: React.FC<ToolChangerPopoverProps> = ({
     contentSide,
     contentSideOffset,
 }) => {
-    const { mode, rackSize } = useToolChange();
+    const { mode, rackSize, connected, atcAvailable } = useToolChange();
     const [selectedToolId, setSelectedToolId] = useState<string>('1');
     const [isLoading, setIsLoading] = useState(false);
 
     const selectedTool =
         tools.find((tool) => tool.id === selectedToolId) || tools[0];
     const currentStatus = selectedTool?.status || 'probed';
-    const isManual = selectedTool
-        ? selectedTool.isManual ?? selectedTool.id > rackSize
+    const allowManualBadge = connected && atcAvailable;
+    const isManual = allowManualBadge
+        ? selectedTool
+            ? selectedTool.isManual ?? selectedTool.id > rackSize
+            : false
         : false;
 
     const handleLoad = async () => {
@@ -170,9 +173,10 @@ const ToolChangerPopover: React.FC<ToolChangerPopoverProps> = ({
                                 </SelectTrigger>
                                 <SelectContent className="w-full flex-1 bg-white z-[10000]">
                                     {tools.map((tool) => {
-                                        const toolIsManual =
-                                            tool.isManual ??
-                                            tool.id > rackSize;
+                                        const toolIsManual = allowManualBadge
+                                            ? tool.isManual ??
+                                              tool.id > rackSize
+                                            : false;
                                         return (
                                             <SelectItem
                                                 key={tool.id}

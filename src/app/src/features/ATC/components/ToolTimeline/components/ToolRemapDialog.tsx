@@ -26,6 +26,9 @@ import {
     toolStateThemes,
 } from 'app/features/ATC/utils/ATCiConstants.ts';
 import { ToolStatusBadges } from 'app/features/ATC/components/ui/ToolStatusBadges.tsx';
+import { useTypedSelector } from 'app/hooks/useTypedSelector.ts';
+import { RootState } from 'app/store/redux';
+import get from 'lodash/get';
 
 interface ToolRemapDialogProps {
     open: boolean;
@@ -46,6 +49,14 @@ export function ToolRemapDialog({
     const [currentTool, setCurrentTool] = useState<ToolInstance | undefined>(
         undefined,
     );
+    const isConnected = useTypedSelector(
+        (state: RootState) => state.connection.isConnected,
+    );
+    const settings = useTypedSelector(
+        (state: RootState) => state.controller.settings,
+    );
+    const atcAvailable = get(settings, 'info.NEWOPT.ATC', '0') === '1';
+    const allowManualBadge = isConnected && atcAvailable;
 
     const handleConfirm = () => {
         if (selectedTool) {
@@ -95,7 +106,8 @@ export function ToolRemapDialog({
     }, [originalTool]);
 
     const currentProbeState = currentTool?.status;
-    const currentIsManual = currentTool?.isManual ?? false;
+    const currentIsManual =
+        allowManualBadge && (currentTool?.isManual ?? false);
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
@@ -125,16 +137,17 @@ export function ToolRemapDialog({
                                                     selectedToolNumber,
                                                 )}
                                             </span>
-                                            <ToolStatusBadges
-                                                probeState={
-                                                    selectedToolInfo.status
-                                                }
-                                                isManual={
-                                                    selectedToolInfo.isManual
-                                                }
-                                                size="sm"
-                                                className="ml-auto"
-                                            />
+                                                <ToolStatusBadges
+                                                    probeState={
+                                                        selectedToolInfo.status
+                                                    }
+                                                    isManual={
+                                                        selectedToolInfo.isManual &&
+                                                        allowManualBadge
+                                                    }
+                                                    size="sm"
+                                                    className="ml-auto"
+                                                />
                                         </div>
                                     ) : (
                                         <span className="text-muted-foreground">
@@ -153,8 +166,9 @@ export function ToolRemapDialog({
                                     const stateStyle =
                                         toolStateThemes[tool.status];
 
-                                    const toolIsManual =
-                                        tool.isManual ?? false;
+                                    const toolIsManual = allowManualBadge
+                                        ? tool.isManual ?? false
+                                        : false;
 
                                     return (
                                         <SelectPrimitive.Item

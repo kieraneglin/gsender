@@ -17,7 +17,7 @@ import { ToolStatusBadges } from 'app/features/ATC/components/ui/ToolStatusBadge
 import { Badge } from 'app/features/ATC/components/ui/Badge.tsx';
 
 export function CurrentToolInfo({ disabled }: { disabled?: boolean }) {
-    const { rackSize, connected } = useToolChange();
+    const { rackSize, connected, atcAvailable } = useToolChange();
     const [spindleTool, setSpindleTool] = useState(0);
     const [toolMapVersion, setToolMapVersion] = useState(0);
     const [selectedTool, setSelectedTool] = useState<ToolInstance>({
@@ -102,6 +102,7 @@ export function CurrentToolInfo({ disabled }: { disabled?: boolean }) {
     const formattedOffset = isEmptyTool
         ? '-'
         : selectedTool.toolOffsets.z.toFixed(3);
+    const allowManualBadge = connected && atcAvailable;
     const isManualTool =
         !isEmptyTool &&
         (selectedTool.isManual ?? selectedTool.id > rackSize);
@@ -125,16 +126,20 @@ export function CurrentToolInfo({ disabled }: { disabled?: boolean }) {
                             >
                                 {isEmptyTool ? 'Empty' : `T${selectedTool.id}`}
                             </span>
-                            {!isEmptyTool && (
+                            {!isEmptyTool && isRackTool && (
                                 <Badge
-                                    className={`gap-1 border ${isRackTool ? getToolStateClasses(selectedTool.status) : `${manualChipTheme.backgroundColor} ${manualChipTheme.borderColor} ${manualChipTheme.textColor}`}`}
+                                    className={`gap-1 border ${getToolStateClasses(selectedTool.status)}`}
                                 >
-                                    {isRackTool ? (
-                                        <Table2 size={12} />
-                                    ) : (
-                                        <ManualIcon size={12} />
-                                    )}
-                                    {isRackTool ? 'Rack Tool' : 'Manual Tool'}
+                                    <Table2 size={12} />
+                                    Rack Tool
+                                </Badge>
+                            )}
+                            {!isEmptyTool && !isRackTool && allowManualBadge && (
+                                <Badge
+                                    className={`gap-1 border ${manualChipTheme.backgroundColor} ${manualChipTheme.borderColor} ${manualChipTheme.textColor}`}
+                                >
+                                    <ManualIcon size={12} />
+                                    Manual Tool
                                 </Badge>
                             )}
                         </div>
@@ -150,7 +155,7 @@ export function CurrentToolInfo({ disabled }: { disabled?: boolean }) {
                     ) : (
                         <ToolStatusBadges
                             probeState={selectedTool.status}
-                            isManual={isManualTool}
+                            isManual={isManualTool && allowManualBadge}
                             size="sm"
                         />
                     )}

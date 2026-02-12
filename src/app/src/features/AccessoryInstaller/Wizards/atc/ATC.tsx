@@ -15,7 +15,6 @@ import store from 'app/store';
 import { SpindleSetRestart } from 'app/features/AccessoryInstaller/Wizards/atc/components/SpindleSetRestart.tsx';
 import { Modbus } from 'app/features/AccessoryInstaller/Wizards/atc/components/Modbus.tsx';
 import { ATCConfigStep } from 'app/features/AccessoryInstaller/Wizards/atc/components/ATCConfigStep.tsx';
-import { ATCConfigDRO } from 'app/features/AccessoryInstaller/Wizards/atc/components/ATCConfigDRO.tsx';
 
 export function useSienciATCWizard(): Wizard {
     const { connectionValidation, coreFirmwareValidation } = useValidations();
