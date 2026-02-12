@@ -103,8 +103,8 @@ const ToolChangerPopover: React.FC<ToolChangerPopoverProps> = ({
             case 'unprobed':
                 return {
                     ...styling,
-                    title: 'Offset not found',
-                    description: 'Ensure tool is in rack before proceeding.',
+                    title: 'Unprobed Tool',
+                    description: 'Offset not found for selected tool.',
                 };
         }
     };
@@ -143,19 +143,19 @@ const ToolChangerPopover: React.FC<ToolChangerPopoverProps> = ({
                     </div>
 
                     <div className="flex items-center gap-3">
-                        <div className="flex-1">
+                        <div className="flex-1 min-w-0">
                             <Select
                                 value={selectedToolId}
                                 onValueChange={setSelectedToolId}
                             >
                                 <SelectTrigger className="w-full">
                                     <SelectValue>
-                                        <div className="flex items-center gap-2 w-full">
-                                            <span className="font-mono font-semibold text-slate-800 dark:text-white">
+                                        <div className="flex items-center gap-2 w-full min-w-0">
+                                            <span className="font-mono font-semibold text-slate-800 dark:text-white shrink-0">
                                                 {selectedTool?.id}
                                             </span>
                                             {selectedTool?.nickname && (
-                                                <span className="text-slate-600 dark:text-white text-sm truncate">
+                                                <span className="text-slate-600 dark:text-white text-sm truncate flex-1 min-w-0">
                                                     {selectedTool.nickname}
                                                 </span>
                                             )}
@@ -165,7 +165,7 @@ const ToolChangerPopover: React.FC<ToolChangerPopoverProps> = ({
                                                     isManual={isManual}
                                                     size="sm"
                                                     showLabel={false}
-                                                    className="ml-auto"
+                                                    className="ml-auto shrink-0"
                                                 />
                                             )}
                                         </div>
@@ -187,7 +187,7 @@ const ToolChangerPopover: React.FC<ToolChangerPopoverProps> = ({
                                                         {tool?.id}
                                                     </span>
                                                     {tool?.nickname && (
-                                                        <span className="text-slate-600 dark:text-white text-sm truncate">
+                                                        <span className="text-slate-600 dark:text-white text-sm truncate flex-1 min-w-0">
                                                             {tool.nickname}
                                                         </span>
                                                     )}
@@ -196,7 +196,7 @@ const ToolChangerPopover: React.FC<ToolChangerPopoverProps> = ({
                                                         isManual={toolIsManual}
                                                         size="sm"
                                                         showLabel={false}
-                                                        className="ml-auto"
+                                                        className="ml-auto shrink-0"
                                                     />
                                                 </div>
                                             </SelectItem>
@@ -210,6 +210,7 @@ const ToolChangerPopover: React.FC<ToolChangerPopoverProps> = ({
                             onClick={handleLoad}
                             disabled={disabled || isLoading}
                             variant="primary"
+                            className="shrink-0"
                         >
                             {isLoading ? (
                                 <>
