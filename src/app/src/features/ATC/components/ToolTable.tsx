@@ -175,14 +175,14 @@ export function ToolTable({ tools = [], disabled }: ToolTableProps) {
     return (
         <div className="sm:rounded-lg w-full h-[500px] gap-1 flex flex-col">
             <ToolSection
-                title="On-Rack Tools"
+                title="Rack Loaded Tools"
                 tools={onRackTools}
                 onProbe={() => {}}
                 defaultOpen={true}
                 disabled={disabled}
             />
             <ToolSection
-                title="Off-Rack Tools"
+                title="Manually Loaded Tools"
                 tools={offRackTools}
                 onProbe={() => {}}
                 defaultOpen={false}
