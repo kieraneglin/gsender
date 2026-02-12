@@ -127,13 +127,13 @@ export function CurrentToolInfo({ disabled }: { disabled?: boolean }) {
                             </span>
                             {!isEmptyTool && isRackTool && (
                                 <span className="text-gray-600 text-xs">
-                                    Rack Tool
+                                    Rack
                                 </span>
                             )}
                             {!isEmptyTool && !isRackTool && allowManualBadge && (
                                 <span className="text-gray-600 text-xs">
                                     <ManualIcon className="inline-block mr-1" size={12} />
-                                    Manual Tool
+                                    Manual
                                 </span>
                             )}
                         </div>
