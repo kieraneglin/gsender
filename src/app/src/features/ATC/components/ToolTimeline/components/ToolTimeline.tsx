@@ -11,6 +11,7 @@ import { mapToolNicknamesAndStatus } from 'app/features/ATC/utils/ATCFunctions.t
 import { ToolInstance } from 'app/features/ATC/components/ToolTable.tsx';
 import { updateToolchangeContext } from 'app/features/Helper/Wizard.tsx';
 import pubsub from 'pubsub-js';
+import get from 'lodash/get';
 
 export function ToolTimeline({
     tools,
@@ -37,10 +38,17 @@ export function ToolTimeline({
 
     // Tool Table
     const [toolTable, setToolTable] = useState<ToolInstance[]>([]);
-    const [rackSize, setRackSize] = useState<number>(4);
     const toolTableData = useTypedSelector(
         (state: RootState) => state.controller.settings.toolTable,
     );
+    const settings = useTypedSelector(
+        (state: RootState) => state.controller.settings,
+    );
+    const reportedRackSize = Number(get(settings, 'atci.rack_size', -1));
+    const rackSize =
+        reportedRackSize > 0
+            ? reportedRackSize
+            : Object.values(toolTableData || {}).length;
     useEffect(() => {
         setToolTable(mapToolNicknamesAndStatus(toolTableData, rackSize));
     }, [toolTableData, rackSize]);
