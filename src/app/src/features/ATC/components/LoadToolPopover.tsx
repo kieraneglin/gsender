@@ -36,6 +36,7 @@ interface ToolChangerPopoverProps {
     trigger?: React.ReactNode;
     contentClassName?: string;
     contentAlign?: React.ComponentProps<typeof PopoverContent>['align'];
+    contentAlignOffset?: React.ComponentProps<typeof PopoverContent>['alignOffset'];
     contentSide?: React.ComponentProps<typeof PopoverContent>['side'];
     contentSideOffset?: React.ComponentProps<typeof PopoverContent>['sideOffset'];
 }
@@ -48,6 +49,7 @@ const ToolChangerPopover: React.FC<ToolChangerPopoverProps> = ({
     trigger,
     contentClassName,
     contentAlign,
+    contentAlignOffset,
     contentSide,
     contentSideOffset,
 }) => {
@@ -128,6 +130,7 @@ const ToolChangerPopover: React.FC<ToolChangerPopoverProps> = ({
             <PopoverContent
                 className={cn('w-96 p-6', contentClassName)}
                 align={contentAlign ?? 'end'}
+                alignOffset={contentAlignOffset}
                 side={contentSide}
                 sideOffset={contentSideOffset}
             >

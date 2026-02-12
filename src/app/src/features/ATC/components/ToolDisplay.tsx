@@ -15,6 +15,7 @@ export function ToolDisplay() {
                 trigger={<span className="absolute left-0 top-0 h-0 w-0" />}
                 contentSide="right"
                 contentAlign="start"
+                contentAlignOffset={-8}
                 contentSideOffset={0}
             />
         </div>
