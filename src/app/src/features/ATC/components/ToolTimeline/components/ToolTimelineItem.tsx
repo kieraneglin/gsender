@@ -29,7 +29,7 @@ export function ToolTimelineItem({
     remapValue,
 }: ToolTimelineItemProps) {
     const [label, setLabel] = useState('');
-    const MAX_LABEL_LENGTH = 16;
+    const MAX_LABEL_LENGTH = 15;
 
     const truncateLabel = (value: string) => {
         if (!value || value.length <= MAX_LABEL_LENGTH) {
@@ -87,11 +87,11 @@ export function ToolTimelineItem({
                         }}
                     />
                 )}
-                <div className="flex items-center gap-3">
-                    <div className="flex flex-col items-center flex-shrink-0">
+                <div className="flex items-start gap-3">
+                    <div className="flex flex-col items-start flex-shrink-0">
                         <div
                             className={cn(
-                                'relative z-10 flex items-center justify-center rounded-full border-3 transition-all duration-300',
+                                'relative z-10 flex items-center justify-center rounded-full border-3 transition-all duration-300 self-start',
                                 isActive
                                     ? 'h-10 w-10 scale-110 border-white shadow-lg'
                                     : 'h-7 w-7 border-white/80 dark:border-gray-600',
@@ -113,10 +113,10 @@ export function ToolTimelineItem({
                     </div>
 
                     <div className="flex-1 min-w-0">
-                        <div className="flex items-center justify-between gap-2">
+                        <div className="flex items-start justify-between gap-2">
                             <div
                                 className={cn(
-                                    'font-semibold transition-colors flex flex-row gap-1 items-center flex flex-col',
+                                    'font-semibold transition-colors flex flex-col gap-1 items-start',
                                     isActive
                                         ? 'text-sm text-gray-900 dark:text-white'
                                         : 'text-xs text-gray-700 dark:text-gray-300',
