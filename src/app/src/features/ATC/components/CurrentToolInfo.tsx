@@ -7,10 +7,7 @@ import controller from 'app/lib/controller.ts';
 import { useToolChange } from 'app/features/ATC/utils/ToolChangeContext.tsx';
 import { Wrench } from 'lucide-react';
 import Button from 'app/components/Button';
-import {
-    manualChipTheme,
-    toolStateThemes,
-} from 'app/features/ATC/utils/ATCiConstants.ts';
+import { toolStateThemes } from 'app/features/ATC/utils/ATCiConstants.ts';
 import pubsub from 'pubsub-js';
 import { ToolStatusBadges } from 'app/features/ATC/components/ui/ToolStatusBadges.tsx';
 import { Badge } from 'app/features/ATC/components/ui/Badge.tsx';
@@ -107,7 +104,6 @@ export function CurrentToolInfo({ disabled }: { disabled?: boolean }) {
         (selectedTool.isManual ?? selectedTool.id > rackSize);
     const EmptyIcon = state.icon;
     const isRackTool = !isEmptyTool && selectedTool.id <= rackSize;
-    const ManualIcon = manualChipTheme.icon;
 
     return (
         <div className="w-full h-full flex-1">
@@ -132,7 +128,6 @@ export function CurrentToolInfo({ disabled }: { disabled?: boolean }) {
                             )}
                             {!isEmptyTool && !isRackTool && allowManualBadge && (
                                 <span className="text-gray-600 text-xs">
-                                    <ManualIcon className="inline-block mr-1" size={12} />
                                     Manual
                                 </span>
                             )}
