@@ -25,7 +25,6 @@ import {
     Ban,
 } from 'lucide-react';
 import cn from 'classnames';
-import type { Tool } from './types';
 import { ToolInstance } from 'app/features/ATC/components/ToolTable.tsx';
 import {
     getToolStateClasses,
@@ -53,10 +52,9 @@ export function ToolRemapDialog({
     onConfirm,
 }: ToolRemapDialogProps) {
     const [selectedTool, setSelectedTool] = useState<string>('');
-    const [currentTool, setCurrentTool] = useState<Tool>({
-        number: 0,
-        status: 'current',
-    });
+    const [currentTool, setCurrentTool] = useState<ToolInstance | undefined>(
+        undefined,
+    );
 
     const handleConfirm = () => {
         if (selectedTool) {
@@ -86,8 +84,26 @@ export function ToolRemapDialog({
         return !(isPassedTool && !toolIsRemapped);
     };
 
-    const getToolInfo = (toolNumber: number): Tool | undefined => {
+    const getToolInfo = (toolNumber: number): ToolInstance | undefined => {
         return allTools.find((t) => t.id === toolNumber);
+    };
+
+    const selectedToolNumber = selectedTool ? parseInt(selectedTool) : undefined;
+    const selectedToolInfo = selectedToolNumber
+        ? getToolInfo(selectedToolNumber)
+        : undefined;
+
+    const formatToolLabel = (
+        tool: ToolInstance | undefined,
+        fallbackId?: number,
+    ) => {
+        if (!tool) return fallbackId ? `T${fallbackId}` : '';
+        const nickname = tool.nickname && tool.nickname !== '-' ? tool.nickname : '';
+        return nickname ? `T${tool.id} - ${nickname}` : `T${tool.id}`;
+    };
+
+    const formatToolNumber = (toolNumber?: number) => {
+        return toolNumber ? `T${toolNumber}` : '';
     };
 
     useEffect(() => {
@@ -117,7 +133,35 @@ export function ToolRemapDialog({
                             onValueChange={setSelectedTool}
                         >
                             <SelectTrigger id="tool-select">
-                                <SelectValue placeholder="Select a tool" />
+                                <SelectValue asChild>
+                                    {selectedToolInfo ? (
+                                        <div className="flex items-center gap-3 w-full flex-1 min-w-0">
+                                            <span className="flex-1 min-w-0 font-mono font-medium truncate">
+                                                {formatToolLabel(
+                                                    selectedToolInfo,
+                                                    selectedToolNumber,
+                                                )}
+                                            </span>
+                                            <Badge
+                                                variant="outline"
+                                                className={cn(
+                                                    'text-xs font-medium flex items-center gap-1.5 shrink-0 w-24 justify-center ml-auto',
+                                                    getToolStateClasses(
+                                                        selectedToolInfo.status,
+                                                    ),
+                                                )}
+                                            >
+                                                {toolStateThemes[
+                                                    selectedToolInfo.status
+                                                ].label}
+                                            </Badge>
+                                        </div>
+                                    ) : (
+                                        <span className="text-muted-foreground">
+                                            Select a tool
+                                        </span>
+                                    )}
+                                </SelectValue>
                             </SelectTrigger>
                             <SelectContent className="z-[10000] bg-white dark:bg-dark">
                                 {allTools.map((tool) => {
@@ -165,15 +209,15 @@ export function ToolRemapDialog({
                                                     : ''
                                             }
                                         >
-                                            <SelectPrimitive.ItemText>
-                                                <div className="flex items-center justify-between gap-3 w-full pr-6">
-                                                    <span className="font-mono font-medium min-w-[4ch]">
-                                                        T{tool.id}
+                                            <SelectPrimitive.ItemText asChild>
+                                                <div className="flex items-center gap-3 w-full">
+                                                    <span className="flex-1 min-w-0 font-mono font-medium truncate">
+                                                        {formatToolLabel(tool)}
                                                     </span>
                                                     <Badge
                                                         variant="outline"
                                                         className={cn(
-                                                            'text-xs font-medium flex items-center gap-1.5 shrink-0 w-24 justify-center',
+                                                            'text-xs font-medium flex items-center gap-1.5 shrink-0 w-24 justify-center ml-auto',
                                                             getToolStateClasses(
                                                                 tool.status,
                                                             ),
@@ -201,7 +245,7 @@ export function ToolRemapDialog({
                     <div className="flex items-center justify-center gap-4">
                         <div className="flex items-center gap-2">
                             <span className="font-mono font-semibold text-lg">
-                                T{originalTool}
+                                {formatToolNumber(originalTool)}
                             </span>
                             <Badge
                                 variant="outline"
@@ -218,7 +262,7 @@ export function ToolRemapDialog({
 
                         <div className="flex items-center gap-2">
                             <span className="font-mono font-semibold text-lg text-primary">
-                                {selectedTool && `T${selectedTool}`}
+                                {formatToolNumber(parseInt(selectedTool))}
                             </span>
                             {getToolInfo(parseInt(selectedTool)) && (
                                 <Badge
