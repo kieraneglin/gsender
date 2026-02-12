@@ -56,12 +56,14 @@ const ToolSection = ({
     tools,
     disabled,
     defaultOpen = true,
+    allowManualBadge = false,
 }: {
     title: string;
     tools: ToolInstance[];
     onProbe?: (toolId: string) => void;
     defaultOpen?: boolean;
     disabled?: boolean;
+    allowManualBadge?: boolean;
 }) => {
     const [isOpen, setIsOpen] = useState(defaultOpen);
 
@@ -197,6 +199,7 @@ export function ToolTable({ tools = [], disabled }: ToolTableProps) {
                 onProbe={() => {}}
                 defaultOpen={true}
                 disabled={disabled}
+                allowManualBadge={allowManualBadge}
             />
             <ToolSection
                 title="Manually Loaded Tools"
@@ -204,6 +207,7 @@ export function ToolTable({ tools = [], disabled }: ToolTableProps) {
                 onProbe={() => {}}
                 defaultOpen={false}
                 disabled={disabled}
+                allowManualBadge={allowManualBadge}
             />
         </div>
     );

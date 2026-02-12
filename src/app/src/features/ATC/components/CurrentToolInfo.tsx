@@ -5,10 +5,9 @@ import { useEffect, useState } from 'react';
 import { lookupSpecificTool } from 'app/features/ATC/utils/ATCFunctions.ts';
 import controller from 'app/lib/controller.ts';
 import { useToolChange } from 'app/features/ATC/utils/ToolChangeContext.tsx';
-import { Table2, Wrench } from 'lucide-react';
+import { Wrench } from 'lucide-react';
 import Button from 'app/components/Button';
 import {
-    getToolStateClasses,
     manualChipTheme,
     toolStateThemes,
 } from 'app/features/ATC/utils/ATCiConstants.ts';
@@ -127,20 +126,15 @@ export function CurrentToolInfo({ disabled }: { disabled?: boolean }) {
                                 {isEmptyTool ? 'Empty' : `T${selectedTool.id}`}
                             </span>
                             {!isEmptyTool && isRackTool && (
-                                <Badge
-                                    className={`gap-1 border ${getToolStateClasses(selectedTool.status)}`}
-                                >
-                                    <Table2 size={12} />
+                                <span className="text-gray-600 text-xs">
                                     Rack Tool
-                                </Badge>
+                                </span>
                             )}
                             {!isEmptyTool && !isRackTool && allowManualBadge && (
-                                <Badge
-                                    className={`gap-1 border ${manualChipTheme.backgroundColor} ${manualChipTheme.borderColor} ${manualChipTheme.textColor}`}
-                                >
-                                    <ManualIcon size={12} />
+                                <span className="text-gray-600 text-xs">
+                                    <ManualIcon className="inline-block mr-1" size={12} />
                                     Manual Tool
-                                </Badge>
+                                </span>
                             )}
                         </div>
                     </div>
