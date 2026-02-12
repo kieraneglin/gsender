@@ -20,8 +20,7 @@ export type ToolStatus =
     | 'unprobed'
     | 'offrack'
     | 'current'
-    | 'error'
-    | 'used';
+    | 'error';
 
 export interface Tool {
     number: number;

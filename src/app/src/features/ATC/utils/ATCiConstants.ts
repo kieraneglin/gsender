@@ -18,14 +18,12 @@ export interface ToolStateThemes {
 
     // Support Statuses
     empty: ToolStateTheme;
-    used: ToolStateTheme;
     current: ToolStateTheme;
     error: ToolStateTheme;
 }
 
 import { FaCheckCircle, FaExclamationCircle, FaBan } from 'react-icons/fa';
 import { PiEmpty, PiHandTap } from 'react-icons/pi';
-import { MdRefresh } from 'react-icons/md';
 import { IoFlash } from 'react-icons/io5';
 
 export const toolStateThemes: ToolStateThemes = {
@@ -58,15 +56,6 @@ export const toolStateThemes: ToolStateThemes = {
     },
 
     // Support Statuses
-    used: {
-        label: 'Used',
-        backgroundColor: 'bg-gray-600/20 dark:bg-gray-600/40',
-        borderColor: 'border-gray-800',
-        textColor: 'text-black dark:text-gray-300',
-        backgroundStyle: 'striped-diagonal',
-        icon: MdRefresh,
-    },
-
     empty: {
         label: 'Empty',
         backgroundColor: 'bg-gray-400/20 dark:bg-gray-400/40',

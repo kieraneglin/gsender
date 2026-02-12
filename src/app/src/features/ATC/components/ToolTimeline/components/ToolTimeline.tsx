@@ -62,18 +62,6 @@ export function ToolTimeline({
         };
     }, [toolTableData, rackSize]);
 
-    // File tools
-    const [fileTools, setFileTools] = useState<Number[]>([]);
-    const fileToolSet = useTypedSelector(
-        (state: RootState) => state.file.toolSet,
-    );
-    useEffect(() => {
-        const fileToolNumbers = fileToolSet.map((tool) => {
-            return Number(tool.replace('T', ''));
-        });
-        setFileTools(fileToolNumbers);
-    }, [fileToolSet]);
-
     useEffect(() => {
         pubsub.subscribe('file:load', () => {
             setMappings(new Map());
@@ -245,8 +233,6 @@ export function ToolTimeline({
                                 onOpenChange={setDialogOpen}
                                 originalTool={selectedTool}
                                 allTools={toolTable}
-                                passedTools={fileTools}
-                                existingMappings={mappings}
                                 onConfirm={handleConfirmRemap}
                             />
                             {visibleTools.map((tool, index) => {

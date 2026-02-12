@@ -19,10 +19,6 @@ import { Label } from 'app/components/shadcn/Label';
 import { Badge } from 'app/components/shadcn/Badge';
 import {
     ArrowRight,
-    CheckCircle,
-    AlertTriangle,
-    XCircle,
-    Ban,
 } from 'lucide-react';
 import cn from 'classnames';
 import { ToolInstance } from 'app/features/ATC/components/ToolTable.tsx';
@@ -30,15 +26,12 @@ import {
     getToolStateClasses,
     toolStateThemes,
 } from 'app/features/ATC/utils/ATCiConstants.ts';
-import { undefined } from 'zod';
 
 interface ToolRemapDialogProps {
     open: boolean;
     onOpenChange: (open: boolean) => void;
     originalTool: Number;
     allTools: ToolInstance[];
-    passedTools: number[];
-    existingMappings: Map<number, number>;
     onConfirm: (fromTool: number, toTool: number) => void;
 }
 
@@ -47,8 +40,6 @@ export function ToolRemapDialog({
     onOpenChange,
     originalTool,
     allTools,
-    passedTools,
-    existingMappings,
     onConfirm,
 }: ToolRemapDialogProps) {
     const [selectedTool, setSelectedTool] = useState<string>('');
@@ -73,15 +64,7 @@ export function ToolRemapDialog({
     const isToolAvailable = (toolNumber: number): boolean => {
         if (toolNumber === originalTool) return true;
 
-        /*const mappedTo = Array.from(existingMappings.values());
-        if (mappedTo.includes(toolNumber)) return false;
-        */
-
-        //const isPassedTool = passedTools.includes(toolNumber);
-        const isPassedTool = false;
-        const toolIsRemapped = existingMappings.has(toolNumber);
-
-        return !(isPassedTool && !toolIsRemapped);
+        return true;
     };
 
     const getToolInfo = (toolNumber: number): ToolInstance | undefined => {
@@ -168,23 +151,10 @@ export function ToolRemapDialog({
                                     tool = { ...tool };
                                     const available = isToolAvailable(tool.id);
 
-                                    const isMapped = Array.from(
-                                        existingMappings.values(),
-                                    ).includes(tool.id);
-                                    const isPassedTool = passedTools.includes(
-                                        tool.id,
-                                    );
-                                    const isUsed = isMapped || isPassedTool;
-
-                                    if (isUsed) {
-                                        tool.status = 'used';
-                                    }
-
                                     //const status = toolStateThemes[tool.status];
 
-                                    const stateStyle = available
-                                        ? toolStateThemes[tool.status]
-                                        : toolStateThemes.used;
+                                    const stateStyle =
+                                        toolStateThemes[tool.status];
 
                                     const IconComponent = stateStyle.icon;
 
