@@ -1,7 +1,9 @@
 import { Wizard } from 'app/features/AccessoryInstaller/types';
 import { useValidations } from 'app/features/AccessoryInstaller/hooks/UseValidations.tsx';
 import { useMemo } from 'react';
-import PlaceholderImage from '../assets/placeholder.png';
+import PlaceholderImageSd from './assets/placeholder_sd.png';
+import PlaceholderImageTwo from './assets/placeholder_2.png';
+import PlaceholderImageThree from './assets/placeholder_3.png';
 import { MacroConfiguration } from 'app/features/AccessoryInstaller/Wizards/atc/components/MacroConfiguration.tsx';
 import { ControllerConfiguration } from 'app/features/AccessoryInstaller/Wizards/atc/components/ControllerConfiguration.tsx';
 import { RackPosition } from 'app/features/AccessoryInstaller/Wizards/atc/components/RackPosition.tsx';
@@ -45,7 +47,7 @@ export function useSienciATCWizard(): Wizard {
                             secondaryContent: [
                                 {
                                     type: 'image',
-                                    content: PlaceholderImage,
+                                    content: PlaceholderImageSd,
                                     title: 'SD Card Installation',
                                 },
                             ],
@@ -57,7 +59,7 @@ export function useSienciATCWizard(): Wizard {
                             secondaryContent: [
                                 {
                                     type: 'image',
-                                    content: PlaceholderImage,
+                                    content: PlaceholderImageTwo,
                                 },
                                 {
                                     type: 'link',
@@ -75,7 +77,7 @@ export function useSienciATCWizard(): Wizard {
                             secondaryContent: [
                                 {
                                     type: 'image',
-                                    content: PlaceholderImage,
+                                    content: PlaceholderImageThree,
                                 },
                             ],
                         },

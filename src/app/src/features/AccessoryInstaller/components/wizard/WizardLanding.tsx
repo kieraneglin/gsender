@@ -1,7 +1,7 @@
 import { ArrowLeft, ArrowRight, HelpCircle } from 'lucide-react';
 import { SubWizard, ValidationResult } from '../../types/wizard';
 import { ValidationBanner } from 'app/features/AccessoryInstaller/components/wizard/ValidationBanner.tsx';
-import PlaceholderImage from '../../Wizards/assets/placeholder.png';
+import PlaceholderImage from '../../Wizards/atc/assets/placeholder_1.png';
 
 interface WizardLandingProps {
     title: string;
