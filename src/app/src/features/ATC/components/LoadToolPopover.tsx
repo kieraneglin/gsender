@@ -21,7 +21,7 @@ import { useToolChange } from 'app/features/ATC/utils/ToolChangeContext.tsx';
 import {
     loadAndSaveToRack,
     loadTool,
-    LoadToolMode,
+    LoadToolMode, releaseToolFromSpindle,
     saveToRack,
 } from 'app/features/ATC/utils/ATCFunctions.ts';
 import { toolStateThemes } from 'app/features/ATC/utils/ATCiConstants.ts';
@@ -58,8 +58,8 @@ const ToolChangerPopover: React.FC<ToolChangerPopoverProps> = ({
             case 'load':
                 loadTool(selectedToolId);
                 break;
-            case 'save':
-                saveToRack(selectedToolId);
+            case 'unload':
+                releaseToolFromSpindle()
                 break;
             case 'loadAndSave':
                 loadAndSaveToRack(selectedToolId);
@@ -104,7 +104,7 @@ const ToolChangerPopover: React.FC<ToolChangerPopoverProps> = ({
         switch (tcMode) {
             case 'load':
                 return 'Load Tool Manually';
-            case 'save':
+            case 'unload':
                 return 'Unload Tool Manually';
             case 'loadAndSave':
                 return 'Load and Save Tool';

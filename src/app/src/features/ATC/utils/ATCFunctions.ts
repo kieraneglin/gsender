@@ -107,11 +107,8 @@ export function loadAndSaveToRack(toolID) {
     controller.command('gcode', [`G65 P901 Q${toolID}`, '$#']);
 }
 
-export function saveToRack(toolID) {
-    controller.command('gcode', [`G65 P901 Q${toolID}`, '$#']);
-}
 
-export type LoadToolMode = 'load' | 'save' | 'loadAndSave';
+export type LoadToolMode = 'load' | 'unload' | 'loadAndSave';
 
 export function isATCAvailable() {
     const reduxState = reduxStore.getState();
