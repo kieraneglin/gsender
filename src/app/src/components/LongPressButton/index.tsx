@@ -194,7 +194,7 @@ export const LongPressButton: React.FC<LongPressButtonProps> = ({
             <button
                 type="button"
                 className={cn(
-                    'relative w-full min-h-11 select-none overflow-hidden rounded-lg border border-blue-500 bg-blue-500 px-4 py-3 text-center text-white shadow-md transition duration-150 hover:opacity-95',
+                    'relative w-full min-h-12 select-none overflow-hidden rounded-lg border border-blue-500 bg-blue-500 px-4 py-3.5 text-center text-white shadow-md transition duration-150 hover:opacity-95',
                     'active:shadow-[inset_7px_4px_6px_0px_rgba(30,_64,_175,_0.25)]',
                     'disabled:cursor-not-allowed disabled:border-gray-400 disabled:bg-gray-300 disabled:text-gray-500 disabled:opacity-100 disabled:hover:bg-gray-300 dark:disabled:bg-dark',
                     isFlashing && 'ring-2 ring-white/70 brightness-110',
@@ -215,7 +215,9 @@ export const LongPressButton: React.FC<LongPressButtonProps> = ({
                 <span
                     className={cn(
                         'relative z-10 grid w-full items-center font-semibold',
-                        hasIcon ? 'grid-cols-[1.25rem_1fr] gap-1' : 'grid-cols-1',
+                        hasIcon
+                            ? 'grid-cols-[1.25rem_1fr_1.25rem] gap-1'
+                            : 'grid-cols-1',
                     )}
                 >
                     {hasIcon ? (
@@ -223,9 +225,10 @@ export const LongPressButton: React.FC<LongPressButtonProps> = ({
                             {icon}
                         </span>
                     ) : null}
-                    <span className={cn(hasIcon ? 'text-left' : 'text-center')}>
+                    <span className={cn(hasIcon ? 'text-center' : 'text-center')}>
                         {label}
                     </span>
+                    {hasIcon ? <span aria-hidden="true" className="h-5 w-5" /> : null}
                 </span>
             </button>
             {secondaryLabel ? (
