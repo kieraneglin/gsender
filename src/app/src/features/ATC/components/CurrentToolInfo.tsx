@@ -5,9 +5,13 @@ import { useEffect, useState } from 'react';
 import { lookupSpecificTool } from 'app/features/ATC/utils/ATCFunctions.ts';
 import controller from 'app/lib/controller.ts';
 import { useToolChange } from 'app/features/ATC/utils/ToolChangeContext.tsx';
-import { Wrench } from 'lucide-react';
+import { Table2, Wrench } from 'lucide-react';
 import Button from 'app/components/Button';
-import { toolStateThemes } from 'app/features/ATC/utils/ATCiConstants.ts';
+import {
+    getToolStateClasses,
+    manualChipTheme,
+    toolStateThemes,
+} from 'app/features/ATC/utils/ATCiConstants.ts';
 import pubsub from 'pubsub-js';
 import { ToolStatusBadges } from 'app/features/ATC/components/ui/ToolStatusBadges.tsx';
 import { Badge } from 'app/features/ATC/components/ui/Badge.tsx';
@@ -103,11 +107,7 @@ export function CurrentToolInfo({ disabled }: { disabled?: boolean }) {
         (selectedTool.isManual ?? selectedTool.id > rackSize);
     const EmptyIcon = state.icon;
     const isRackTool = !isEmptyTool && selectedTool.id <= rackSize;
-    const toolLocationLabel = isEmptyTool
-        ? ''
-        : isRackTool
-          ? 'Rack Tool'
-          : 'Manual Tool';
+    const ManualIcon = manualChipTheme.icon;
 
     return (
         <div className="w-full h-full flex-1">
@@ -125,10 +125,17 @@ export function CurrentToolInfo({ disabled }: { disabled?: boolean }) {
                             >
                                 {isEmptyTool ? 'Empty' : `T${selectedTool.id}`}
                             </span>
-                            {toolLocationLabel && (
-                                <span className="text-gray-600 text-xs">
-                                    {toolLocationLabel}
-                                </span>
+                            {!isEmptyTool && (
+                                <Badge
+                                    className={`gap-1 border ${isRackTool ? getToolStateClasses(selectedTool.status) : `${manualChipTheme.backgroundColor} ${manualChipTheme.borderColor} ${manualChipTheme.textColor}`}`}
+                                >
+                                    {isRackTool ? (
+                                        <Table2 size={12} />
+                                    ) : (
+                                        <ManualIcon size={12} />
+                                    )}
+                                    {isRackTool ? 'Rack Tool' : 'Manual Tool'}
+                                </Badge>
                             )}
                         </div>
                     </div>
