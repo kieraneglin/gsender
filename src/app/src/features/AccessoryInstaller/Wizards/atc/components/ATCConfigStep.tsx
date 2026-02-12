@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { StepProps } from 'app/features/AccessoryInstaller/types';
 import controller from 'app/lib/controller.ts';
 import { ConfigTab } from 'app/features/ATC/components/Configuration/components/ConfigTab.tsx';
@@ -8,11 +8,16 @@ import { repopulateFromSDCard } from 'app/features/ATC/components/Configuration/
 function ATCConfigStepContent() {
     const { updateConfig } = useConfigContext();
     const [uploading, setUploading] = useState(false);
+    const updateConfigRef = useRef(updateConfig);
+
+    useEffect(() => {
+        updateConfigRef.current = updateConfig;
+    }, [updateConfig]);
 
     useEffect(() => {
         const handleSdcardJson = (payload) => {
             const updatedConfig = repopulateFromSDCard(payload.code);
-            updateConfig({
+            updateConfigRef.current({
                 variables: { ...updatedConfig.variables },
             });
         };
@@ -32,7 +37,7 @@ function ATCConfigStepContent() {
             controller.removeListener('ymodem:complete', handleYmodemComplete);
             controller.removeListener('ymodem:error', handleYmodemError);
         };
-    }, [updateConfig]);
+    }, []);
 
     return <ConfigTab uploading={uploading} />;
 }
