@@ -150,7 +150,7 @@ export function ToolTimelineItem({
                                     )}
                                 </div>
                             </div>
-                            <div className="flex flex-col items-end">
+                            <div className="flex flex-col items-end self-stretch justify-center gap-1">
                                 <span
                                     className={cn(
                                         'transition-colors whitespace-nowrap text-xs font-medium opacity-100 text-black dark:text-white',
@@ -161,7 +161,7 @@ export function ToolTimelineItem({
                                 </span>
                                 {isConnected && (
                                     <Button
-                                        className="!w-auto"
+                                        className="!w-auto !h-8"
                                         onClick={handleRemap}
                                         size="xs"
                                     >
