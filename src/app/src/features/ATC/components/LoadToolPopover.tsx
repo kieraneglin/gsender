@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Download, Loader2 } from 'lucide-react';
+import { Loader2 } from 'lucide-react';
 import {
     Popover,
     PopoverContent,
@@ -12,7 +12,8 @@ import {
     SelectTrigger,
     SelectValue,
 } from 'app/components/shadcn/Select.tsx';
-import { Button, type ButtonProps } from 'app/components/Button';
+import { Button } from 'app/components/Button';
+import { cn } from 'app/lib/utils';
 import {
     ToolInstance,
     ToolStatus,
@@ -21,7 +22,8 @@ import { useToolChange } from 'app/features/ATC/utils/ToolChangeContext.tsx';
 import {
     loadAndSaveToRack,
     loadTool,
-    LoadToolMode, releaseToolFromSpindle,
+    LoadToolMode,
+    releaseToolFromSpindle,
     saveToRack,
 } from 'app/features/ATC/utils/ATCFunctions.ts';
 import { toolStateThemes } from 'app/features/ATC/utils/ATCiConstants.ts';
@@ -31,8 +33,11 @@ interface ToolChangerPopoverProps {
     setIsOpen: (open: boolean) => void;
     disabled?: boolean;
     tools?: ToolInstance[];
-    buttonSize?: ButtonProps['size'];
-    buttonClassName?: string;
+    trigger?: React.ReactNode;
+    contentClassName?: string;
+    contentAlign?: React.ComponentProps<typeof PopoverContent>['align'];
+    contentSide?: React.ComponentProps<typeof PopoverContent>['side'];
+    contentSideOffset?: React.ComponentProps<typeof PopoverContent>['sideOffset'];
 }
 
 const ToolChangerPopover: React.FC<ToolChangerPopoverProps> = ({
@@ -40,10 +45,13 @@ const ToolChangerPopover: React.FC<ToolChangerPopoverProps> = ({
     setIsOpen,
     disabled,
     tools = [],
-    buttonSize,
-    buttonClassName,
+    trigger,
+    contentClassName,
+    contentAlign,
+    contentSide,
+    contentSideOffset,
 }) => {
-    const { mode, setLoadToolMode } = useToolChange();
+    const { mode } = useToolChange();
     const [selectedToolId, setSelectedToolId] = useState<string>('1');
     const [isLoading, setIsLoading] = useState(false);
 
@@ -58,8 +66,11 @@ const ToolChangerPopover: React.FC<ToolChangerPopoverProps> = ({
             case 'load':
                 loadTool(selectedToolId);
                 break;
+            case 'manual':
+                loadAndSaveToRack(selectedToolId);
+                break;
             case 'unload':
-                releaseToolFromSpindle()
+                releaseToolFromSpindle();
                 break;
             case 'loadAndSave':
                 loadAndSaveToRack(selectedToolId);
@@ -69,11 +80,6 @@ const ToolChangerPopover: React.FC<ToolChangerPopoverProps> = ({
             setIsLoading(false);
             setIsOpen(false);
         }, 700);
-    };
-
-    const handleLoadOpen = () => {
-        setLoadToolMode('load');
-        setIsOpen(true);
     };
 
     const getStatusConfig = (status: ToolStatus) => {
@@ -103,7 +109,9 @@ const ToolChangerPopover: React.FC<ToolChangerPopoverProps> = ({
     const getModeTitle = (tcMode: LoadToolMode) => {
         switch (tcMode) {
             case 'load':
-                return 'Load Tool Manually';
+                return 'Load Tool';
+            case 'manual':
+                return 'Manual Load Tool';
             case 'unload':
                 return 'Unload Tool Manually';
             case 'loadAndSave':
@@ -115,20 +123,14 @@ const ToolChangerPopover: React.FC<ToolChangerPopoverProps> = ({
     const StatusIcon = statusConfig.icon;
 
     return (
-        <Popover open={isOpen} onOpenChange={() => setIsOpen(!isOpen)}>
-            <PopoverTrigger asChild>
-                <Button
-                    disabled={disabled}
-                    variant="primary"
-                    size={buttonSize}
-                    className={buttonClassName}
-                    onClick={handleLoadOpen}
-                >
-                    <Download className="w-4 h-4 mr-2" />
-                    Load
-                </Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-96 p-6" align="end">
+        <Popover open={isOpen} onOpenChange={setIsOpen}>
+            {trigger ? <PopoverTrigger asChild>{trigger}</PopoverTrigger> : null}
+            <PopoverContent
+                className={cn('w-96 p-6', contentClassName)}
+                align={contentAlign ?? 'end'}
+                side={contentSide}
+                sideOffset={contentSideOffset}
+            >
                 <div className="space-y-2">
                     <div>
                         <h3 className="text-lg font-semibold text-slate-800 dark:text-white">
@@ -189,7 +191,7 @@ const ToolChangerPopover: React.FC<ToolChangerPopoverProps> = ({
 
                         <Button
                             onClick={handleLoad}
-                            disabled={isLoading}
+                            disabled={disabled || isLoading}
                             variant="primary"
                         >
                             {isLoading ? (

@@ -16,10 +16,14 @@ export function AdvancedOptions() {
     } = useToolChange();
 
     const handleManualLoad = () => {
-        setLoadToolMode('load');
+        setLoadToolMode('manual');
         setLoadToolOpen(true);
     };
 
+    const handleLoad = () => {
+        setLoadToolMode('load');
+        setLoadToolOpen(true);
+    };
 
     return (
         <div className="flex h-full w-full flex-col gap-4">
@@ -34,8 +38,8 @@ export function AdvancedOptions() {
                     disabled={disabled}
                     label="Load"
                     icon={<Download className="h-5 w-5" />}
-                    onClick={() => setLoadToolOpen(true)}
-                    onTLongPress={handleManualLoad}
+                    onClick={handleLoad}
+                    onLongPress={handleManualLoad}
                 />
                 <LongPressButton
                     disabled={disabled}

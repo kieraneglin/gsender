@@ -108,7 +108,7 @@ export function loadAndSaveToRack(toolID) {
 }
 
 
-export type LoadToolMode = 'load' | 'unload' | 'loadAndSave';
+export type LoadToolMode = 'load' | 'manual' | 'unload' | 'loadAndSave';
 
 export function isATCAvailable() {
     const reduxState = reduxStore.getState();
