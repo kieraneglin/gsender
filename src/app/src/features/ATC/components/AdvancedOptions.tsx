@@ -35,7 +35,7 @@ export function AdvancedOptions() {
                     label="Load"
                     icon={<Download className="h-5 w-5" />}
                     onClick={() => setLoadToolOpen(true)}
-                    onLongPress={handleManualLoad}
+                    onTLongPress={handleManualLoad}
                 />
                 <LongPressButton
                     disabled={disabled}

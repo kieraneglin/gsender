@@ -32,7 +32,7 @@ const defaultOptions: LongPressButtonOptions = {
     flashDurationMs: 160,
 };
 
-export function LongPressButton({
+export const LongPressButton: React.FC<LongPressButtonProps> = ({
     label,
     icon,
     secondaryLabel,
@@ -44,7 +44,7 @@ export function LongPressButton({
     secondaryLabelClassName,
     disabled,
     ...rest
-}: LongPressButtonProps): JSX.Element {
+}: LongPressButtonProps) => {
     const resolvedOptions = useMemo(
         () => ({ ...defaultOptions, ...(options ?? {}) }),
         [options],
@@ -53,6 +53,7 @@ export function LongPressButton({
     const [progress, setProgress] = useState(0);
     const [isProgressVisible, setIsProgressVisible] = useState(false);
     const [isFlashing, setIsFlashing] = useState(false);
+    const hasIcon = Boolean(icon);
 
     const startTimeRef = useRef(0);
     const rafRef = useRef<number | null>(null);
@@ -214,18 +215,17 @@ export function LongPressButton({
                 <span
                     className={cn(
                         'relative z-10 grid w-full items-center font-semibold',
-                        icon
-                            ? 'grid-cols-[1.1rem_1fr_1.1rem] gap-1'
-                            : 'grid-cols-1',
+                        hasIcon ? 'grid-cols-[1.25rem_1fr] gap-1' : 'grid-cols-1',
                     )}
                 >
-                    {icon ? (
+                    {hasIcon ? (
                         <span className="flex h-5 w-5 items-center justify-center">
                             {icon}
                         </span>
                     ) : null}
-                    <span className="text-center">{label}</span>
-                    {icon ? <span aria-hidden="true" className="h-5 w-5" /> : null}
+                    <span className={cn(hasIcon ? 'text-left' : 'text-center')}>
+                        {label}
+                    </span>
                 </span>
             </button>
             {secondaryLabel ? (
@@ -240,4 +240,4 @@ export function LongPressButton({
             ) : null}
         </div>
     );
-}
+};
