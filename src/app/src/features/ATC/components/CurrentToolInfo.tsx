@@ -136,8 +136,8 @@ export function CurrentToolInfo({ disabled }: { disabled?: boolean }) {
                     </span>
                 </div>
 
-                <div className="text-center text-xs text-gray-600">
-                    {isEmptyTool ? '-' : selectedTool.nickname ?? ''}
+                <div className="text-left text-sm font-semibold text-gray-700">
+                    {isEmptyTool ? '' : selectedTool.nickname ?? ''}
                 </div>
 
                 <div className="grid grid-cols-[1fr_auto] items-center gap-3">
