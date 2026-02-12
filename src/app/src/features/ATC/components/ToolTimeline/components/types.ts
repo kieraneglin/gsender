@@ -18,7 +18,6 @@ export interface ToolTimelineProps {
 export type ToolStatus =
     | 'probed'
     | 'unprobed'
-    | 'offrack'
     | 'current'
     | 'error';
 

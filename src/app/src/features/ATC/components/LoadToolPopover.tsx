@@ -27,6 +27,7 @@ import {
     saveToRack,
 } from 'app/features/ATC/utils/ATCFunctions.ts';
 import { toolStateThemes } from 'app/features/ATC/utils/ATCiConstants.ts';
+import { ToolStatusBadges } from 'app/features/ATC/components/ui/ToolStatusBadges.tsx';
 
 interface ToolChangerPopoverProps {
     isOpen: boolean;
@@ -53,13 +54,16 @@ const ToolChangerPopover: React.FC<ToolChangerPopoverProps> = ({
     contentSide,
     contentSideOffset,
 }) => {
-    const { mode } = useToolChange();
+    const { mode, rackSize } = useToolChange();
     const [selectedToolId, setSelectedToolId] = useState<string>('1');
     const [isLoading, setIsLoading] = useState(false);
 
     const selectedTool =
         tools.find((tool) => tool.id === selectedToolId) || tools[0];
     const currentStatus = selectedTool?.status || 'probed';
+    const isManual = selectedTool
+        ? selectedTool.isManual ?? selectedTool.id > rackSize
+        : false;
 
     const handleLoad = async () => {
         setIsLoading(true);
@@ -98,12 +102,6 @@ const ToolChangerPopover: React.FC<ToolChangerPopoverProps> = ({
                     ...styling,
                     title: 'Offset not found',
                     description: 'Ensure tool is in rack before proceeding.',
-                };
-            case 'offrack':
-                return {
-                    ...styling,
-                    title: 'Off Rack',
-                    description: 'Tool not in tool changer.',
                 };
         }
     };
@@ -149,7 +147,7 @@ const ToolChangerPopover: React.FC<ToolChangerPopoverProps> = ({
                             >
                                 <SelectTrigger className="w-full">
                                     <SelectValue>
-                                        <div className="flex items-center gap-2">
+                                        <div className="flex items-center gap-2 w-full">
                                             <span className="font-mono font-semibold text-slate-800 dark:text-white">
                                                 {selectedTool?.id}
                                             </span>
@@ -158,19 +156,29 @@ const ToolChangerPopover: React.FC<ToolChangerPopoverProps> = ({
                                                     {selectedTool.nickname}
                                                 </span>
                                             )}
+                                            {selectedTool && (
+                                                <ToolStatusBadges
+                                                    probeState={currentStatus}
+                                                    isManual={isManual}
+                                                    size="sm"
+                                                    showLabel={false}
+                                                    className="ml-auto"
+                                                />
+                                            )}
                                         </div>
                                     </SelectValue>
                                 </SelectTrigger>
                                 <SelectContent className="w-full flex-1 bg-white z-[10000]">
                                     {tools.map((tool) => {
-                                        const styling =
-                                            toolStateThemes[tool.status];
+                                        const toolIsManual =
+                                            tool.isManual ??
+                                            tool.id > rackSize;
                                         return (
                                             <SelectItem
                                                 key={tool.id}
                                                 value={tool.id}
                                             >
-                                                <div className="flex items-center gap-1 min-w-0">
+                                                <div className="flex items-center gap-2 min-w-0 w-full">
                                                     <span className="font-mono font-semibold text-slate-800 dark:text-white shrink-0">
                                                         {tool?.id}
                                                     </span>
@@ -179,10 +187,12 @@ const ToolChangerPopover: React.FC<ToolChangerPopoverProps> = ({
                                                             {tool.nickname}
                                                         </span>
                                                     )}
-                                                </div>
-                                                <div className="flex-none">
-                                                    <styling.icon
-                                                        className={`h-4 w-4 ${styling.textColor}`}
+                                                    <ToolStatusBadges
+                                                        probeState={tool.status}
+                                                        isManual={toolIsManual}
+                                                        size="sm"
+                                                        showLabel={false}
+                                                        className="ml-auto"
                                                     />
                                                 </div>
                                             </SelectItem>
