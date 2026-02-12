@@ -44,7 +44,12 @@ export function ToolTimeline({
     const settings = useTypedSelector(
         (state: RootState) => state.controller.settings,
     );
+    const isConnected = useTypedSelector(
+        (state: RootState) => state.connection.isConnected,
+    );
     const reportedRackSize = Number(get(settings, 'atci.rack_size', -1));
+    const atcAvailable = get(settings, 'info.NEWOPT.ATC', '0') === '1';
+    const allowManualBadge = isConnected && atcAvailable;
     const rackSize =
         reportedRackSize > 0
             ? reportedRackSize
@@ -243,6 +248,19 @@ export function ToolTimeline({
                                 const remapValue = mappings.get(
                                     tool.toolNumber,
                                 );
+                                const toolLookupNumber =
+                                    isRemapped && remapValue !== undefined
+                                        ? remapValue
+                                        : tool.toolNumber;
+                                const toolInfo = toolTable.find(
+                                    (entry) => entry.id === toolLookupNumber,
+                                );
+                                const isManual = allowManualBadge
+                                    ? toolInfo?.isManual ??
+                                      (rackSize > 0
+                                          ? toolLookupNumber > rackSize
+                                          : false)
+                                    : false;
                                 return (
                                     <ToolTimelineItem
                                         key={tool.id}
@@ -263,6 +281,7 @@ export function ToolTimeline({
                                         }
                                         isRemapped={isRemapped}
                                         remapValue={remapValue}
+                                        isManual={isManual}
                                     />
                                 );
                             })}

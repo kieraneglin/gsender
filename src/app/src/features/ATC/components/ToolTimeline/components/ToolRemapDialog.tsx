@@ -23,9 +23,12 @@ import {
 import cn from 'classnames';
 import { ToolInstance } from 'app/features/ATC/components/ToolTable.tsx';
 import {
-    getToolStateClasses,
     toolStateThemes,
 } from 'app/features/ATC/utils/ATCiConstants.ts';
+import { ToolStatusBadges } from 'app/features/ATC/components/ui/ToolStatusBadges.tsx';
+import { useTypedSelector } from 'app/hooks/useTypedSelector.ts';
+import { RootState } from 'app/store/redux';
+import get from 'lodash/get';
 
 interface ToolRemapDialogProps {
     open: boolean;
@@ -46,6 +49,14 @@ export function ToolRemapDialog({
     const [currentTool, setCurrentTool] = useState<ToolInstance | undefined>(
         undefined,
     );
+    const isConnected = useTypedSelector(
+        (state: RootState) => state.connection.isConnected,
+    );
+    const settings = useTypedSelector(
+        (state: RootState) => state.controller.settings,
+    );
+    const atcAvailable = get(settings, 'info.NEWOPT.ATC', '0') === '1';
+    const allowManualBadge = isConnected && atcAvailable;
 
     const handleConfirm = () => {
         if (selectedTool) {
@@ -94,8 +105,9 @@ export function ToolRemapDialog({
         setCurrentTool(tool);
     }, [originalTool]);
 
-    const originalStatus =
-        toolStateThemes[currentTool?.status] || toolStateThemes['current'];
+    const currentProbeState = currentTool?.status;
+    const currentIsManual =
+        allowManualBadge && (currentTool?.isManual ?? false);
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
@@ -125,19 +137,17 @@ export function ToolRemapDialog({
                                                     selectedToolNumber,
                                                 )}
                                             </span>
-                                            <Badge
-                                                variant="outline"
-                                                className={cn(
-                                                    'text-xs font-medium flex items-center gap-1.5 shrink-0 w-24 justify-center ml-auto',
-                                                    getToolStateClasses(
-                                                        selectedToolInfo.status,
-                                                    ),
-                                                )}
-                                            >
-                                                {toolStateThemes[
-                                                    selectedToolInfo.status
-                                                ].label}
-                                            </Badge>
+                                                <ToolStatusBadges
+                                                    probeState={
+                                                        selectedToolInfo.status
+                                                    }
+                                                    isManual={
+                                                        selectedToolInfo.isManual &&
+                                                        allowManualBadge
+                                                    }
+                                                    size="sm"
+                                                    className="ml-auto"
+                                                />
                                         </div>
                                     ) : (
                                         <span className="text-muted-foreground">
@@ -156,7 +166,9 @@ export function ToolRemapDialog({
                                     const stateStyle =
                                         toolStateThemes[tool.status];
 
-                                    const IconComponent = stateStyle.icon;
+                                    const toolIsManual = allowManualBadge
+                                        ? tool.isManual ?? false
+                                        : false;
 
                                     return (
                                         <SelectPrimitive.Item
@@ -166,7 +178,7 @@ export function ToolRemapDialog({
                                             className={cn(
                                                 'relative flex w-full bg-white dark:bg-dark cursor-default select-none items-center rounded-sm py-1.5 pl-2 pr-2 text-sm outline-none focus:bg-accent focus:text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50',
                                                 'border-l-4',
-                                                stateStyle.border,
+                                                stateStyle.borderColor,
                                                 !available &&
                                                     'cursor-not-allowed',
                                             )}
@@ -184,18 +196,13 @@ export function ToolRemapDialog({
                                                     <span className="flex-1 min-w-0 font-mono font-medium truncate">
                                                         {formatToolLabel(tool)}
                                                     </span>
-                                                    <Badge
-                                                        variant="outline"
-                                                        className={cn(
-                                                            'text-xs font-medium flex items-center gap-1.5 shrink-0 w-24 justify-center ml-auto',
-                                                            getToolStateClasses(
-                                                                tool.status,
-                                                            ),
-                                                        )}
-                                                    >
-                                                        <IconComponent className="h-4 w-4" />
-                                                        {stateStyle.label}
-                                                    </Badge>
+                                                    <ToolStatusBadges
+                                                        probeState={tool.status}
+                                                        isManual={toolIsManual}
+                                                        size="sm"
+                                                        showLabel={false}
+                                                        className="ml-auto"
+                                                    />
                                                 </div>
                                             </SelectPrimitive.ItemText>
                                             {/*<span className="absolute right-2 flex h-3.5 w-3.5 items-center justify-center">
@@ -217,15 +224,20 @@ export function ToolRemapDialog({
                             <span className="font-mono font-semibold text-lg">
                                 {formatToolNumber(originalTool)}
                             </span>
-                            <Badge
-                                variant="outline"
-                                className={cn(
-                                    'text-xs font-medium',
-                                    getToolStateClasses(currentTool?.status),
-                                )}
-                            >
-                                {originalStatus.label}
-                            </Badge>
+                            {currentProbeState ? (
+                                <ToolStatusBadges
+                                    probeState={currentProbeState}
+                                    isManual={currentIsManual}
+                                    size="sm"
+                                />
+                            ) : (
+                                <Badge
+                                    variant="outline"
+                                    className={cn('text-xs font-medium')}
+                                >
+                                    {toolStateThemes.current.label}
+                                </Badge>
+                            )}
                         </div>
 
                         <ArrowRight className="h-5 w-5 text-muted-foreground" />
@@ -235,23 +247,17 @@ export function ToolRemapDialog({
                                 {formatToolNumber(parseInt(selectedTool))}
                             </span>
                             {getToolInfo(parseInt(selectedTool)) && (
-                                <Badge
-                                    variant="outline"
-                                    className={cn(
-                                        'text-xs font-medium',
-                                        getToolStateClasses(
-                                            getToolInfo(parseInt(selectedTool))!
-                                                .status,
-                                        ),
-                                    )}
-                                >
-                                    {
-                                        toolStateThemes[
-                                            getToolInfo(parseInt(selectedTool))!
-                                                .status
-                                        ].label
+                                <ToolStatusBadges
+                                    probeState={
+                                        getToolInfo(parseInt(selectedTool))!
+                                            .status
                                     }
-                                </Badge>
+                                    isManual={
+                                        getToolInfo(parseInt(selectedTool))!
+                                            .isManual
+                                    }
+                                    size="sm"
+                                />
                             )}
                         </div>
                     </div>

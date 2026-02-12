@@ -14,7 +14,6 @@ export interface ToolStateThemes {
     // Primary States
     probed: ToolStateTheme;
     unprobed: ToolStateTheme;
-    offrack: ToolStateTheme;
 
     // Support Statuses
     empty: ToolStateTheme;
@@ -46,15 +45,6 @@ export const toolStateThemes: ToolStateThemes = {
         icon: FaExclamationCircle,
     },
 
-    offrack: {
-        label: 'Manual',
-        backgroundColor: 'bg-yellow-200/20 dark:bg-yellow-200/40',
-        borderColor: 'border-yellow-500',
-        textColor: 'text-yellow-600 dark:text-yellow-300',
-        backgroundStyle: 'solid',
-        icon: PiHandTap,
-    },
-
     // Support Statuses
     empty: {
         label: 'Empty',
@@ -82,6 +72,24 @@ export const toolStateThemes: ToolStateThemes = {
         backgroundStyle: 'striped-diagonal',
         icon: FaBan,
     },
+};
+
+export interface ManualChipTheme {
+    labelLong: string;
+    labelShort: string;
+    backgroundColor: string;
+    borderColor: string;
+    textColor: string;
+    icon: IconType;
+}
+
+export const manualChipTheme: ManualChipTheme = {
+    labelLong: 'Manual',
+    labelShort: '',
+    backgroundColor: 'bg-sky-100/70 dark:bg-sky-400/20',
+    borderColor: 'border-sky-400',
+    textColor: 'text-sky-700 dark:text-sky-300',
+    icon: PiHandTap,
 };
 
 // CSS classes for stripe patterns

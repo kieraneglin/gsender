@@ -1,7 +1,9 @@
 import { Wizard } from 'app/features/AccessoryInstaller/types';
 import { useValidations } from 'app/features/AccessoryInstaller/hooks/UseValidations.tsx';
 import { useMemo } from 'react';
-import PlaceholderImage from '../assets/placeholder.png';
+import PlaceholderImageSd from './assets/placeholder_sd.png';
+import PlaceholderImageTwo from './assets/placeholder_2.png';
+import PlaceholderImageThree from './assets/placeholder_3.png';
 import { MacroConfiguration } from 'app/features/AccessoryInstaller/Wizards/atc/components/MacroConfiguration.tsx';
 import { ControllerConfiguration } from 'app/features/AccessoryInstaller/Wizards/atc/components/ControllerConfiguration.tsx';
 import { RackPosition } from 'app/features/AccessoryInstaller/Wizards/atc/components/RackPosition.tsx';
@@ -13,7 +15,6 @@ import store from 'app/store';
 import { SpindleSetRestart } from 'app/features/AccessoryInstaller/Wizards/atc/components/SpindleSetRestart.tsx';
 import { Modbus } from 'app/features/AccessoryInstaller/Wizards/atc/components/Modbus.tsx';
 import { ATCConfigStep } from 'app/features/AccessoryInstaller/Wizards/atc/components/ATCConfigStep.tsx';
-import { ATCConfigDRO } from 'app/features/AccessoryInstaller/Wizards/atc/components/ATCConfigDRO.tsx';
 
 export function useSienciATCWizard(): Wizard {
     const { connectionValidation, coreFirmwareValidation } = useValidations();
@@ -45,7 +46,7 @@ export function useSienciATCWizard(): Wizard {
                             secondaryContent: [
                                 {
                                     type: 'image',
-                                    content: PlaceholderImage,
+                                    content: PlaceholderImageSd,
                                     title: 'SD Card Installation',
                                 },
                             ],
@@ -57,7 +58,7 @@ export function useSienciATCWizard(): Wizard {
                             secondaryContent: [
                                 {
                                     type: 'image',
-                                    content: PlaceholderImage,
+                                    content: PlaceholderImageTwo,
                                 },
                                 {
                                     type: 'link',
@@ -69,13 +70,13 @@ export function useSienciATCWizard(): Wizard {
                             ],
                         },
                         {
-                            id: 'restart-rehome',
+                            id: 'rehome',
                             title: 'Rehome',
                             component: RestartAndRehome,
                             secondaryContent: [
                                 {
                                     type: 'image',
-                                    content: PlaceholderImage,
+                                    content: PlaceholderImageThree,
                                 },
                             ],
                         },

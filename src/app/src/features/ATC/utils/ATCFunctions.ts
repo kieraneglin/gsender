@@ -7,6 +7,7 @@ import {
     IToolListing,
     ToolInstance,
 } from 'app/features/ATC/components/ToolTable.tsx';
+import { ToolFlags } from 'app/features/ATC/types.ts';
 import { Confirm } from 'app/components/ConfirmationDialog/ConfirmationDialogLib.ts';
 import * as THREE from 'three';
 import pubsub from 'pubsub-js';
@@ -28,28 +29,29 @@ export function mapToolNicknamesAndStatus(
     Object.values(tools).forEach((tool) => {
         tool = { ...tool };
         tool.nickname = lookupToolName(tool.id);
-        if (tool.toolOffsets.z < 0) {
-            tool.status = 'probed';
-        } else {
-            tool.status = 'unprobed';
-        }
-        if (tool.id > rackSize) {
-            tool.status = 'offrack';
-        }
+        const flags = getToolFlags(tool.id, rackSize, tool.toolOffsets.z);
+        tool.status = flags.probeState;
+        tool.isManual = flags.isManual;
         toolsArray.push(tool);
     });
     return toolsArray;
 }
 
+export function getToolFlags(
+    toolNumber: number,
+    rackSize: number,
+    zOffset: number,
+): ToolFlags {
+    return {
+        probeState: zOffset < 0 ? 'probed' : 'unprobed',
+        isManual: toolNumber > rackSize,
+    };
+}
+
 function setToolStatus(tool: ToolInstance, rackSize): ToolInstance {
-    if (tool.toolOffsets.z < 0) {
-        tool.status = 'probed';
-    } else {
-        tool.status = 'unprobed';
-    }
-    if (tool.id > rackSize) {
-        tool.status = 'offrack';
-    }
+    const flags = getToolFlags(tool.id, rackSize, tool.toolOffsets.z);
+    tool.status = flags.probeState;
+    tool.isManual = flags.isManual;
     return tool;
 }
 

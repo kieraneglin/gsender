@@ -7,11 +7,16 @@ import controller from 'app/lib/controller.ts';
 import { useToolChange } from 'app/features/ATC/utils/ToolChangeContext.tsx';
 import { Wrench } from 'lucide-react';
 import Button from 'app/components/Button';
-import { toolStateThemes } from 'app/features/ATC/utils/ATCiConstants.ts';
+import {
+    manualChipTheme,
+    toolStateThemes,
+} from 'app/features/ATC/utils/ATCiConstants.ts';
 import pubsub from 'pubsub-js';
+import { ToolStatusBadges } from 'app/features/ATC/components/ui/ToolStatusBadges.tsx';
+import { Badge } from 'app/features/ATC/components/ui/Badge.tsx';
 
 export function CurrentToolInfo({ disabled }: { disabled?: boolean }) {
-    const { rackSize, connected } = useToolChange();
+    const { rackSize, connected, atcAvailable } = useToolChange();
     const [spindleTool, setSpindleTool] = useState(0);
     const [toolMapVersion, setToolMapVersion] = useState(0);
     const [selectedTool, setSelectedTool] = useState<ToolInstance>({
@@ -96,13 +101,13 @@ export function CurrentToolInfo({ disabled }: { disabled?: boolean }) {
     const formattedOffset = isEmptyTool
         ? '-'
         : selectedTool.toolOffsets.z.toFixed(3);
-    const BadgeIcon = state.icon;
+    const allowManualBadge = connected && atcAvailable;
+    const isManualTool =
+        !isEmptyTool &&
+        (selectedTool.isManual ?? selectedTool.id > rackSize);
+    const EmptyIcon = state.icon;
     const isRackTool = !isEmptyTool && selectedTool.id <= rackSize;
-    const toolLocationLabel = isEmptyTool
-        ? ''
-        : isRackTool
-          ? 'Rack Tool'
-          : 'Manual Tool';
+    const ManualIcon = manualChipTheme.icon;
 
     return (
         <div className="w-full h-full flex-1">
@@ -120,20 +125,34 @@ export function CurrentToolInfo({ disabled }: { disabled?: boolean }) {
                             >
                                 {isEmptyTool ? 'Empty' : `T${selectedTool.id}`}
                             </span>
-                            {toolLocationLabel && (
+                            {!isEmptyTool && isRackTool && (
                                 <span className="text-gray-600 text-xs">
-                                    {toolLocationLabel}
+                                    Rack
+                                </span>
+                            )}
+                            {!isEmptyTool && !isRackTool && allowManualBadge && (
+                                <span className="text-gray-600 text-xs">
+                                    <ManualIcon className="inline-block mr-1" size={12} />
+                                    Manual
                                 </span>
                             )}
                         </div>
                     </div>
 
-                    <span
-                        className={`${state.backgroundColor} ${state.borderColor} border-2 min-w-18 ${state.textColor} text-xs font-bold px-2.5 py-1 rounded-full flex items-center gap-1`}
-                    >
-                        <BadgeIcon className="w-3 h-3" />
-                        {state.label}
-                    </span>
+                    {isEmptyTool ? (
+                        <Badge
+                            className={`${state.backgroundColor} ${state.borderColor} border-2 min-w-18 ${state.textColor} text-xs font-bold px-2.5 py-1 rounded-full flex items-center gap-1`}
+                        >
+                            <EmptyIcon size={12} />
+                            {state.label}
+                        </Badge>
+                    ) : (
+                        <ToolStatusBadges
+                            probeState={selectedTool.status}
+                            isManual={isManualTool && allowManualBadge}
+                            size="sm"
+                        />
+                    )}
                 </div>
 
                 <div className="text-left text-sm font-semibold text-gray-700">
