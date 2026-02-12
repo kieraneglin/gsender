@@ -243,6 +243,18 @@ export function ToolTimeline({
                                 const remapValue = mappings.get(
                                     tool.toolNumber,
                                 );
+                                const toolLookupNumber =
+                                    isRemapped && remapValue !== undefined
+                                        ? remapValue
+                                        : tool.toolNumber;
+                                const toolInfo = toolTable.find(
+                                    (entry) => entry.id === toolLookupNumber,
+                                );
+                                const isManual =
+                                    toolInfo?.isManual ??
+                                    (rackSize > 0
+                                        ? toolLookupNumber > rackSize
+                                        : false);
                                 return (
                                     <ToolTimelineItem
                                         key={tool.id}
@@ -263,6 +275,7 @@ export function ToolTimeline({
                                         }
                                         isRemapped={isRemapped}
                                         remapValue={remapValue}
+                                        isManual={isManual}
                                     />
                                 );
                             })}

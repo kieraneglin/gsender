@@ -9,6 +9,8 @@ import { useEffect, useState } from 'react';
 import { lookupToolName } from 'app/features/ATC/utils/ATCFunctions.ts';
 import pubsub from 'pubsub-js';
 import Tooltip from 'app/components/Tooltip';
+import { manualChipTheme } from 'app/features/ATC/utils/ATCiConstants.ts';
+import { Badge } from 'app/features/ATC/components/ui/Badge.tsx';
 
 interface ToolTimelineItemProps {
     tool: ToolChange;
@@ -16,6 +18,7 @@ interface ToolTimelineItemProps {
     isLast: boolean;
     progress: number;
     isRemapped: boolean;
+    isManual?: boolean;
     remapValue?: number;
     handleRemap?: (number) => void;
 }
@@ -26,10 +29,13 @@ export function ToolTimelineItem({
     isLast,
     handleRemap,
     isRemapped,
+    isManual = false,
     remapValue,
 }: ToolTimelineItemProps) {
     const [label, setLabel] = useState('');
     const MAX_LABEL_LENGTH = 15;
+    const ManualIcon = manualChipTheme.icon;
+    const manualBadgeClasses = `gap-1 justify-center rounded-full border ${manualChipTheme.backgroundColor} ${manualChipTheme.borderColor} ${manualChipTheme.textColor} h-4 px-1.5 text-[10px]`;
 
     const truncateLabel = (value: string) => {
         if (!value || value.length <= MAX_LABEL_LENGTH) {
@@ -126,16 +132,39 @@ export function ToolTimelineItem({
                                     <span
                                         className={cn(
                                             isRemapped && 'line-through',
-                                            'flex flex-col',
+                                            'inline-flex items-center',
                                         )}
                                     >
                                         {tool.label || `T${tool.toolNumber}`}
                                     </span>
+                                    {!isRemapped && isManual && (
+                                        <Badge
+                                            className={manualBadgeClasses}
+                                            title="Manual (off-rack)"
+                                            aria-label="Manual tool (off-rack)"
+                                        >
+                                            <ManualIcon size={12} aria-hidden />
+                                            {manualChipTheme.labelLong}
+                                        </Badge>
+                                    )}
                                     {isRemapped && (
                                         <>
                                             <ArrowRight />
-                                            <span className="no-underline">
+                                            <span className="no-underline inline-flex items-center gap-1">
                                                 T{remapValue}
+                                                {isManual && (
+                                                    <Badge
+                                                        className={manualBadgeClasses}
+                                                        title="Manual (off-rack)"
+                                                        aria-label="Manual tool (off-rack)"
+                                                    >
+                                                        <ManualIcon
+                                                            size={12}
+                                                            aria-hidden
+                                                        />
+                                                        {manualChipTheme.labelLong}
+                                                    </Badge>
+                                                )}
                                             </span>
                                         </>
                                     )}
