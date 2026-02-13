@@ -66,6 +66,9 @@ export function ToolTimelineItem({
                 )}
                 style={{
                     borderColor: isActive ? tool.color : undefined,
+                    boxShadow: isActive
+                        ? `0 0 18px 2px ${tool.color}44`
+                        : undefined,
                 }}
             >
                 <div
