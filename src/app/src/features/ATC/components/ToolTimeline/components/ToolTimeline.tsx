@@ -107,11 +107,11 @@ export function ToolTimeline({
 
     return (
         <div
-            className={cn('max-w-xs bg-gray-500 bg-opacity-70 rounded-xl', {
-                'w-80': !isCollapsed,
+            className={cn('bg-gray-500 bg-opacity-70 rounded-xl', {
+                'w-[28rem]': !isCollapsed,
             })}
         >
-            <div className="shadow-xl p-2">
+            <div className="shadow-xl p-0.5">
                 <div className="flex items-center justify-between gap-3">
                     <div className="flex items-center gap-2">
                         {isCollapsed && activeTool && (
@@ -144,7 +144,7 @@ export function ToolTimeline({
                     <div className="mt-4 relative">
                         <div
                             ref={scrollContainerRef}
-                            className="h-[26.25rem] overflow-y-auto overflow-x-hidden scroll-smooth px-2 py-1"
+                            className="max-h-[18.5rem] overflow-y-auto overflow-x-hidden scroll-smooth px-2 py-1"
                         >
                             <ToolRemapDialog
                                 open={dialogOpen}
