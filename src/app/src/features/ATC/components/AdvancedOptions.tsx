@@ -48,9 +48,6 @@ export function AdvancedOptions() {
                     onClick={unloadTool}
                     onLongPress={releaseToolFromSpindle}
                 />
-                <span className="text-right text-xs text-gray-400">
-                    Hold for manual
-                </span>
             </div>
         </div>
     );
