@@ -39,12 +39,14 @@ export function ToolStatusBadges({
     isManual = false,
     size = 'md',
     showLabel = true,
+    manualPosition = 'before',
     className,
 }: {
     probeState: ToolProbeState;
     isManual?: boolean;
     size?: 'xs' | 'sm' | 'md';
     showLabel?: boolean;
+    manualPosition?: 'before' | 'after';
     className?: string;
 }) {
     const sizeConfig = sizeClasses[size];
@@ -52,37 +54,43 @@ export function ToolStatusBadges({
     const StatusIcon = statusTheme.icon;
     const ManualIcon = manualChipTheme.icon;
 
+    const statusBadge = (
+        <Badge
+            className={cn(
+                'justify-center',
+                getToolStateClasses(probeState),
+                showLabel ? 'gap-1 min-w-[82px]' : 'gap-0',
+                showLabel ? sizeConfig.pill : sizeConfig.pillIconOnly,
+            )}
+        >
+            <StatusIcon size={sizeConfig.pillIcon} />
+            {showLabel ? statusTheme.label : null}
+        </Badge>
+    );
+
+    const manualBadge = isManual ? (
+        <Badge
+            className={cn(
+                'justify-center p-0 rounded-full border',
+                manualChipTheme.backgroundColor,
+                manualChipTheme.borderColor,
+                manualChipTheme.textColor,
+                sizeConfig.chip,
+            )}
+            title="Manual (off-rack)"
+            aria-label="Manual tool (off-rack)"
+        >
+            <ManualIcon size={sizeConfig.chipIcon} aria-hidden />
+        </Badge>
+    ) : null;
+
     return (
         <div
             className={cn('inline-flex items-center', sizeConfig.container, className)}
         >
-            {isManual && (
-                <Badge
-                    className={cn(
-                        'justify-center p-0 rounded-full border',
-                        manualChipTheme.backgroundColor,
-                        manualChipTheme.borderColor,
-                        manualChipTheme.textColor,
-                        sizeConfig.chip,
-                    )}
-                    title="Manual (off-rack)"
-                    aria-label="Manual tool (off-rack)"
-                >
-                    <ManualIcon size={sizeConfig.chipIcon} aria-hidden />
-                </Badge>
-            )}
-
-            <Badge
-                className={cn(
-                    'justify-center',
-                    getToolStateClasses(probeState),
-                    showLabel ? 'gap-1 min-w-[82px]' : 'gap-0',
-                    showLabel ? sizeConfig.pill : sizeConfig.pillIconOnly,
-                )}
-            >
-                <StatusIcon size={sizeConfig.pillIcon} />
-                {showLabel ? statusTheme.label : null}
-            </Badge>
+            {manualPosition === 'before' ? manualBadge : null}
+            {statusBadge}
+            {manualPosition === 'after' ? manualBadge : null}
         </div>
     );
 }

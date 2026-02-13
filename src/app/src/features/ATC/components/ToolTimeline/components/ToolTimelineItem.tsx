@@ -126,7 +126,8 @@ export function ToolTimelineItem({
                             probeState={probeState}
                             isManual={isManual}
                             size="sm"
-                            className="[&>div:last-child]:min-w-[124px]"
+                            manualPosition="after"
+                            className="[&>div:first-child]:min-w-[124px]"
                         />
                     </div>
                 </div>
