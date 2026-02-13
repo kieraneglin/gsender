@@ -2,7 +2,6 @@ import cn from 'classnames';
 import { ToolChange } from './types';
 import Button from 'app/components/Button';
 import { TbSwitch3 } from 'react-icons/tb';
-import { ArrowRight } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { lookupToolName } from 'app/features/ATC/utils/ATCFunctions.ts';
 import pubsub from 'pubsub-js';
@@ -97,7 +96,6 @@ export function ToolTimelineItem({
                                 <span className="text-xs text-gray-500 dark:text-gray-400 line-through">
                                     {currentToolLabel}
                                 </span>
-                                <ArrowRight className="h-3.5 w-3.5 text-gray-500 dark:text-gray-400" />
                                 <span className="font-mono text-sm font-semibold text-gray-900 dark:text-gray-100">
                                     {mappedToolLabel}
                                 </span>
