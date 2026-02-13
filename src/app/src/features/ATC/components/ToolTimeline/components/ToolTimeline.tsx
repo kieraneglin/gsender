@@ -144,7 +144,7 @@ export function ToolTimeline({
                     <div className="mt-4 relative">
                         <div
                             ref={scrollContainerRef}
-                            className="max-h-[18.5rem] overflow-y-auto overflow-x-hidden scroll-smooth px-2 py-1"
+                            className="max-h-[18.5rem] overflow-y-auto overflow-x-hidden scroll-smooth no-scrollbar px-2 py-1"
                         >
                             <ToolRemapDialog
                                 open={dialogOpen}
