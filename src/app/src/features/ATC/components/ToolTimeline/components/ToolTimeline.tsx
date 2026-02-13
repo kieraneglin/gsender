@@ -1,4 +1,4 @@
-import { ChevronDown, ChevronsDown, ChevronsUp, ChevronUp } from 'lucide-react';
+import { ChevronDown, ChevronUp } from 'lucide-react';
 import cn from 'classnames';
 import { Button } from 'app/components/Button';
 import { ToolTimelineItem } from './ToolTimelineItem';
@@ -12,6 +12,7 @@ import { ToolInstance } from 'app/features/ATC/components/ToolTable.tsx';
 import { updateToolchangeContext } from 'app/features/Helper/Wizard.tsx';
 import pubsub from 'pubsub-js';
 import get from 'lodash/get';
+import { ToolProbeState } from 'app/features/ATC/types.ts';
 
 export function ToolTimeline({
     tools,
@@ -21,13 +22,8 @@ export function ToolTimeline({
     isCollapsed = false,
 }: ToolTimelineProps) {
     const activeTool = tools[activeToolIndex];
-    // Scroll hijacking
     const scrollContainerRef = useRef<HTMLDivElement>(null);
-    const [scrollIndex, setScrollIndex] = useState(0);
-    const maxVisibleTools = 4;
-    const hasMoreTools = tools.length > maxVisibleTools;
-    const canScrollUp = scrollIndex > 0;
-    const canScrollDown = scrollIndex < tools.length - maxVisibleTools;
+    const itemRefs = useRef<Array<HTMLDivElement | null>>([]);
 
     // Tool Remapping
     const [mappings, setMappings] = useState<ToolMapping>(new Map());
@@ -96,92 +92,18 @@ export function ToolTimeline({
     };
 
     useEffect(() => {
-        if (isCollapsed) return;
-
-        if (activeToolIndex < scrollIndex) {
-            setScrollIndex(activeToolIndex);
-        } else if (activeToolIndex >= scrollIndex + maxVisibleTools) {
-            setScrollIndex(activeToolIndex - maxVisibleTools + 1);
+        if (isCollapsed) {
+            return;
         }
+        const activeItem = itemRefs.current[activeToolIndex];
+        if (!activeItem) {
+            return;
+        }
+        activeItem.scrollIntoView({
+            behavior: 'smooth',
+            block: 'nearest',
+        });
     }, [activeToolIndex, isCollapsed]);
-
-    useEffect(() => {
-        if (isCollapsed) return;
-
-        const container = scrollContainerRef.current;
-        if (!container) return;
-
-        let touchStartY = 0;
-        let lastScrollY = 0;
-
-        const handleScroll = (deltaY: number) => {
-            setScrollIndex((prev) => {
-                if (deltaY > 0) {
-                    return Math.min(prev + 1, tools.length - maxVisibleTools);
-                } else if (deltaY < 0) {
-                    return Math.max(prev - 1, 0);
-                }
-                return prev;
-            });
-        };
-
-        const handleWheel = (e: WheelEvent) => {
-            e.preventDefault();
-            handleScroll(e.deltaY);
-        };
-
-        const handleTouchStart = (e: TouchEvent) => {
-            const target = e.target as HTMLElement;
-            if (
-                target.closest('button') ||
-                target.closest('a') ||
-                target.closest('[role="button"]')
-            ) {
-                return;
-            }
-            e.preventDefault();
-            touchStartY = e.touches[0].clientY;
-            lastScrollY = touchStartY;
-        };
-
-        const handleTouchMove = (e: TouchEvent) => {
-            const target = e.target as HTMLElement;
-            if (
-                target.closest('button') ||
-                target.closest('a') ||
-                target.closest('[role="button"]')
-            ) {
-                return;
-            }
-            e.preventDefault();
-            const currentY = e.touches[0].clientY;
-            const deltaY = lastScrollY - currentY;
-
-            if (Math.abs(deltaY) > 50) {
-                handleScroll(deltaY);
-                lastScrollY = currentY;
-            }
-        };
-
-        container.addEventListener('wheel', handleWheel, { passive: false });
-        container.addEventListener('touchstart', handleTouchStart, {
-            passive: false,
-        });
-        container.addEventListener('touchmove', handleTouchMove, {
-            passive: false,
-        });
-
-        return () => {
-            container.removeEventListener('wheel', handleWheel);
-            container.removeEventListener('touchstart', handleTouchStart);
-            container.removeEventListener('touchmove', handleTouchMove);
-        };
-    }, [tools.length, isCollapsed]);
-
-    const visibleTools = tools.slice(
-        scrollIndex,
-        scrollIndex + maxVisibleTools,
-    );
 
     return (
         <div
@@ -189,7 +111,7 @@ export function ToolTimeline({
                 'w-80': !isCollapsed,
             })}
         >
-            <div className={cn('shadow-xl', isCollapsed ? 'p-2' : 'p-4')}>
+            <div className="shadow-xl p-2">
                 <div className="flex items-center justify-between gap-3">
                     <div className="flex items-center gap-2">
                         {isCollapsed && activeTool && (
@@ -220,18 +142,9 @@ export function ToolTimeline({
 
                 {!isCollapsed && (
                     <div className="mt-4 relative">
-                        {hasMoreTools && canScrollUp && (
-                            <div className="absolute top-0 left-0 right-0 h-8  flex items-start justify-center pt-1 z-10 rounded-t-lg">
-                                <ChevronsUp className="h-4 w-4 text-gray-600 dark:text-gray-400 animate-bounce" />
-                            </div>
-                        )}
-
                         <div
                             ref={scrollContainerRef}
-                            className="overflow-hidden px-2 py-1"
-                            style={{
-                                cursor: hasMoreTools ? 'ns-resize' : 'default',
-                            }}
+                            className="h-[26.25rem] overflow-y-auto overflow-x-hidden scroll-smooth px-2 py-1"
                         >
                             <ToolRemapDialog
                                 open={dialogOpen}
@@ -240,8 +153,7 @@ export function ToolTimeline({
                                 allTools={toolTable}
                                 onConfirm={handleConfirmRemap}
                             />
-                            {visibleTools.map((tool, index) => {
-                                const actualIndex = scrollIndex + index;
+                            {tools.map((tool, index) => {
                                 const isRemapped = mappings.has(
                                     tool.toolNumber,
                                 );
@@ -255,6 +167,8 @@ export function ToolTimeline({
                                 const toolInfo = toolTable.find(
                                     (entry) => entry.id === toolLookupNumber,
                                 );
+                                const probeState: ToolProbeState =
+                                    toolInfo?.status ?? 'unprobed';
                                 const isManual = allowManualBadge
                                     ? toolInfo?.isManual ??
                                       (rackSize > 0
@@ -262,36 +176,33 @@ export function ToolTimeline({
                                           : false)
                                     : false;
                                 return (
-                                    <ToolTimelineItem
+                                    <div
                                         key={tool.id}
-                                        tool={tool}
-                                        isActive={
-                                            actualIndex === activeToolIndex
-                                        }
-                                        isLast={
-                                            index === visibleTools.length - 1
-                                        }
-                                        progress={
-                                            actualIndex === activeToolIndex
-                                                ? progress
-                                                : 0
-                                        }
-                                        handleRemap={() =>
-                                            handleRemapClick(tool.toolNumber)
-                                        }
-                                        isRemapped={isRemapped}
-                                        remapValue={remapValue}
-                                        isManual={isManual}
-                                    />
+                                        ref={(el) => {
+                                            itemRefs.current[index] = el;
+                                        }}
+                                    >
+                                        <ToolTimelineItem
+                                            tool={tool}
+                                            isActive={index === activeToolIndex}
+                                            isLast={index === tools.length - 1}
+                                            progress={
+                                                index === activeToolIndex
+                                                    ? progress
+                                                    : 0
+                                            }
+                                            handleRemap={() =>
+                                                handleRemapClick(tool.toolNumber)
+                                            }
+                                            isRemapped={isRemapped}
+                                            remapValue={remapValue}
+                                            isManual={isManual}
+                                            probeState={probeState}
+                                        />
+                                    </div>
                                 );
                             })}
                         </div>
-
-                        {hasMoreTools && canScrollDown && (
-                            <div className="absolute bottom-0 left-0 right-0 h-8  flex items-end justify-center pb-1 z-10 rounded-b-lg">
-                                <ChevronsDown className="h-4 w-4 text-gray-600 dark:text-gray-400 animate-bounce" />
-                            </div>
-                        )}
                     </div>
                 )}
             </div>
