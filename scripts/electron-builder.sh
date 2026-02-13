@@ -47,6 +47,9 @@ fi
 
 if [ "$NEEDS_INSTALL" = true ]; then
     echo "Installing packages..."
+    # Copy root yarn.lock so electron-builder's module collector can find it
+    # and so --frozen-lockfile has a reference to work from
+    cp "$__dirname/../yarn.lock" "$YARN_LOCK" 2>/dev/null || true
     # Use frozen lockfile for faster, deterministic installs
     yarn install --production --frozen-lockfile --prefer-offline --ignore-engines 2>/dev/null || \
     yarn install --production --ignore-engines
