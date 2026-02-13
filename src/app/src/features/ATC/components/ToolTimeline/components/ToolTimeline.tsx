@@ -115,16 +115,16 @@ export function ToolTimeline({
                 <div className="flex items-center justify-between gap-3">
                     <div className="flex items-center gap-2 pl-1">
                         {isCollapsed && activeTool && (
-                            <div
-                                className="h-6 w-6 rounded-full border-2 border-white shadow-sm"
-                                style={{ backgroundColor: activeTool.color }}
-                            />
+                            <>
+                                <div
+                                    className="h-6 w-6 rounded-md border-2 border-white shadow-sm"
+                                    style={{ backgroundColor: activeTool.color }}
+                                />
+                                <span className="text-sm font-semibold text-gray-900 dark:text-white">
+                                    T{activeTool.toolNumber}
+                                </span>
+                            </>
                         )}
-                        <h3 className="text-sm font-semibold text-center text-gray-900 dark:text-white">
-                            {isCollapsed
-                                ? `T${activeTool?.toolNumber || 0}`
-                                : 'Tool Timeline'}
-                        </h3>
                     </div>
                     <Button
                         variant="ghost"
