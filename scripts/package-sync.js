@@ -40,14 +40,12 @@ const resolvedImports = findImports(files, {
 process.stderr.write = originalStderrWrite;
 
 const deps = _uniq([
-    'core-js',
     '@serialport/parser-readline',
     '@sienci/avrgirl-arduino',
     '@sentry/electron',
     'electron-updater',
     '@sentry/react',
     '@sentry/node',
-    'regenerator-runtime',
     'debug',
     'jsonfile',
     '@electron/remote',
