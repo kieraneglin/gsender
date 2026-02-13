@@ -198,6 +198,7 @@ export function ToolTimeline({
                                             remapValue={remapValue}
                                             isManual={isManual}
                                             probeState={probeState}
+                                            canRemap={allowManualBadge}
                                         />
                                     </div>
                                 );

@@ -18,6 +18,7 @@ interface ToolTimelineItemProps {
     isManual?: boolean;
     remapValue?: number;
     probeState?: ToolProbeState;
+    canRemap?: boolean;
     handleRemap?: (number) => void;
 }
 
@@ -30,6 +31,7 @@ export function ToolTimelineItem({
     isManual = false,
     remapValue,
     probeState = 'unprobed',
+    canRemap = false,
 }: ToolTimelineItemProps) {
     const [label, setLabel] = useState('');
 
@@ -133,13 +135,15 @@ export function ToolTimelineItem({
                     <span className="whitespace-nowrap font-mono text-xs text-gray-500 dark:text-gray-400">
                         {lineRange}
                     </span>
-                    <Button
-                        className="relative z-10 !h-full !w-11 self-stretch rounded-lg border border-gray-300/80 bg-gray-100 text-gray-600 hover:bg-gray-200 dark:border-gray-600/70 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600"
-                        onClick={handleRemap}
-                        size="custom"
-                    >
-                        <TbSwitch3 size={32} />
-                    </Button>
+                    {canRemap && (
+                        <Button
+                            className="relative z-10 !h-full !w-11 self-stretch rounded-lg border border-gray-300/80 bg-gray-100 text-gray-600 hover:bg-gray-200 dark:border-gray-600/70 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600"
+                            onClick={handleRemap}
+                            size="custom"
+                        >
+                            <TbSwitch3 size={32} />
+                        </Button>
+                    )}
                 </div>
             </div>
 
