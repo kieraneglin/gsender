@@ -60,6 +60,7 @@ export const LongPressButton: React.FC<LongPressButtonProps> = ({
     const progressDelayTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
     const progressHideTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
     const flashTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+    const touchCancelledRef = useRef(false);
 
     const clearPressTimers = useCallback(() => {
         if (progressDelayTimeoutRef.current) {
@@ -156,6 +157,7 @@ export const LongPressButton: React.FC<LongPressButtonProps> = ({
                 if (disabled) {
                     return;
                 }
+                touchCancelledRef.current = false;
                 startTimeRef.current = performance.now();
                 setProgress(0);
                 setIsFlashing(false);
@@ -175,6 +177,10 @@ export const LongPressButton: React.FC<LongPressButtonProps> = ({
             onCancel: () => {
                 clearPressTimers();
                 stopProgress(0);
+                if (touchCancelledRef.current) {
+                    touchCancelledRef.current = false;
+                    return;
+                }
                 if (disabled) {
                     return;
                 }
@@ -182,7 +188,13 @@ export const LongPressButton: React.FC<LongPressButtonProps> = ({
                     onClick();
                 }
             },
+            onTouchCancel: () => {
+                touchCancelledRef.current = true;
+                clearPressTimers();
+                stopProgress(0);
+            },
             onFinish: () => {
+                touchCancelledRef.current = false;
                 clearPressTimers();
                 stopProgress(resolvedOptions.progressHideDelayMs);
             },
