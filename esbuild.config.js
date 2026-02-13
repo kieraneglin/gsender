@@ -200,9 +200,13 @@ function prebuild(target) {
 
     // Prod: copy yarn.lock
     if (!isDev) {
-        const yarnLock = path.join(__dirname, 'src/yarn.lock');
-        if (fs.existsSync(yarnLock)) {
-            fs.copyFileSync(yarnLock, path.join(baseDir, 'yarn.lock'));
+        const yarnLockCandidates = [
+            path.join(__dirname, 'src/yarn.lock'),
+            path.join(__dirname, 'yarn.lock'),
+        ];
+        const targetYarnLock = yarnLockCandidates.find((candidate) => fs.existsSync(candidate));
+        if (targetYarnLock) {
+            fs.copyFileSync(targetYarnLock, path.join(baseDir, 'yarn.lock'));
         }
     }
 }
