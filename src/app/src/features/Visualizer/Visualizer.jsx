@@ -1051,6 +1051,34 @@ class Visualizer extends Component {
                     this.visualizer.setHideProcessedLines(hideProcessedLines);
                 }
             }),
+            pubsub.subscribe('spindle:mode', () => {
+                if (!this.cuttingTool || !this.laserPointer || !this.cuttingPointer) {
+                    return;
+                }
+                const { state, isConnected } = this.props;
+                const { liteMode } = state;
+                const isLaser = isLaserMode();
+                if (isConnected) {
+                    this.cuttingTool.visible =
+                        !isLaser &&
+                        (liteMode
+                            ? state.objects.cuttingTool.visibleLite
+                            : state.objects.cuttingTool.visible);
+                    this.laserPointer.visible =
+                        isLaser &&
+                        (liteMode
+                            ? state.objects.cuttingTool.visibleLite
+                            : state.objects.cuttingTool.visible);
+                    this.cuttingPointer.visible = liteMode
+                        ? !state.objects.cuttingTool.visibleLite
+                        : !state.objects.cuttingTool.visible;
+                } else {
+                    this.cuttingTool.visible = false;
+                    this.laserPointer.visible = false;
+                    this.cuttingPointer.visible = false;
+                }
+                this.updateScene({ forceUpdate: true });
+            }),
             pubsub.subscribe('file:load', (msg, data) => {
                 const { isSecondary, activeVisualizer } = this.props;
                 pubsub.publish('visualizeWorker:terminate');
@@ -1774,8 +1802,8 @@ class Visualizer extends Component {
                         this.cuttingTool = object;
                         this.cuttingTool.name = 'CuttingTool';
                         this.cuttingTool.visible =
-                            isConnected &&
-                            !isLaser &&
+                            this.props.isConnected &&
+                            !isLaserMode() &&
                             (liteMode
                                 ? state.objects.cuttingTool.visibleLite
                                 : state.objects.cuttingTool.visible);
