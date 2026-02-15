@@ -57,89 +57,6 @@ const getComplementaryColour = (tcCounter: number): number => {
     return ((tcCounter % len) + len) % len;
 };
 
-function computeColorBuffers(
-    colors: [string, number][],
-    frames: Uint32Array,
-    maxSpindleValue: number,
-    spindleChanges: SpindleValues[],
-    isLaser: boolean,
-    theme: Map<string, string>,
-    toolchanges: number[],
-): { colorArray: Float32Array; savedColors: Float32Array } {
-    let tcCounter = 1;
-
-    const motionColor: Record<string, THREE.Color> = {
-        G0: new THREE.Color(theme.get(G0_PART)),
-        G1: new THREE.Color(theme.get(G1_PART)),
-        G2: new THREE.Color(theme.get(G2_PART)),
-        G3: new THREE.Color(theme.get(G3_PART)),
-        default: new THREE.Color('#FFF'),
-    };
-
-    const colorValues: number[] = [];
-    colors.forEach((colorTag, index) => {
-        if (toolchanges?.includes(index) && index > 20) {
-            const paletteIndex = getComplementaryColour(tcCounter);
-            const newColor = toolpathColors[paletteIndex].clone();
-            tcCounter++;
-            motionColor.G1 = newColor;
-            motionColor.G2 = newColor;
-            motionColor.G3 = newColor;
-        }
-        const [motion, opacity] = colorTag;
-        const color = motionColor[motion] ?? motionColor.default;
-        colorValues.push(...color.toArray(), opacity);
-    });
-
-    // savedColors starts as a copy of colorValues
-    let savedColorValues = [...colorValues];
-
-    if (isLaser && spindleChanges.length > 0) {
-        const defaultColor = new THREE.Color(theme.get(LASER_PART));
-        const fillColor = new THREE.Color(theme.get(BACKGROUND_PART));
-        const laserRgb = defaultColor.toArray();
-        const fillRgb = fillColor.toArray();
-        const totalVertices = colorValues.length / 4;
-        const frameCount = Math.min(frames.length, spindleChanges.length);
-
-        const calculateOpacity = (speed: number) => {
-            if (maxSpindleValue <= 0) {
-                return 1;
-            }
-            return Math.max(0, Math.min(speed / maxSpindleValue, 1));
-        };
-
-        let prevFrame = 0;
-        for (let i = 0; i < frameCount; i++) {
-            const frameEnd = Math.min(frames[i], totalVertices);
-            if (frameEnd <= prevFrame) {
-                continue;
-            }
-
-            const spindleState = spindleChanges[i];
-            const spindleOn = spindleState?.spindleOn ?? false;
-            const spindleSpeed = spindleState?.spindleSpeed ?? 0;
-            const opacity = spindleOn ? calculateOpacity(spindleSpeed) : 0.05;
-            const c = spindleOn ? laserRgb : fillRgb;
-
-            for (let vertexIndex = prevFrame; vertexIndex < frameEnd; vertexIndex++) {
-                const offsetIndex = vertexIndex * 4;
-                savedColorValues[offsetIndex] = c[0];
-                savedColorValues[offsetIndex + 1] = c[1];
-                savedColorValues[offsetIndex + 2] = c[2];
-                savedColorValues[offsetIndex + 3] = opacity;
-            }
-
-            prevFrame = frameEnd;
-        }
-    }
-
-    return {
-        colorArray: new Float32Array(colorValues),
-        savedColors: new Float32Array(savedColorValues),
-    };
-}
-
 interface WorkerData {
     content: string;
     isLaser?: boolean;
@@ -312,10 +229,48 @@ self.onmessage = function ({ data }: { data: WorkerData }) {
 
     // Common state variables
     let vertices: number[] = [];
-    const colors: [string, number][] = [];
+    const colorValues: number[] = [];
+    let colorVertexCount = 0;
+    let tcCounter = 1;
+    let lastToolchangeColorIndex = -1;
     const frames: number[] = [];
     let currentTool = 0;
     const toolchanges: number[] = [];
+    const shouldBuildColors = needsVisualization && Boolean(theme);
+    const asRgb = (color: THREE.Color): [number, number, number] => [
+        color.r,
+        color.g,
+        color.b,
+    ];
+    const motionColor = {
+        G0: asRgb(new THREE.Color(theme?.get(G0_PART) ?? '#FFF')),
+        G1: asRgb(new THREE.Color(theme?.get(G1_PART) ?? '#FFF')),
+        G2: asRgb(new THREE.Color(theme?.get(G2_PART) ?? '#FFF')),
+        G3: asRgb(new THREE.Color(theme?.get(G3_PART) ?? '#FFF')),
+        default: asRgb(new THREE.Color('#FFF')),
+    };
+    const getMotionColor = (motion: string): [number, number, number] => {
+        if (motion === 'G0') return motionColor.G0;
+        if (motion === 'G1') return motionColor.G1;
+        if (motion === 'G2') return motionColor.G2;
+        if (motion === 'G3') return motionColor.G3;
+        return motionColor.default;
+    };
+    const pushMotionColor = (
+        motion: string,
+        opacity: number,
+        count = 1,
+    ): void => {
+        colorVertexCount += count;
+        if (!shouldBuildColors) {
+            return;
+        }
+
+        const [r, g, b] = getMotionColor(motion);
+        for (let i = 0; i < count; i++) {
+            colorValues.push(r, g, b, opacity);
+        }
+    };
 
     // Laser specific state variables
     const spindleSpeeds: number[] = [];
@@ -348,12 +303,37 @@ self.onmessage = function ({ data }: { data: WorkerData }) {
         }
     };
 
-    const isNewTool = (t: number) => {
+    const isNewTool = (t: number | undefined) => {
         if (currentTool !== t) {
             currentTool = t;
             return true;
         }
         return false;
+    };
+    const registerToolChange = (tool: number | undefined): void => {
+        if (!isNewTool(tool)) {
+            return;
+        }
+
+        toolchanges.push(colorVertexCount);
+        if (
+            colorVertexCount <= 20 ||
+            colorVertexCount === lastToolchangeColorIndex
+        ) {
+            return;
+        }
+        lastToolchangeColorIndex = colorVertexCount;
+
+        const paletteIndex = getComplementaryColour(tcCounter);
+        tcCounter++;
+        const nextColor = toolpathColors[paletteIndex] ?? toolpathColors[0];
+        if (!nextColor) {
+            return;
+        }
+        const rgb = asRgb(nextColor);
+        motionColor.G1 = rgb;
+        motionColor.G2 = rgb;
+        motionColor.G3 = rgb;
     };
 
     // create path for the vertices of the last motion
@@ -422,10 +402,7 @@ self.onmessage = function ({ data }: { data: WorkerData }) {
             addLine: (modal: Modal, v1: BasicPosition, v2: BasicPosition) => {
                 if (needsVisualization) {
                     const { motion, units, tool } = modal;
-
-                    if (isNewTool(tool)) {
-                        toolchanges.push(colors.length);
-                    }
+                    registerToolChange(tool);
 
                     // Check if A-axis rotation is involved
                     const hasARotation =
@@ -438,7 +415,6 @@ self.onmessage = function ({ data }: { data: WorkerData }) {
                             Math.ceil(Math.abs((v2.a || 0) - (v1.a || 0)) / 5),
                         ); // At least 8 segments, or one per 5 degrees
                         const opacity = motion === 'G0' ? 0.5 : 1;
-                        const color: [string, number] = [motion, opacity];
 
                         let previousRotated: any = null;
                         for (let i = 0; i <= segments; i++) {
@@ -463,7 +439,7 @@ self.onmessage = function ({ data }: { data: WorkerData }) {
 
                             if (i > 0) {
                                 // Add line segment from previous point to current point
-                                colors.push(color, color);
+                                pushMotionColor(motion, opacity, 2);
                                 vertices.push(
                                     previousRotated.x,
                                     previousRotated.y,
@@ -514,8 +490,7 @@ self.onmessage = function ({ data }: { data: WorkerData }) {
 
                         // normal
                         const opacity = motion === 'G0' ? 0.5 : 1;
-                        const color: [string, number] = [motion, opacity];
-                        colors.push(color, color);
+                        pushMotionColor(motion, opacity, 2);
                         vertices.push(v1.x, v1.y, v1.z, v2.x, v2.y, v2.z);
 
                         // svg
@@ -535,9 +510,7 @@ self.onmessage = function ({ data }: { data: WorkerData }) {
             // For rotary visualization
             addCurve: (modal: Modal, v1: BasicPosition, v2: BasicPosition) => {
                 const { motion, tool } = modal;
-                if (isNewTool(tool)) {
-                    toolchanges.push(colors.length);
-                }
+                registerToolChange(tool);
                 // Check if A-axis rotation is involved
                 const hasARotation =
                     Math.abs((v2.a || 0) - (v1.a || 0)) > 0.001;
@@ -548,7 +521,6 @@ self.onmessage = function ({ data }: { data: WorkerData }) {
                         8,
                         Math.ceil(Math.abs((v2.a || 0) - (v1.a || 0)) / 5),
                     );
-                    const color: [string, number] = [motion, 1];
 
                     let previousRotated: any = null;
                     for (let i = 0; i <= segments; i++) {
@@ -573,7 +545,7 @@ self.onmessage = function ({ data }: { data: WorkerData }) {
 
                         if (i > 0) {
                             // Add line segment from previous point to current point
-                            colors.push(color, color);
+                            pushMotionColor(motion, 1, 2);
                             vertices.push(
                                 previousRotated.x,
                                 previousRotated.y,
@@ -622,12 +594,11 @@ self.onmessage = function ({ data }: { data: WorkerData }) {
                         angleDiff / DEGREES_PER_LINE_SEGMENT,
                     );
                     const points = arcCurve.getPoints(divisions);
-                    const color: [string, number] = [motion, 1];
 
                     for (let i = 0; i < points.length; ++i) {
                         const point = points[i];
                         vertices.push(v2.x, point.x, point.y);
-                        colors.push(color);
+                        pushMotionColor(motion, 1);
                     }
                 }
             },
@@ -639,9 +610,7 @@ self.onmessage = function ({ data }: { data: WorkerData }) {
             ) => {
                 if (needsVisualization) {
                     const { motion, plane, units, tool } = modal;
-                    if (isNewTool(tool)) {
-                        toolchanges.push(colors.length);
-                    }
+                    registerToolChange(tool);
 
                     const multiplier = units === 'G21' ? 1 : 25.4;
                     const isClockwise = motion === 'G2';
@@ -666,8 +635,6 @@ self.onmessage = function ({ data }: { data: WorkerData }) {
                     );
                     const divisions = 30;
                     const points = arcCurve.getPoints(divisions);
-
-                    const color: [string, number] = [motion, 1];
 
                     // svg
                     if (shouldIncludeSVG) {
@@ -716,7 +683,7 @@ self.onmessage = function ({ data }: { data: WorkerData }) {
                                 }
                             }
                         }
-                        colors.push(color);
+                        pushMotionColor(motion, 1);
                     }
                 }
             },
@@ -928,17 +895,55 @@ self.onmessage = function ({ data }: { data: WorkerData }) {
     let savedColorsArray = new Float32Array(0);
     markProfile(profiler, 'before_color_build');
     if (needsVisualization && theme) {
-        const computed = computeColorBuffers(
-            colors,
-            tFrames,
-            maxSpindleSpeed,
-            spindleChanges,
-            isLaser,
-            theme,
-            fileInfo.toolchanges ?? [],
-        );
-        colorArray = computed.colorArray;
-        savedColorsArray = computed.savedColors;
+        colorArray = new Float32Array(colorValues);
+        savedColorsArray = new Float32Array(colorArray);
+
+        if (isLaser && spindleChanges.length > 0 && savedColorsArray.length > 0) {
+            const defaultColor = new THREE.Color(theme.get(LASER_PART) ?? '#FFF');
+            const fillColor = new THREE.Color(theme.get(BACKGROUND_PART) ?? '#FFF');
+            const laserR = defaultColor.r;
+            const laserG = defaultColor.g;
+            const laserB = defaultColor.b;
+            const fillR = fillColor.r;
+            const fillG = fillColor.g;
+            const fillB = fillColor.b;
+            const totalVertices = colorArray.length / 4;
+            const frameCount = Math.min(tFrames.length, spindleChanges.length);
+            const calculateOpacity = (speed: number) => {
+                if (maxSpindleSpeed <= 0) {
+                    return 1;
+                }
+                return Math.max(0, Math.min(speed / maxSpindleSpeed, 1));
+            };
+
+            let prevFrame = 0;
+            for (let i = 0; i < frameCount; i++) {
+                const frameEnd = Math.min(tFrames[i], totalVertices);
+                if (frameEnd <= prevFrame) {
+                    continue;
+                }
+
+                const spindleState = spindleChanges[i];
+                const spindleIsOn = spindleState?.spindleOn ?? false;
+                const spindleSpeedAtFrame = spindleState?.spindleSpeed ?? 0;
+                const alpha = spindleIsOn
+                    ? calculateOpacity(spindleSpeedAtFrame)
+                    : 0.05;
+                const r = spindleIsOn ? laserR : fillR;
+                const g = spindleIsOn ? laserG : fillG;
+                const b = spindleIsOn ? laserB : fillB;
+
+                for (let vertexIndex = prevFrame; vertexIndex < frameEnd; vertexIndex++) {
+                    const offset = vertexIndex * 4;
+                    savedColorsArray[offset] = r;
+                    savedColorsArray[offset + 1] = g;
+                    savedColorsArray[offset + 2] = b;
+                    savedColorsArray[offset + 3] = alpha;
+                }
+
+                prevFrame = frameEnd;
+            }
+        }
     }
     markProfile(profiler, 'after_color_build');
     sampleHeap(profiler, 'after_color_build');
@@ -948,7 +953,8 @@ self.onmessage = function ({ data }: { data: WorkerData }) {
         profiler.counts.lines_with_data = currentLines;
         profiler.counts.frames_len = frames.length;
         profiler.counts.vertices_f32_len = tVertices.length;
-        profiler.counts.colors_tag_len = colors.length;
+        profiler.counts.color_values_len = colorValues.length;
+        profiler.counts.color_vertices_len = colorVertexCount;
         profiler.counts.toolchanges_len = toolchanges.length;
         profiler.counts.spindle_changes_len = spindleChanges.length;
         profiler.counts.spindle_speeds_len = spindleSpeeds.length;
