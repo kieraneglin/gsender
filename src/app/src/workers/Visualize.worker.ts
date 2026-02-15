@@ -173,6 +173,133 @@ const sampleHeap = (profile: WorkerProfile | null, tag: string): void => {
     }
 };
 
+type GrowableFloat32Buffer = {
+    data: Float32Array;
+    length: number;
+};
+
+type GrowableUint32Buffer = {
+    data: Uint32Array;
+    length: number;
+};
+
+const growCapacity = (current: number, required: number): number => {
+    let next = current > 0 ? current : 1;
+    while (next < required) {
+        next *= 2;
+    }
+    return next;
+};
+
+const ensureFloat32Capacity = (
+    buffer: GrowableFloat32Buffer,
+    additional: number,
+): void => {
+    const required = buffer.length + additional;
+    if (required <= buffer.data.length) {
+        return;
+    }
+    const next = new Float32Array(growCapacity(buffer.data.length, required));
+    next.set(buffer.data.subarray(0, buffer.length));
+    buffer.data = next;
+};
+
+const ensureUint32Capacity = (
+    buffer: GrowableUint32Buffer,
+    additional: number,
+): void => {
+    const required = buffer.length + additional;
+    if (required <= buffer.data.length) {
+        return;
+    }
+    const next = new Uint32Array(growCapacity(buffer.data.length, required));
+    next.set(buffer.data.subarray(0, buffer.length));
+    buffer.data = next;
+};
+
+const pushFloat32_3 = (
+    buffer: GrowableFloat32Buffer,
+    x: number,
+    y: number,
+    z: number,
+): void => {
+    ensureFloat32Capacity(buffer, 3);
+    const i = buffer.length;
+    buffer.data[i] = x;
+    buffer.data[i + 1] = y;
+    buffer.data[i + 2] = z;
+    buffer.length = i + 3;
+};
+
+const pushFloat32_6 = (
+    buffer: GrowableFloat32Buffer,
+    x1: number,
+    y1: number,
+    z1: number,
+    x2: number,
+    y2: number,
+    z2: number,
+): void => {
+    ensureFloat32Capacity(buffer, 6);
+    const i = buffer.length;
+    buffer.data[i] = x1;
+    buffer.data[i + 1] = y1;
+    buffer.data[i + 2] = z1;
+    buffer.data[i + 3] = x2;
+    buffer.data[i + 4] = y2;
+    buffer.data[i + 5] = z2;
+    buffer.length = i + 6;
+};
+
+const pushFloat32_4Repeat = (
+    buffer: GrowableFloat32Buffer,
+    a: number,
+    b: number,
+    c: number,
+    d: number,
+    repeat: number,
+): void => {
+    if (repeat <= 0) {
+        return;
+    }
+    ensureFloat32Capacity(buffer, repeat * 4);
+    let i = buffer.length;
+    for (let n = 0; n < repeat; n++) {
+        buffer.data[i] = a;
+        buffer.data[i + 1] = b;
+        buffer.data[i + 2] = c;
+        buffer.data[i + 3] = d;
+        i += 4;
+    }
+    buffer.length = i;
+};
+
+const pushUint32_1 = (buffer: GrowableUint32Buffer, value: number): void => {
+    ensureUint32Capacity(buffer, 1);
+    buffer.data[buffer.length] = value;
+    buffer.length += 1;
+};
+
+const toExactFloat32Array = (buffer: GrowableFloat32Buffer): Float32Array => {
+    if (buffer.length === 0) {
+        return new Float32Array(0);
+    }
+    if (buffer.length === buffer.data.length) {
+        return buffer.data;
+    }
+    return buffer.data.slice(0, buffer.length);
+};
+
+const toExactUint32Array = (buffer: GrowableUint32Buffer): Uint32Array => {
+    if (buffer.length === 0) {
+        return new Uint32Array(0);
+    }
+    if (buffer.length === buffer.data.length) {
+        return buffer.data;
+    }
+    return buffer.data.slice(0, buffer.length);
+};
+
 const parseGcodeComments = (line: string): string =>
     line.replace(/\([^\)]*\)/g, '').replace(/;.*$/, '');
 
@@ -228,12 +355,21 @@ self.onmessage = function ({ data }: { data: WorkerData }) {
         shouldOffsetRotaryRadius ? value + (rotaryRadius as number) : value;
 
     // Common state variables
-    let vertices: number[] = [];
-    const colorValues: number[] = [];
+    const vertices: GrowableFloat32Buffer = {
+        data: new Float32Array(4096),
+        length: 0,
+    };
+    const colorValues: GrowableFloat32Buffer = {
+        data: new Float32Array(4096),
+        length: 0,
+    };
     let colorVertexCount = 0;
     let tcCounter = 1;
     let lastToolchangeColorIndex = -1;
-    const frames: number[] = [];
+    const frames: GrowableUint32Buffer = {
+        data: new Uint32Array(2048),
+        length: 0,
+    };
     let currentTool = 0;
     const toolchanges: number[] = [];
     const shouldBuildColors = needsVisualization && Boolean(theme);
@@ -267,9 +403,7 @@ self.onmessage = function ({ data }: { data: WorkerData }) {
         }
 
         const [r, g, b] = getMotionColor(motion);
-        for (let i = 0; i < count; i++) {
-            colorValues.push(r, g, b, opacity);
-        }
+        pushFloat32_4Repeat(colorValues, r, g, b, opacity, count);
     };
 
     // Laser specific state variables
@@ -377,7 +511,7 @@ self.onmessage = function ({ data }: { data: WorkerData }) {
 
     const onData = () => {
         const vertexIndex = vertices.length / 3;
-        frames.push(vertexIndex);
+        pushUint32_1(frames, vertexIndex);
 
         currentLines++;
         if (
@@ -440,7 +574,8 @@ self.onmessage = function ({ data }: { data: WorkerData }) {
                             if (i > 0) {
                                 // Add line segment from previous point to current point
                                 pushMotionColor(motion, opacity, 2);
-                                vertices.push(
+                                pushFloat32_6(
+                                    vertices,
                                     previousRotated.x,
                                     previousRotated.y,
                                     previousRotated.z,
@@ -491,7 +626,15 @@ self.onmessage = function ({ data }: { data: WorkerData }) {
                         // normal
                         const opacity = motion === 'G0' ? 0.5 : 1;
                         pushMotionColor(motion, opacity, 2);
-                        vertices.push(v1.x, v1.y, v1.z, v2.x, v2.y, v2.z);
+                        pushFloat32_6(
+                            vertices,
+                            v1.x,
+                            v1.y,
+                            v1.z,
+                            v2.x,
+                            v2.y,
+                            v2.z,
+                        );
 
                         // svg
                         if (shouldIncludeSVG) {
@@ -546,7 +689,8 @@ self.onmessage = function ({ data }: { data: WorkerData }) {
                         if (i > 0) {
                             // Add line segment from previous point to current point
                             pushMotionColor(motion, 1, 2);
-                            vertices.push(
+                            pushFloat32_6(
+                                vertices,
                                 previousRotated.x,
                                 previousRotated.y,
                                 previousRotated.z,
@@ -597,7 +741,7 @@ self.onmessage = function ({ data }: { data: WorkerData }) {
 
                     for (let i = 0; i < points.length; ++i) {
                         const point = points[i];
-                        vertices.push(v2.x, point.x, point.y);
+                        pushFloat32_3(vertices, v2.x, point.x, point.y);
                         pushMotionColor(motion, 1);
                     }
                 }
@@ -649,7 +793,7 @@ self.onmessage = function ({ data }: { data: WorkerData }) {
 
                         if (plane === 'G17') {
                             // XY-plane
-                            vertices.push(point.x, point.y, z);
+                            pushFloat32_3(vertices, point.x, point.y, z);
                             if (shouldIncludeSVG && i > 0) {
                                 SVGVertices.push({
                                     x1: pointA.x * multiplier,
@@ -660,7 +804,7 @@ self.onmessage = function ({ data }: { data: WorkerData }) {
                             }
                         } else if (plane === 'G18') {
                             // ZX-plane
-                            vertices.push(point.y, z, point.x);
+                            pushFloat32_3(vertices, point.y, z, point.x);
                             if (shouldIncludeSVG && i > 0) {
                                 SVGVertices.push({
                                     x1: pointA.y * multiplier,
@@ -671,7 +815,7 @@ self.onmessage = function ({ data }: { data: WorkerData }) {
                             }
                         } else if (plane === 'G19') {
                             // YZ-plane
-                            vertices.push(z, point.x, point.y);
+                            pushFloat32_3(vertices, z, point.x, point.y);
                             if (shouldIncludeSVG && i > 0) {
                                 if (i > 0) {
                                     SVGVertices.push({
@@ -877,8 +1021,8 @@ self.onmessage = function ({ data }: { data: WorkerData }) {
     };
 
     markProfile(profiler, 'before_typed_array_build');
-    let tFrames = new Uint32Array(frames);
-    let tVertices = new Float32Array(vertices);
+    let tFrames = toExactUint32Array(frames);
+    let tVertices = toExactFloat32Array(vertices);
     const tSpindleSpeeds = isLaser
         ? new Float32Array(spindleSpeeds)
         : new Float32Array(0);
@@ -895,7 +1039,7 @@ self.onmessage = function ({ data }: { data: WorkerData }) {
     let savedColorsArray = new Float32Array(0);
     markProfile(profiler, 'before_color_build');
     if (needsVisualization && theme) {
-        colorArray = new Float32Array(colorValues);
+        colorArray = toExactFloat32Array(colorValues);
 
         // Non-laser jobs can use colorArray directly; no duplicate saved buffer needed.
         if (isLaser) {
