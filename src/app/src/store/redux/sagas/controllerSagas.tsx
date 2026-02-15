@@ -213,6 +213,13 @@ export function* initialize(): Generator<any, void, any> {
         const reduxState = reduxStore.getState();
         const isLaser = isLaserMode();
         const shouldIncludeSVG = shouldVisualizeSVG();
+        const profileWorker = store.get(
+            'widgets.visualizer.debug.profileWorker',
+            false,
+        );
+        const profileSampleEvery = Number(
+            store.get('widgets.visualizer.debug.profileSampleEvery', 10000),
+        );
         const accelerations = {
             xAccel: _get(reduxState, 'controller.settings.settings.$120'),
             yAccel: _get(reduxState, 'controller.settings.settings.$121'),
@@ -295,6 +302,8 @@ export function* initialize(): Generator<any, void, any> {
                     isLaser,
                     rotaryDiameterOffsetEnabled,
                     theme: getVisualizerTheme(),
+                    profile: profileWorker,
+                    profileSampleEvery,
                 });
             } else {
                 reduxStore.dispatch(
@@ -350,6 +359,8 @@ export function* initialize(): Generator<any, void, any> {
             atcEnabled,
             rotaryDiameterOffsetEnabled,
             theme: getVisualizerTheme(),
+            profile: profileWorker,
+            profileSampleEvery,
         });
     };
 

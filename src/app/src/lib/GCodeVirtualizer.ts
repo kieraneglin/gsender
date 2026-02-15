@@ -47,6 +47,16 @@ interface VMState {
     spindleToolEvents: { [key: number]: SpindleToolEvent };
 }
 
+interface VMProfileStats {
+    linesSeen: number;
+    tokensSeen: number;
+    groupsSeen: number;
+    handlerInvocations: number;
+    emitDataCount: number;
+    estimatesPushCount: number;
+    invalidLineCount: number;
+}
+
 type Data = Array<{
     Scode: any;
     lineData: any;
@@ -281,6 +291,16 @@ class GCodeVirtualizer extends EventEmitter {
     estimates: number[] = [];
 
     setEstimate: boolean = false;
+
+    profileStats: VMProfileStats = {
+        linesSeen: 0,
+        tokensSeen: 0,
+        groupsSeen: 0,
+        handlerInvocations: 0,
+        emitDataCount: 0,
+        estimatesPushCount: 0,
+        invalidLineCount: 0,
+    };
 
     //INVALID_GCODE_REGEX = /([^NGMXYZITPAJKFRS%\-?\.?\d+\.?\s])|((G28)|(G29)|(\$H))/gi;
     //INVALID_GCODE_REGEX = /^(?!.*\b([NGMXYZILTPAJKFRS][0-9+\-\.]+|\$\$|\$[NGMXYZILTPAJKFRS0-9#]*|\*[0-9]+|%.*|{.*})\b).+$/gi;
@@ -925,6 +945,7 @@ class GCodeVirtualizer extends EventEmitter {
             if (this.atcEnabled) {
                 this.totalTime += 45; // add 45 seconds for toolchange
                 this.estimates.push(45);
+                this.profileStats.estimatesPushCount += 1;
                 this.setEstimate = true;
             }
         },
@@ -1099,6 +1120,7 @@ class GCodeVirtualizer extends EventEmitter {
     }
 
     virtualize(line = ''): void {
+        this.profileStats.linesSeen += 1;
         this.setEstimate = false; // Reset on each line
         if (!line) {
             this.totalLines += 1;
@@ -1118,9 +1140,11 @@ class GCodeVirtualizer extends EventEmitter {
 
         if (line.replace(this.VALID_GCODE_REGEX, '').length > 0) {
             this.vmState.invalidLines.push(line);
+            this.profileStats.invalidLineCount += 1;
         }
 
         let parsedLine = parseLine(line);
+        this.profileStats.tokensSeen += parsedLine.words.length;
         this.totalLines += 1; // Moved here so M6 and T commands are correctly stored
         // collect spindle and feed rates
         for (let word of parsedLine.words) {
@@ -1138,6 +1162,7 @@ class GCodeVirtualizer extends EventEmitter {
         }
 
         const groups = this.partitionWordsByGroup(parsedLine.words);
+        this.profileStats.groupsSeen += groups.length;
         for (let i = 0; i < groups.length; ++i) {
             const words = groups[i];
             const word = words[0] || [];
@@ -1219,6 +1244,7 @@ class GCodeVirtualizer extends EventEmitter {
 
             if (typeof this.handlers[cmd] === 'function') {
                 const func = this.handlers[cmd];
+                this.profileStats.handlerInvocations += 1;
                 func(args);
             }
         }
@@ -1231,6 +1257,7 @@ class GCodeVirtualizer extends EventEmitter {
         */
         if (!this.setEstimate) {
             this.estimates.push(0); // Same as above but use flag instead of array length
+            this.profileStats.estimatesPushCount += 1;
         }
         /*
         // add new data structure
@@ -1243,6 +1270,7 @@ class GCodeVirtualizer extends EventEmitter {
         */
 
         this.fn.callback();
+        this.profileStats.emitDataCount += 1;
         this.emit('data', parsedLine);
         parsedLine = null;
     }
@@ -1553,6 +1581,7 @@ class GCodeVirtualizer extends EventEmitter {
         // If no movement, return early
         if (axisMovements.length === 0) {
             this.estimates.push(0);
+            this.profileStats.estimatesPushCount += 1;
             this.setEstimate = true;
             return;
         }
@@ -1637,6 +1666,7 @@ class GCodeVirtualizer extends EventEmitter {
 
         this.totalTime += moveDuration;
         this.estimates.push(Number(moveDuration.toFixed(4))); // round to avoid bad js math
+        this.profileStats.estimatesPushCount += 1;
         this.setEstimate = true;
     }
 
@@ -1672,6 +1702,10 @@ class GCodeVirtualizer extends EventEmitter {
         return {
             estimates: this.estimates,
         };
+    }
+
+    getProfileStats(): VMProfileStats {
+        return { ...this.profileStats };
     }
 
     updateSpindleToolEvents(

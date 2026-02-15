@@ -152,6 +152,8 @@ interface WorkerData {
     isSecondary: boolean;
     activeVisualizer: VISUALIZER_TYPES_T;
     theme?: Map<string, string>;
+    profile?: boolean;
+    profileSampleEvery?: number;
 }
 
 interface SVGVertex {
@@ -183,6 +185,75 @@ interface SpindleValues {
 type RotaryMetadata = {
     radius: number | null;
     hasYAxisMoves: boolean;
+};
+
+type HeapSample = {
+    tag: string;
+    t: number;
+    used?: number;
+};
+
+type WorkerProfile = {
+    marks: Record<string, number>;
+    heap: {
+        supported: boolean;
+        peak?: number;
+        samples: HeapSample[];
+    };
+    counts: Record<string, number>;
+    bytes: Record<string, number>;
+    sampleEvery: number;
+};
+
+const nowMs = (): number =>
+    typeof performance?.now === 'function' ? performance.now() : Date.now();
+
+const getUsedHeapSize = (): number | undefined => {
+    const perfMemory = (performance as any)?.memory;
+    if (typeof perfMemory?.usedJSHeapSize === 'number') {
+        return perfMemory.usedJSHeapSize;
+    }
+    return undefined;
+};
+
+const createProfiler = (
+    enabled: boolean,
+    sampleEvery: number,
+): WorkerProfile | null => {
+    if (!enabled) {
+        return null;
+    }
+    const used = getUsedHeapSize();
+    const safeSampleEvery = Number.isFinite(sampleEvery) ? sampleEvery : 10000;
+    return {
+        marks: {},
+        heap: {
+            supported: used !== undefined,
+            peak: used,
+            samples: [],
+        },
+        counts: {},
+        bytes: {},
+        sampleEvery: Math.max(1, safeSampleEvery),
+    };
+};
+
+const markProfile = (profile: WorkerProfile | null, tag: string): void => {
+    if (!profile) return;
+    profile.marks[tag] = nowMs();
+};
+
+const sampleHeap = (profile: WorkerProfile | null, tag: string): void => {
+    if (!profile) return;
+    const used = getUsedHeapSize();
+    profile.heap.samples.push({
+        tag,
+        t: nowMs(),
+        used,
+    });
+    if (used !== undefined) {
+        profile.heap.peak = Math.max(profile.heap.peak || 0, used);
+    }
 };
 
 const parseGcodeComments = (line: string): string =>
@@ -219,11 +290,21 @@ self.onmessage = function ({ data }: { data: WorkerData }) {
         isSecondary,
         activeVisualizer,
         theme,
+        profile = false,
+        profileSampleEvery = 10000,
     } = data;
 
-    console.log('gSender isLaser: ', isLaser)
+    const profiler = createProfiler(profile, profileSampleEvery);
+    markProfile(profiler, 'start');
+    sampleHeap(profiler, 'start');
+    if (profiler) {
+        profiler.bytes.input_utf16_bytes = content.length * 2;
+    }
 
     const { radius: rotaryRadius, hasYAxisMoves } = parseRotaryMetadata(content);
+    markProfile(profiler, 'after_rotary_scan');
+    sampleHeap(profiler, 'after_rotary_scan');
+
     const shouldOffsetRotaryRadius =
         rotaryDiameterOffsetEnabled && rotaryRadius !== null && !hasYAxisMoves;
     const applyRotaryRadiusOffset = (value: number): number =>
@@ -319,6 +400,14 @@ self.onmessage = function ({ data }: { data: WorkerData }) {
         frames.push(vertexIndex);
 
         currentLines++;
+        if (
+            profiler &&
+            profiler.sampleEvery > 0 &&
+            currentLines % profiler.sampleEvery === 0
+        ) {
+            sampleHeap(profiler, `line_${currentLines}`);
+        }
+
         const newProgress = Math.floor((currentLines / totalLines) * 100);
         if (newProgress !== progress) {
             progress = newProgress;
@@ -772,6 +861,11 @@ self.onmessage = function ({ data }: { data: WorkerData }) {
     });
 
     vm.on('data', (data: any) => {
+        if (profiler) {
+            profiler.counts.vm_data_events =
+                (profiler.counts.vm_data_events || 0) + 1;
+        }
+
         let spindleValues = {
             spindleOn: false,
             spindleSpeed: 0,
@@ -788,12 +882,20 @@ self.onmessage = function ({ data }: { data: WorkerData }) {
         onData();
     });
 
+    markProfile(profiler, 'before_line_split');
     const lines = content.split(/\r?\n/).reverse();
+    markProfile(profiler, 'after_line_split');
+    sampleHeap(profiler, 'after_line_split');
 
+    markProfile(profiler, 'before_parse_loop');
+    let virtualizedLines = 0;
     while (lines.length) {
         let line = lines.pop();
         vm.virtualize(line);
+        virtualizedLines++;
     }
+    markProfile(profiler, 'after_parse_loop');
+    sampleHeap(profiler, 'after_parse_loop');
 
     const { estimates } = vm.getData();
     fileInfo = vm.generateFileStats();
@@ -807,9 +909,14 @@ self.onmessage = function ({ data }: { data: WorkerData }) {
         invalidLines: fileInfo.invalidLines,
     };
 
+    markProfile(profiler, 'before_typed_array_build');
     let tFrames = new Uint32Array(frames);
     let tVertices = new Float32Array(vertices);
-    const tSpindleSpeeds = isLaser ? new Float32Array(spindleSpeeds) : new Float32Array(0);
+    const tSpindleSpeeds = isLaser
+        ? new Float32Array(spindleSpeeds)
+        : new Float32Array(0);
+    markProfile(profiler, 'after_typed_array_build');
+    sampleHeap(profiler, 'after_typed_array_build');
 
     // create path for the last motion
     if (shouldIncludeSVG) {
@@ -819,6 +926,7 @@ self.onmessage = function ({ data }: { data: WorkerData }) {
 
     let colorArray = new Float32Array(0);
     let savedColorsArray = new Float32Array(0);
+    markProfile(profiler, 'before_color_build');
     if (needsVisualization && theme) {
         const computed = computeColorBuffers(
             colors,
@@ -831,6 +939,30 @@ self.onmessage = function ({ data }: { data: WorkerData }) {
         );
         colorArray = computed.colorArray;
         savedColorsArray = computed.savedColors;
+    }
+    markProfile(profiler, 'after_color_build');
+    sampleHeap(profiler, 'after_color_build');
+
+    if (profiler) {
+        profiler.counts.virtualized_lines = virtualizedLines;
+        profiler.counts.lines_with_data = currentLines;
+        profiler.counts.frames_len = frames.length;
+        profiler.counts.vertices_f32_len = tVertices.length;
+        profiler.counts.colors_tag_len = colors.length;
+        profiler.counts.toolchanges_len = toolchanges.length;
+        profiler.counts.spindle_changes_len = spindleChanges.length;
+        profiler.counts.spindle_speeds_len = spindleSpeeds.length;
+        profiler.counts.paths_len = paths.length;
+        profiler.counts.estimates_len = estimates.length;
+        profiler.counts.invalid_lines_len = fileInfo.invalidLines?.length || 0;
+        profiler.counts.spindle_tool_event_count = Object.keys(
+            fileInfo.spindleToolEvents || {},
+        ).length;
+        profiler.bytes.vertices_bytes = tVertices.byteLength;
+        profiler.bytes.frames_bytes = tFrames.byteLength;
+        profiler.bytes.color_bytes = colorArray.byteLength;
+        profiler.bytes.saved_color_bytes = savedColorsArray.byteLength;
+        profiler.bytes.spindle_speeds_bytes = tSpindleSpeeds.byteLength;
     }
 
     const message: {
@@ -847,6 +979,17 @@ self.onmessage = function ({ data }: { data: WorkerData }) {
         isLaser?: boolean;
         isSecondary: boolean;
         activeVisualizer: VISUALIZER_TYPES_T;
+        profile?: {
+            durationsMs: Record<string, number>;
+            counts: Record<string, number>;
+            bytes: Record<string, number>;
+            heap: {
+                supported: boolean;
+                peak: number | null;
+                samples: HeapSample[];
+            };
+            vm?: Record<string, number>;
+        };
     } = {
         vertices: tVertices.buffer,
         paths,
@@ -875,5 +1018,47 @@ self.onmessage = function ({ data }: { data: WorkerData }) {
     if (isLaser) {
         transferList.push(tSpindleSpeeds.buffer);
     }
+
+    markProfile(profiler, 'before_post_message');
+    if (profiler) {
+        profiler.bytes.transfer_total_bytes = transferList.reduce(
+            (acc, buffer) => acc + buffer.byteLength,
+            0,
+        );
+        const durationBetween = (start: string, end: string): number => {
+            const s = profiler.marks[start];
+            const e = profiler.marks[end];
+            if (typeof s !== 'number' || typeof e !== 'number') {
+                return 0;
+            }
+            return Number((e - s).toFixed(3));
+        };
+        const vmStats =
+            typeof (vm as any).getProfileStats === 'function'
+                ? (vm as any).getProfileStats()
+                : undefined;
+        message.profile = {
+            durationsMs: {
+                rotaryScan: durationBetween('start', 'after_rotary_scan'),
+                lineSplit: durationBetween('before_line_split', 'after_line_split'),
+                parseLoop: durationBetween('before_parse_loop', 'after_parse_loop'),
+                typedArrayBuild: durationBetween(
+                    'before_typed_array_build',
+                    'after_typed_array_build',
+                ),
+                colorBuild: durationBetween('before_color_build', 'after_color_build'),
+                total: durationBetween('start', 'before_post_message'),
+            },
+            counts: profiler.counts,
+            bytes: profiler.bytes,
+            heap: {
+                supported: profiler.heap.supported,
+                peak: profiler.heap.peak ?? null,
+                samples: profiler.heap.samples,
+            },
+            vm: vmStats,
+        };
+    }
+
     postMessage(message, transferList);
 };

@@ -23,6 +23,31 @@ export const visualizeResponse = async ({ data }) => {
     } else {
         const { needsVisualization, parsedData } = data;
 
+        if (data.profile) {
+            const { durationsMs, bytes, counts, heap, vm } = data.profile;
+            console.groupCollapsed(
+                '[Visualizer Profile] Parse + Memory Summary',
+            );
+            if (durationsMs) {
+                console.table(durationsMs);
+            }
+            if (bytes) {
+                console.table(bytes);
+            }
+            if (counts) {
+                console.table(counts);
+            }
+            if (vm) {
+                console.table(vm);
+            }
+            const transferBytes = bytes?.transfer_total_bytes ?? 0;
+            const heapPeak = heap?.peak ?? null;
+            console.info(
+                `[Visualizer Profile] transfer=${transferBytes} bytes, peakHeap=${heapPeak}, heapSupported=${heap?.supported}`,
+            );
+            console.groupEnd();
+        }
+
         pubsub.publish('file:toolchanges', {
             toolEvents: parsedData.info.spindleToolEvents,
             total: parsedData.info.total,
