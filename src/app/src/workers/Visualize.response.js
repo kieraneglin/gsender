@@ -10,7 +10,6 @@ import {
     RENDER_RENDERING,
     VISUALIZER_SECONDARY,
 } from 'app/constants';
-import { replaceParsedData } from '../lib/indexedDB';
 import {
     updateFileInfo,
     updateFileProcessing,
@@ -162,13 +161,16 @@ const handleGeometryReady = (data) => {
 const handleMetadataReady = async (data) => {
     logProfile(data.profile);
 
-    if (data.parsedData) {
-        await replaceParsedData(data.parsedData).then(() => {
-            pubsub.publish('parsedData:stored');
-        });
-    } else {
-        pubsub.publish('parsedData:stored');
-    }
+    const parsedData = data.parsedData || {};
+    const estimateData = {
+        estimates: Array.isArray(parsedData.estimates)
+            ? parsedData.estimates
+            : [],
+        estimatedTime: _get(parsedData, 'info.estimatedTime', 0),
+        jobId: data.jobId,
+    };
+
+    pubsub.publish('estimateData:ready', estimateData);
 
     pubsub.publish('visualizeWorker:terminate');
 };

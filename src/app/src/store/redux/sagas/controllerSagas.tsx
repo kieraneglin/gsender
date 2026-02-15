@@ -110,7 +110,6 @@ import {
     updateFileProcessing,
     updateFileRenderState,
 } from '../slices/fileInfo.slice';
-import { getEstimateData } from 'app/lib/indexedDB';
 import { setIpList } from '../slices/preferences.slice';
 import { updateJobOverrides } from '../slices/visualizer.slice';
 import { toast } from 'app/lib/toaster';
@@ -128,7 +127,19 @@ export function* initialize(): Generator<any, void, any> {
     let currentState: GRBL_ACTIVE_STATES_T = GRBL_ACTIVE_STATE_IDLE;
     let prevState: GRBL_ACTIVE_STATES_T = GRBL_ACTIVE_STATE_IDLE;
     let errors: any[] = [];
-    let finishLoad = false;
+    let latestEstimateData: { estimates: number[]; estimatedTime: number } = {
+        estimates: [],
+        estimatedTime: 0,
+    };
+    let hasEstimateData = false;
+
+    const clearEstimateDataCache = () => {
+        latestEstimateData = {
+            estimates: [],
+            estimatedTime: 0,
+        };
+        hasEstimateData = false;
+    };
 
     /* Health check - every 3 minutes */
     setInterval(
@@ -297,7 +308,6 @@ export function* initialize(): Generator<any, void, any> {
                 visualizeWorker.onmessage = visualizeResponse;
                 const jobId = ++visualizeJobId;
                 setActiveVisualizeJobId(jobId);
-                // await getParsedData().then((value) => {
                 visualizeWorker.postMessage({
                     jobId,
                     content,
@@ -690,7 +700,7 @@ export function* initialize(): Generator<any, void, any> {
     });
 
     controller.addListener('gcode:load', (name: string, content: string) => {
-        finishLoad = false;
+        clearEstimateDataCache();
         const size = new Blob([content]).size;
         reduxStore.dispatch(updateFileContent({ content, size, name }));
     });
@@ -703,6 +713,7 @@ export function* initialize(): Generator<any, void, any> {
     );
 
     controller.addListener('gcode:unload', () => {
+        clearEstimateDataCache();
         reduxStore.dispatch(unloadFileInfo());
     });
 
@@ -749,16 +760,14 @@ export function* initialize(): Generator<any, void, any> {
     );
 
     controller.addListener('requestEstimateData', () => {
-        if (finishLoad) {
-            finishLoad = false;
-            getEstimateData().then((value) => {
-                controller.command('updateEstimateData', value);
-            });
+        if (hasEstimateData) {
+            controller.command('updateEstimateData', latestEstimateData);
         }
     });
 
     // // Need this to handle unload when machine not connected since controller event isn't sent
     pubsub.subscribe('gcode:unload', () => {
+        clearEstimateDataCache();
         reduxStore.dispatch(unloadFileInfo());
     });
 
@@ -767,12 +776,22 @@ export function* initialize(): Generator<any, void, any> {
         visualizeWorker?.terminate();
     });
 
-    pubsub.subscribe('parsedData:stored', () => {
-        finishLoad = true;
-        getEstimateData().then((value) => {
-            controller.command('updateEstimateData', value);
-        });
-    });
+    pubsub.subscribe(
+        'estimateData:ready',
+        (
+            _msg,
+            value: { estimates?: number[]; estimatedTime?: number } = {},
+        ) => {
+            latestEstimateData = {
+                estimates: Array.isArray(value?.estimates)
+                    ? value.estimates
+                    : [],
+                estimatedTime: Number(value?.estimatedTime) || 0,
+            };
+            hasEstimateData = true;
+            controller.command('updateEstimateData', latestEstimateData);
+        },
+    );
 
     // // for when you don't want to send file to backend
     // pubsub.subscribe(
