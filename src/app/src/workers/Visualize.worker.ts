@@ -425,7 +425,17 @@ self.onmessage = function ({ data }: { data: WorkerData }) {
      * Updates local state with any spindle changes in line
      * @param words
      */
-    const updateSpindleStateFromLine = ({ words }: { words: string[][] }) => {
+    const updateSpindleStateFromLine = (lineData: any) => {
+        if (typeof lineData === 'number' && Number.isFinite(lineData)) {
+            const nextSpindleSpeed = lineData;
+            spindleSpeeds.push(nextSpindleSpeed);
+            spindleSpeed = nextSpindleSpeed;
+            spindleOn = nextSpindleSpeed > 0;
+            maxSpindleSpeed = Math.max(maxSpindleSpeed, nextSpindleSpeed);
+            return;
+        }
+
+        const words = Array.isArray(lineData?.words) ? lineData.words : [];
         const spindleMatches = words.filter((word) => word[0] === 'S');
         const [spindleCommand, spindleValue] = spindleMatches[0] || [];
         if (spindleCommand) {

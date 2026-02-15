@@ -399,6 +399,72 @@ Virtualizer Stats (`vm`):
 | estimatesPushCount | 406291 |
 | invalidLineCount | 0 |
 
+### mb-6 (Post Step A+B - Run 1)
+
+Summary:
+- `ts=2026-02-15T14:45:43.920Z`
+- `transfer_total_bytes=24377068`
+- `peakHeap=null`
+- `heapSupported=false`
+- Compared to `mb-6 (Post Step 4 - 3 Runs)` median:
+- `total: 463.9 -> 416.6 ms` (`-10.2%`)
+- `parseLoop: 435.6 -> 376.6 ms` (`-13.5%`)
+- `lineSplit + parseLoop: 435.6 -> 376.6 ms` (`-13.5%`)
+
+Durations (`durationsMs`):
+
+| Metric | Value |
+|---|---:|
+| rotaryScan | 14.5 |
+| lineSplit | 0 |
+| parseLoop | 376.6 |
+| typedArrayBuild | 1.9 |
+| colorBuild | 2.6 |
+| total | 416.6 |
+
+Bytes (`bytes`):
+
+| Metric | Value |
+|---|---:|
+| input_utf16_bytes | 12567944 |
+| vertices_bytes | 9750816 |
+| frames_bytes | 1625164 |
+| color_bytes | 13001088 |
+| saved_color_bytes | 0 |
+| spindle_speeds_bytes | 0 |
+| transfer_total_bytes | 24377068 |
+
+Worker Counts (`counts`):
+
+| Metric | Value |
+|---|---:|
+| vm_data_events | 406291 |
+| virtualized_lines | 406297 |
+| lines_with_data | 406291 |
+| frames_len | 406291 |
+| vertices_f32_len | 2437704 |
+| color_values_len | 3250272 |
+| color_vertices_len | 812568 |
+| toolchanges_len | 1 |
+| spindle_changes_len | 0 |
+| spindle_speeds_len | 0 |
+| paths_len | 17095 |
+| estimates_len | 406291 |
+| invalid_lines_len | 0 |
+| spindle_tool_event_count | 4 |
+
+Virtualizer Stats (`vm`):
+
+| Metric | Value |
+|---|---:|
+| linesSeen | 406297 |
+| tokensSeen | 836903 |
+| groupsSeen | 406292 |
+| handlerInvocations | 406291 |
+| emitDataCount | 406291 |
+| estimatesPushCount | 406291 |
+| invalidLineCount | 0 |
+
 ### mb-14 (Baseline)
 
 Summary:
@@ -886,6 +952,72 @@ Virtualizer Stats (`vm`):
 | estimatesPushCount | 806272 |
 | invalidLineCount | 0 |
 
+### mb-14 (Post Step A+B - Run 1)
+
+Summary:
+- `ts=2026-02-15T14:43:24.978Z`
+- `transfer_total_bytes=48376152`
+- `peakHeap=null`
+- `heapSupported=false`
+- Compared to `mb-14 (Post Step 4 - 3 Runs)` median:
+- `total: 1171.8 -> 836.9 ms` (`-28.6%`)
+- `parseLoop: 1112.0 -> 783.6 ms` (`-29.5%`)
+- `lineSplit + parseLoop: 1112.0 -> 783.6 ms` (`-29.5%`)
+
+Durations (`durationsMs`):
+
+| Metric | Value |
+|---|---:|
+| rotaryScan | 27.9 |
+| lineSplit | 0 |
+| parseLoop | 783.6 |
+| typedArrayBuild | 3.6 |
+| colorBuild | 5.1 |
+| total | 836.9 |
+
+Bytes (`bytes`):
+
+| Metric | Value |
+|---|---:|
+| input_utf16_bytes | 30486572 |
+| vertices_bytes | 19350456 |
+| frames_bytes | 3225088 |
+| color_bytes | 25800608 |
+| saved_color_bytes | 0 |
+| spindle_speeds_bytes | 0 |
+| transfer_total_bytes | 48376152 |
+
+Worker Counts (`counts`):
+
+| Metric | Value |
+|---|---:|
+| vm_data_events | 806272 |
+| virtualized_lines | 806272 |
+| lines_with_data | 806272 |
+| frames_len | 806272 |
+| vertices_f32_len | 4837614 |
+| color_values_len | 6450152 |
+| color_vertices_len | 1612538 |
+| toolchanges_len | 0 |
+| spindle_changes_len | 0 |
+| spindle_speeds_len | 0 |
+| paths_len | 1766 |
+| estimates_len | 806272 |
+| invalid_lines_len | 0 |
+| spindle_tool_event_count | 1 |
+
+Virtualizer Stats (`vm`):
+
+| Metric | Value |
+|---|---:|
+| linesSeen | 806272 |
+| tokensSeen | 2416802 |
+| groupsSeen | 806272 |
+| handlerInvocations | 806272 |
+| emitDataCount | 806272 |
+| estimatesPushCount | 806272 |
+| invalidLineCount | 0 |
+
 ### mb-28
 
 Summary:
@@ -1306,6 +1438,72 @@ Durations (`durationsMs`):
 | 2 | 57.9 | 0 | 1957.8 | 6.3 | 8.8 | 2140.6 |
 | 3 | 59.7 | 0 | 1973.9 | 5.0 | 6.6 | 2139.4 |
 | Median | 57.9 | 0 | 1957.8 | 5.2 | 6.6 | 2139.4 |
+
+Bytes (`bytes`):
+
+| Metric | Value |
+|---|---:|
+| input_utf16_bytes | 55988574 |
+| vertices_bytes | 36787344 |
+| frames_bytes | 6131252 |
+| color_bytes | 49049792 |
+| saved_color_bytes | 0 |
+| spindle_speeds_bytes | 0 |
+| transfer_total_bytes | 91968388 |
+
+Worker Counts (`counts`):
+
+| Metric | Value |
+|---|---:|
+| vm_data_events | 1532813 |
+| virtualized_lines | 1532814 |
+| lines_with_data | 1532813 |
+| frames_len | 1532813 |
+| vertices_f32_len | 9196836 |
+| color_values_len | 12262448 |
+| color_vertices_len | 3065612 |
+| toolchanges_len | 1 |
+| spindle_changes_len | 0 |
+| spindle_speeds_len | 0 |
+| paths_len | 217 |
+| estimates_len | 1532813 |
+| invalid_lines_len | 0 |
+| spindle_tool_event_count | 4 |
+
+Virtualizer Stats (`vm`):
+
+| Metric | Value |
+|---|---:|
+| linesSeen | 1532814 |
+| tokensSeen | 4554159 |
+| groupsSeen | 1532814 |
+| handlerInvocations | 1532813 |
+| emitDataCount | 1532813 |
+| estimatesPushCount | 1532813 |
+| invalidLineCount | 0 |
+
+### mb-28 (Post Step A+B - Run 1)
+
+Summary:
+- `ts=2026-02-15T14:42:39.185Z`
+- `transfer_total_bytes=91968388`
+- `peakHeap=null`
+- `heapSupported=false`
+- Compared to `mb-28 (Post Step 4 - 3 Runs)` median:
+- `total: 2139.4 -> 1760.0 ms` (`-17.7%`)
+- `parseLoop: 1957.8 -> 1563.3 ms` (`-20.2%`)
+- `lineSplit + parseLoop: 1957.8 -> 1563.3 ms` (`-20.2%`)
+
+Durations (`durationsMs`):
+
+| Metric | Value |
+|---|---:|
+| rotaryScan | 61.2 |
+| lineSplit | 0 |
+| parseLoop | 1563.3 |
+| typedArrayBuild | 5.6 |
+| colorBuild | 21.5 |
+| total | 1760 |
 
 Bytes (`bytes`):
 
