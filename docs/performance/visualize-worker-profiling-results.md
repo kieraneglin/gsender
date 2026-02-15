@@ -11,13 +11,16 @@ Comparison basis:
 1. Build final colors during parse and remove the post-parse color expansion pass.
 2. Stop duplicating `savedColors` for non-laser jobs (`saved_color_bytes` stays `0` for non-laser).
 3. Replace JS staging arrays with growable typed buffers for vertices/frames/colors.
-4. Stream lines into the parser (remove full `split/reverse/pop` line buffering path).
-5. Refactor `GCodeVirtualizer` dispatch hot path to a single token-group cursor with reusable `argsScratch`.
-6. Preserve motion fallback semantics for axis-only lines (X/Y/Z/A...) while using the new dispatch path.
-7. Split worker responses into staged messages (`geometryReady`, then `metadataReady`) with `jobId`.
-8. Add stale-message protection and active job tracking in response handling.
-9. Move worker termination to metadata completion and remove premature terminate calls from visualizer subscribers.
-10. Add copy-friendly profiling exports (`window.__vizProfile`, `window.__vizRuns`) and console guidance.
+4. Compact typed buffers to used lengths before transfer (send transfer bytes, not raw capacity bytes).
+5. Stream lines into the parser (remove full `split/reverse/pop` line buffering path).
+6. Refactor `GCodeVirtualizer` dispatch hot path to a single token-group cursor with reusable `argsScratch`.
+7. Preserve motion fallback semantics for axis-only lines (X/Y/Z/A...) while using the new dispatch path.
+8. Split worker responses into staged messages (`geometryReady`, then `metadataReady`) with `jobId`.
+9. Add stale-message protection and active job tracking in response handling.
+10. Replace IndexedDB parsed-data persistence with direct estimate payload handoff (`estimateData:ready`) from worker response.
+11. Remove the IndexedDB helper path (`src/app/src/lib/indexedDB.ts`) and keep latest estimate data in memory (cleared on load/unload).
+12. Move worker termination to metadata completion and remove premature terminate calls from visualizer subscribers.
+13. Add copy-friendly profiling exports (`window.__vizProfile`, `window.__vizRuns`) and console guidance.
 
 ### Quick Gains From Original Runs To Current (Post Phase 3)
 
@@ -36,6 +39,28 @@ Aggregate (all 3 files combined):
 Note:
 - Runtime is substantially improved versus baseline.
 - Phase 3 compaction restored transfer-size reduction while keeping Phase 1/2 parsing gains.
+
+### Old Branch Median Baseline Vs End Results (Post Phase 3)
+
+Data source:
+- Old branch baseline medians: `docs/performance/old-performance-baseline.md` (3 runs/file).
+- End results: latest `Post Phase 3 - Run 1` captures in this doc.
+
+| File | Total ms (old median -> final) | Total delta | Parse pipeline ms `(lineSplit + parseLoop)` | Parse pipeline delta | Transfer bytes (old median -> final) | Transfer delta |
+|---|---:|---:|---:|---:|---:|---:|
+| mb-6 | 684.5 -> 407.4 | -40.5% | 626.7 -> 365.6 | -41.7% | 24377068 -> 24377068 | 0.0% |
+| mb-14 | 1436.7 -> 848.7 | -40.9% | 1327.0 -> 790.7 | -40.4% | 48376152 -> 48376152 | 0.0% |
+| mb-28 | 2691.4 -> 1723.9 | -35.9% | 2293.5 -> 1527.6 | -33.4% | 91968388 -> 91968388 | 0.0% |
+
+Aggregate (all 3 files combined):
+- Total time: `4812.6 ms -> 2980.0 ms` (`-38.1%`).
+- Parse pipeline (`lineSplit + parseLoop`): `4247.2 ms -> 2683.9 ms` (`-36.8%`).
+- Transfer bytes: `164721608 -> 164721608` (`0.0%`).
+- Color build time: `427.1 ms -> 0.0 ms` (`-100.0%`).
+
+Memory note:
+- `heap.supported=false` in both baseline and final captures, so peak heap is unavailable.
+- Payload transfer memory is flat vs old-branch baseline; observed gains are primarily runtime (parsing + removed color post-pass).
 
 Use this file to record baseline and post-change profiling for 3 representative files.
 

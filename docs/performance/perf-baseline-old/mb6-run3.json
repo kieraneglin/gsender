@@ -1,0 +1,235 @@
+{
+    "ts": "2026-02-15T16:51:23.587Z",
+    "durationsMs": {
+        "rotaryScan": 17.4,
+        "lineSplit": 16.6,
+        "parseLoop": 610.5,
+        "typedArrayBuild": 2.7,
+        "colorBuild": 37.2,
+        "total": 684.5
+    },
+    "bytes": {
+        "input_utf16_bytes": 12567944,
+        "vertices_bytes": 9750816,
+        "frames_bytes": 1625164,
+        "color_bytes": 13001088,
+        "saved_color_bytes": 0,
+        "spindle_speeds_bytes": 0,
+        "transfer_total_bytes": 24377068
+    },
+    "counts": {
+        "vm_data_events": 406291,
+        "virtualized_lines": 406297,
+        "lines_with_data": 406291,
+        "frames_len": 406291,
+        "vertices_f32_len": 2437704,
+        "color_values_len": 3250272,
+        "color_vertices_len": 812568,
+        "toolchanges_len": 1,
+        "spindle_changes_len": 0,
+        "spindle_speeds_len": 0,
+        "paths_len": 17095,
+        "estimates_len": 406291,
+        "invalid_lines_len": 0,
+        "spindle_tool_event_count": 4
+    },
+    "heap": {
+        "supported": false,
+        "peak": null,
+        "samples": [
+            {
+                "tag": "start",
+                "t": 68.5
+            },
+            {
+                "tag": "after_rotary_scan",
+                "t": 85.2000000178814
+            },
+            {
+                "tag": "after_line_split",
+                "t": 102.5
+            },
+            {
+                "tag": "line_10000",
+                "t": 127.09999999403954
+            },
+            {
+                "tag": "line_20000",
+                "t": 141.90000000596046
+            },
+            {
+                "tag": "line_30000",
+                "t": 158.09999999403954
+            },
+            {
+                "tag": "line_40000",
+                "t": 174
+            },
+            {
+                "tag": "line_50000",
+                "t": 220.7000000178814
+            },
+            {
+                "tag": "line_60000",
+                "t": 232.09999999403954
+            },
+            {
+                "tag": "line_70000",
+                "t": 244.59999999403954
+            },
+            {
+                "tag": "line_80000",
+                "t": 257.09999999403954
+            },
+            {
+                "tag": "line_90000",
+                "t": 269.90000000596046
+            },
+            {
+                "tag": "line_100000",
+                "t": 281.30000001192093
+            },
+            {
+                "tag": "line_110000",
+                "t": 290.7000000178814
+            },
+            {
+                "tag": "line_120000",
+                "t": 302
+            },
+            {
+                "tag": "line_130000",
+                "t": 311.7000000178814
+            },
+            {
+                "tag": "line_140000",
+                "t": 325
+            },
+            {
+                "tag": "line_150000",
+                "t": 334.7000000178814
+            },
+            {
+                "tag": "line_160000",
+                "t": 352
+            },
+            {
+                "tag": "line_170000",
+                "t": 364.90000000596046
+            },
+            {
+                "tag": "line_180000",
+                "t": 375.30000001192093
+            },
+            {
+                "tag": "line_190000",
+                "t": 386.90000000596046
+            },
+            {
+                "tag": "line_200000",
+                "t": 399.80000001192093
+            },
+            {
+                "tag": "line_210000",
+                "t": 411.7000000178814
+            },
+            {
+                "tag": "line_220000",
+                "t": 421.59999999403954
+            },
+            {
+                "tag": "line_230000",
+                "t": 438.5
+            },
+            {
+                "tag": "line_240000",
+                "t": 455.90000000596046
+            },
+            {
+                "tag": "line_250000",
+                "t": 465.80000001192093
+            },
+            {
+                "tag": "line_260000",
+                "t": 491.30000001192093
+            },
+            {
+                "tag": "line_270000",
+                "t": 501.09999999403954
+            },
+            {
+                "tag": "line_280000",
+                "t": 511.90000000596046
+            },
+            {
+                "tag": "line_290000",
+                "t": 521.9000000059605
+            },
+            {
+                "tag": "line_300000",
+                "t": 536.7000000178814
+            },
+            {
+                "tag": "line_310000",
+                "t": 592.9000000059605
+            },
+            {
+                "tag": "line_320000",
+                "t": 604.5
+            },
+            {
+                "tag": "line_330000",
+                "t": 618.9000000059605
+            },
+            {
+                "tag": "line_340000",
+                "t": 633.4000000059605
+            },
+            {
+                "tag": "line_350000",
+                "t": 645.5
+            },
+            {
+                "tag": "line_360000",
+                "t": 658.5999999940395
+            },
+            {
+                "tag": "line_370000",
+                "t": 671.3000000119209
+            },
+            {
+                "tag": "line_380000",
+                "t": 685.0999999940395
+            },
+            {
+                "tag": "line_390000",
+                "t": 696
+            },
+            {
+                "tag": "line_400000",
+                "t": 706.5999999940395
+            },
+            {
+                "tag": "after_parse_loop",
+                "t": 713
+            },
+            {
+                "tag": "after_typed_array_build",
+                "t": 715.8000000119209
+            },
+            {
+                "tag": "after_color_build",
+                "t": 753
+            }
+        ]
+    },
+    "vm": {
+        "linesSeen": 406297,
+        "tokensSeen": 836902,
+        "groupsSeen": 406291,
+        "handlerInvocations": 406291,
+        "emitDataCount": 406291,
+        "estimatesPushCount": 406291,
+        "invalidLineCount": 0
+    }
+}
