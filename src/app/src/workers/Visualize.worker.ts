@@ -119,6 +119,9 @@ function computeColorBuffers(
         }
     }
 
+    console.log(colorValues);
+    console.log('saved', savedColorValues);
+
     return {
         colorArray: new Float32Array(colorValues),
         savedColors: new Float32Array(savedColorValues),
