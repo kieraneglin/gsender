@@ -314,11 +314,25 @@ const parseRotaryMetadata = (raw: string): RotaryMetadata => {
     const radius =
         Number.isFinite(diameter) && diameter > 0 ? diameter / 2 : null;
 
-    const hasYAxisMoves = raw
-        .split(/\r?\n/)
-        .some((line) =>
-            /(^|[^A-Z])Y[-+]?\d*\.?\d+/i.test(parseGcodeComments(line)),
-        );
+    // Single-pass scan for Y-axis moves — avoids .split() which allocates a full line array
+    let hasYAxisMoves = false;
+    let inParenComment = false;
+    for (let i = 0; i < raw.length && !hasYAxisMoves; i++) {
+        const ch = raw.charCodeAt(i);
+        if (ch === 40) { inParenComment = true; continue; }   // '('
+        if (ch === 41) { inParenComment = false; continue; }  // ')'
+        if (ch === 59) {                                       // ';'
+            while (i < raw.length && raw.charCodeAt(i) !== 10) i++;
+            continue;
+        }
+        if (inParenComment) continue;
+        if (ch === 89 || ch === 121) {  // 'Y' or 'y'
+            const next = raw.charCodeAt(i + 1);
+            if ((next >= 48 && next <= 57) || next === 43 || next === 45) {
+                hasYAxisMoves = true;
+            }
+        }
+    }
 
     return { radius, hasYAxisMoves };
 };
@@ -425,7 +439,10 @@ self.onmessage = function ({ data }: { data: WorkerData }) {
     let currentMotion = '';
     let progress = 0;
     let currentLines = 0;
-    let totalLines = (content.match(/\n/g) || []).length;
+    let totalLines = 0;
+    for (let i = 0; i < content.length; i++) {
+        if (content.charCodeAt(i) === 10) totalLines++;
+    }
 
     /**
      * Updates local state with any spindle changes in line
@@ -564,13 +581,15 @@ self.onmessage = function ({ data }: { data: WorkerData }) {
 
                     if (hasARotation) {
                         // Create helical motion with intermediate points
+                        // Use Math.max(1,...) — no artificial minimum; small-angle moves get 1 segment
                         const segments = Math.max(
-                            8,
+                            1,
                             Math.ceil(Math.abs((v2.a || 0) - (v1.a || 0)) / 5),
-                        ); // At least 8 segments, or one per 5 degrees
+                        );
                         const opacity = motion === 'G0' ? 0.5 : 1;
 
-                        let previousRotated: any = null;
+                        // Reusable scalars — no per-iteration object allocation
+                        let prevX = 0, prevY = 0, prevZ = 0;
                         for (let i = 0; i <= segments; i++) {
                             const t = i / segments;
                             const interpolatedA =
@@ -583,25 +602,25 @@ self.onmessage = function ({ data }: { data: WorkerData }) {
                                 v1.z + (v2.z - v1.z) * t,
                             );
 
-                            // Apply A-axis rotation around X-axis
-                            const rotated = rotateAxis('x', {
-                                x: interpolatedX,
-                                y: interpolatedY,
-                                z: interpolatedZ,
-                                a: interpolatedA,
-                            });
+                            // Inline x-axis rotation: angle = toRadians(-a)
+                            const angle = -interpolatedA * (Math.PI / 180);
+                            const sinA = Math.sin(angle);
+                            const cosA = Math.cos(angle);
+                            const currX = interpolatedX;
+                            const currY = interpolatedY * cosA - interpolatedZ * sinA;
+                            const currZ = interpolatedY * sinA + interpolatedZ * cosA;
 
                             if (i > 0) {
                                 // Add line segment from previous point to current point
                                 pushMotionColor(motion, opacity, 2);
                                 pushFloat32_6(
                                     vertices,
-                                    previousRotated.x,
-                                    previousRotated.y,
-                                    previousRotated.z,
-                                    rotated.x,
-                                    rotated.y,
-                                    rotated.z,
+                                    prevX,
+                                    prevY,
+                                    prevZ,
+                                    currX,
+                                    currY,
+                                    currZ,
                                 );
 
                                 // SVG
@@ -610,16 +629,17 @@ self.onmessage = function ({ data }: { data: WorkerData }) {
                                         units === 'G21' ? 1 : 25.4;
                                     svgInitialization(motion);
                                     SVGVertices.push({
-                                        x1: previousRotated.x * multiplier,
-                                        y1: previousRotated.y * multiplier,
-                                        x2: rotated.x * multiplier,
-                                        y2: rotated.y * multiplier,
+                                        x1: prevX * multiplier,
+                                        y1: prevY * multiplier,
+                                        x2: currX * multiplier,
+                                        y2: currY * multiplier,
                                     });
                                 }
                             }
 
-                            // Store current point for next iteration
-                            previousRotated = rotated;
+                            prevX = currX;
+                            prevY = currY;
+                            prevZ = currZ;
                         }
                     } else {
                         // No A-axis rotation, use simple linear interpolation
@@ -680,12 +700,14 @@ self.onmessage = function ({ data }: { data: WorkerData }) {
 
                 if (hasARotation) {
                     // Create helical curve with A-axis rotation
+                    // Use Math.max(1,...) — no artificial minimum; small-angle moves get 1 segment
                     const segments = Math.max(
-                        8,
+                        1,
                         Math.ceil(Math.abs((v2.a || 0) - (v1.a || 0)) / 5),
                     );
 
-                    let previousRotated: any = null;
+                    // Reusable scalars — no per-iteration object allocation
+                    let prevX = 0, prevY = 0, prevZ = 0;
                     for (let i = 0; i <= segments; i++) {
                         const t = i / segments;
                         const interpolatedA =
@@ -698,29 +720,31 @@ self.onmessage = function ({ data }: { data: WorkerData }) {
                             v1.z + (v2.z - v1.z) * t,
                         );
 
-                        // Apply A-axis rotation around X-axis
-                        const rotated = rotateAxis('x', {
-                            x: interpolatedX,
-                            y: interpolatedY,
-                            z: interpolatedZ,
-                            a: interpolatedA,
-                        });
+                        // Inline x-axis rotation: angle = toRadians(-a)
+                        const angle = -interpolatedA * (Math.PI / 180);
+                        const sinA = Math.sin(angle);
+                        const cosA = Math.cos(angle);
+                        const currX = interpolatedX;
+                        const currY = interpolatedY * cosA - interpolatedZ * sinA;
+                        const currZ = interpolatedY * sinA + interpolatedZ * cosA;
 
                         if (i > 0) {
                             // Add line segment from previous point to current point
                             pushMotionColor(motion, 1, 2);
                             pushFloat32_6(
                                 vertices,
-                                previousRotated.x,
-                                previousRotated.y,
-                                previousRotated.z,
-                                rotated.x,
-                                rotated.y,
-                                rotated.z,
+                                prevX,
+                                prevY,
+                                prevZ,
+                                currX,
+                                currY,
+                                currZ,
                             );
                         }
 
-                        previousRotated = rotated;
+                        prevX = currX;
+                        prevY = currY;
+                        prevZ = currZ;
                     }
                 } else {
                     // Original curve logic for non-A-axis rotation
@@ -797,7 +821,10 @@ self.onmessage = function ({ data }: { data: WorkerData }) {
                         endAngle, // aEndAngle
                         isClockwise, // isClockwise
                     );
-                    const divisions = 30;
+                    // Adaptive tessellation: ~1.5mm per segment, clamped to [4, 60]
+                    const arcSpan = Math.abs(endAngle - startAngle);
+                    const arcLength = arcSpan * radius;
+                    const divisions = Math.max(4, Math.min(Math.ceil(arcLength / 1.5), 60));
                     const points = arcCurve.getPoints(divisions);
 
                     // svg
@@ -1070,8 +1097,6 @@ self.onmessage = function ({ data }: { data: WorkerData }) {
     if (shouldIncludeSVG) {
         createPath(currentMotion);
     }
-    paths = JSON.parse(JSON.stringify(paths));
-
     let colorArray = new Float32Array(0);
     let savedColorsArray = new Float32Array(0);
     markProfile(profiler, 'before_color_build');
