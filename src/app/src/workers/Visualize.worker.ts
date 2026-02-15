@@ -59,6 +59,8 @@ const getComplementaryColour = (tcCounter: number): number => {
 
 interface WorkerData {
     content: string;
+    jobId?: number;
+    visualizer?: VISUALIZER_TYPES_T;
     isLaser?: boolean;
     shouldIncludeSVG?: boolean;
     needsVisualization?: boolean;
@@ -308,6 +310,8 @@ const parseRotaryMetadata = (raw: string): RotaryMetadata => {
 self.onmessage = function ({ data }: { data: WorkerData }) {
     const {
         content,
+        jobId = 0,
+        visualizer,
         isLaser = false,
         shouldIncludeSVG = false,
         needsVisualization = true,
@@ -521,7 +525,11 @@ self.onmessage = function ({ data }: { data: WorkerData }) {
         const newProgress = Math.floor((currentLines / totalLines) * 100);
         if (newProgress !== progress) {
             progress = newProgress;
-            postMessage(progress);
+            postMessage({
+                type: 'progress',
+                jobId,
+                progress,
+            });
         }
     };
 
@@ -1131,7 +1139,12 @@ self.onmessage = function ({ data }: { data: WorkerData }) {
         profiler.bytes.spindle_speeds_bytes = tSpindleSpeeds.byteLength;
     }
 
-    const message: {
+    const effectiveVisualizer = activeVisualizer ?? visualizer;
+
+    const geometryMessage: {
+        type: 'geometryReady';
+        jobId: number;
+        visualizer?: VISUALIZER_TYPES_T;
         vertices: ArrayBuffer;
         paths: Path[];
         frames: ArrayBuffer;
@@ -1143,25 +1156,20 @@ self.onmessage = function ({ data }: { data: WorkerData }) {
         savedColorLen: number;
         info: any;
         needsVisualization: boolean;
-        parsedData: any;
+        parsedData: {
+            info: any;
+            invalidLines: string[];
+        };
         spindleSpeeds?: ArrayBuffer;
         spindleLen?: number;
         spindleChanges?: SpindleValues[];
         isLaser?: boolean;
-        isSecondary: boolean;
-        activeVisualizer: VISUALIZER_TYPES_T;
-        profile?: {
-            durationsMs: Record<string, number>;
-            counts: Record<string, number>;
-            bytes: Record<string, number>;
-            heap: {
-                supported: boolean;
-                peak: number | null;
-                samples: HeapSample[];
-            };
-            vm?: Record<string, number>;
-        };
+        isSecondary?: boolean;
+        activeVisualizer?: VISUALIZER_TYPES_T;
     } = {
+        type: 'geometryReady',
+        jobId,
+        visualizer: effectiveVisualizer,
         vertices: tVertices.buffer,
         paths,
         frames: tFrames.buffer,
@@ -1173,16 +1181,19 @@ self.onmessage = function ({ data }: { data: WorkerData }) {
         savedColorLen: savedColorsArray.length,
         info: fileInfo,
         needsVisualization,
-        parsedData: parsedDataToSend,
+        parsedData: {
+            info: fileInfo,
+            invalidLines: fileInfo.invalidLines || [],
+        },
         isSecondary,
-        activeVisualizer,
+        activeVisualizer: effectiveVisualizer,
     };
 
     if (isLaser) {
-        message.spindleSpeeds = tSpindleSpeeds.buffer;
-        message.spindleLen = tSpindleSpeeds.length;
-        message.isLaser = isLaser;
-        message.spindleChanges = spindleChanges;
+        geometryMessage.spindleSpeeds = tSpindleSpeeds.buffer;
+        geometryMessage.spindleLen = tSpindleSpeeds.length;
+        geometryMessage.isLaser = isLaser;
+        geometryMessage.spindleChanges = spindleChanges;
     }
 
     const transferList: ArrayBuffer[] = [
@@ -1213,7 +1224,38 @@ self.onmessage = function ({ data }: { data: WorkerData }) {
             typeof (vm as any).getProfileStats === 'function'
                 ? (vm as any).getProfileStats()
                 : undefined;
-        message.profile = {
+        const metadataMessage: {
+            type: 'metadataReady';
+            jobId: number;
+            visualizer?: VISUALIZER_TYPES_T;
+            info: any;
+            needsVisualization: boolean;
+            parsedData: any;
+            isSecondary?: boolean;
+            activeVisualizer?: VISUALIZER_TYPES_T;
+            profile?: {
+                durationsMs: Record<string, number>;
+                counts: Record<string, number>;
+                bytes: Record<string, number>;
+                heap: {
+                    supported: boolean;
+                    peak: number | null;
+                    samples: HeapSample[];
+                };
+                vm?: Record<string, number>;
+            };
+        } = {
+            type: 'metadataReady',
+            jobId,
+            visualizer: effectiveVisualizer,
+            info: fileInfo,
+            needsVisualization,
+            parsedData: parsedDataToSend,
+            isSecondary,
+            activeVisualizer: effectiveVisualizer,
+        };
+
+        metadataMessage.profile = {
             durationsMs: {
                 rotaryScan: durationBetween('start', 'after_rotary_scan'),
                 lineSplit: durationBetween('before_line_split', 'after_line_split'),
@@ -1234,7 +1276,23 @@ self.onmessage = function ({ data }: { data: WorkerData }) {
             },
             vm: vmStats,
         };
+
+        postMessage(geometryMessage, transferList);
+        postMessage(metadataMessage);
+        return;
     }
 
-    postMessage(message, transferList);
+    const metadataMessage = {
+        type: 'metadataReady' as const,
+        jobId,
+        visualizer: effectiveVisualizer,
+        info: fileInfo,
+        needsVisualization,
+        parsedData: parsedDataToSend,
+        isSecondary,
+        activeVisualizer: effectiveVisualizer,
+    };
+
+    postMessage(geometryMessage, transferList);
+    postMessage(metadataMessage);
 };

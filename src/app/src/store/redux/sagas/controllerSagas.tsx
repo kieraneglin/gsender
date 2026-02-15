@@ -38,6 +38,7 @@ import { Confirm } from 'app/components/ConfirmationDialog/ConfirmationDialogLib
 // @ts-ignore
 import VisualizeWorker from 'app/workers/Visualize.worker';
 import {
+    setActiveVisualizeJobId,
     shouldVisualize,
     visualizeResponse,
 } from 'app/workers/Visualize.response';
@@ -122,6 +123,7 @@ import get from 'lodash/get';
 
 export function* initialize(): Generator<any, void, any> {
     let visualizeWorker: typeof VisualizeWorker | null = null;
+    let visualizeJobId = 0;
     // let estimateWorker: EstimateWorker | null = null;
     let currentState: GRBL_ACTIVE_STATES_T = GRBL_ACTIVE_STATE_IDLE;
     let prevState: GRBL_ACTIVE_STATES_T = GRBL_ACTIVE_STATE_IDLE;
@@ -263,6 +265,9 @@ export function* initialize(): Generator<any, void, any> {
             isNewFile = false;
         }
 
+        // Ensure a previous parse worker does not continue emitting stale messages.
+        visualizeWorker?.terminate();
+
         if (visualizer === VISUALIZER_SECONDARY) {
             reduxStore.dispatch(
                 updateFileRenderState({ renderState: RENDER_LOADING }),
@@ -290,16 +295,20 @@ export function* initialize(): Generator<any, void, any> {
                     { type: 'module' },
                 );
                 visualizeWorker.onmessage = visualizeResponse;
+                const jobId = ++visualizeJobId;
+                setActiveVisualizeJobId(jobId);
                 // await getParsedData().then((value) => {
                 visualizeWorker.postMessage({
+                    jobId,
                     content,
                     visualizer,
+                    activeVisualizer: visualizer,
+                    isSecondary: visualizer === VISUALIZER_SECONDARY,
                     isNewFile,
                     isLaser,
                     accelerations,
                     maxFeedrates,
                     atcEnabled,
-                    isLaser,
                     rotaryDiameterOffsetEnabled,
                     theme: getVisualizerTheme(),
                     profile: profileWorker,
@@ -346,10 +355,15 @@ export function* initialize(): Generator<any, void, any> {
             { type: 'module' },
         );
         visualizeWorker.onmessage = visualizeResponse;
+        const jobId = ++visualizeJobId;
+        setActiveVisualizeJobId(jobId);
         console.time('gSender:fileLoad');
         visualizeWorker.postMessage({
+            jobId,
             content,
             visualizer,
+            activeVisualizer: visualizer,
+            isSecondary: visualizer === VISUALIZER_SECONDARY,
             isLaser,
             shouldIncludeSVG,
             needsVisualization,
