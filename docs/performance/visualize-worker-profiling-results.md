@@ -22,6 +22,15 @@ Comparison basis:
 12. Move worker termination to metadata completion and remove premature terminate calls from visualizer subscribers.
 13. Add copy-friendly profiling exports (`window.__vizProfile`, `window.__vizRuns`) and console guidance.
 
+### Rotary-Specific Improvements
+
+- Fix A-axis segment floor in `addLine` and `addCurve` from `Math.max(8, ...)` to `Math.max(1, ...)`, eliminating large vertex inflation on small-increment rotary moves (a major renderer crash contributor on large files).
+- Inline x-axis rotation math in A-axis loops and replace per-segment object allocation with scalar variables, removing heavy transient allocation and GC pressure.
+- Replace `parseRotaryMetadata` line-split parsing with a single-pass character scan to remove pre-parse line array allocation.
+- Add adaptive arc tessellation: arc divisions now scale with arc length (~`1.5mm/segment`, clamped to `[4, 60]`) instead of fixed `30` segments per arc.
+- Replace `content.match(/\\n/g)` line counting with a char-code loop.
+- Remove redundant JSON deep clone of SVG paths before `postMessage`.
+
 ### Quick Gains From Original Runs To Current (Post Phase 3)
 
 | File | Total ms (baseline -> current) | Total delta | Parse pipeline ms `(lineSplit + parseLoop)` | Parse pipeline delta | ColorBuild ms (baseline -> current) | ColorBuild delta | Transfer bytes (baseline -> current) | Transfer delta |

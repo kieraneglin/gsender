@@ -821,10 +821,10 @@ self.onmessage = function ({ data }: { data: WorkerData }) {
                         endAngle, // aEndAngle
                         isClockwise, // isClockwise
                     );
-                    // Adaptive tessellation: ~1.5mm per segment, clamped to [4, 60]
+                    // Adaptive tessellation: ~0.75mm per segment, clamped to [4, 25]
                     const arcSpan = Math.abs(endAngle - startAngle);
                     const arcLength = arcSpan * radius;
-                    const divisions = Math.max(4, Math.min(Math.ceil(arcLength / 1.5), 60));
+                    const divisions = Math.max(4, Math.min(Math.ceil(arcLength / 0.75), 25));
                     const points = arcCurve.getPoints(divisions);
 
                     // svg
