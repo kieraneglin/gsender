@@ -6,6 +6,11 @@ Comparison basis:
 - Baseline = original single-run captures (`mb-6`, `mb-14 (Baseline)`, `mb-28`) plus `Rotary (Baseline - Run 1)`.
 - Current = latest `Post Phase 3 - Run 1` captures for (`mb-6`, `mb-14`, `mb-28`) plus `Rotary (Post Changes - Run 1)`.
 
+Overall gain (original baseline -> current post-rotary set):
+- Total runtime: `10340.4 ms -> 3968.4 ms` (`-61.6%`, equivalent to `2.61x` faster).
+- Parse pipeline (`lineSplit + parseLoop`): `6827.7 ms -> 3600.3 ms` (`-47.3%`).
+- Transfer bytes: `615523408 -> 213180456` (`-65.4%`).
+
 ### Implemented Steps
 
 1. Build final colors during parse and remove the post-parse color expansion pass.
@@ -68,6 +73,28 @@ Aggregate (all 3 files combined):
 - Transfer bytes: `164721608 -> 164721608` (`0.0%`).
 - Color build time: `427.1 ms -> 0.0 ms` (`-100.0%`).
 
+### Arc Changes Summary (3-Run Median Vs Post Phase 3)
+
+Data source:
+- Reference values: `Post Phase 3 - Run 1` captures in this doc.
+- Arc changes captures: `2026-02-15` runs (`mb-28`, `mb-14`, `mb-6`), median of 3 runs per file.
+
+| File | Total ms (post phase 3 -> arc median) | Total delta | Parse pipeline ms `(lineSplit + parseLoop)` | Parse pipeline delta | Transfer bytes (post phase 3 -> arc median) | Transfer delta |
+|---|---:|---:|---:|---:|---:|---:|
+| mb-6 | 407.4 -> 364.4 | -10.6% | 365.6 -> 348.4 | -4.7% | 24377068 -> 24377068 | 0.0% |
+| mb-14 | 848.7 -> 766.8 | -9.6% | 790.7 -> 733.5 | -7.2% | 48376152 -> 48376152 | 0.0% |
+| mb-28 | 1723.9 -> 1571.4 | -8.8% | 1527.6 -> 1510.2 | -1.1% | 91968388 -> 91968388 | 0.0% |
+
+Aggregate (all 3 files combined):
+- Total time: `2980.0 ms -> 2702.6 ms` (`-9.3%`).
+- Parse pipeline (`lineSplit + parseLoop`): `2683.9 ms -> 2592.1 ms` (`-3.4%`).
+- Transfer bytes: `164721608 -> 164721608` (`0.0%`).
+
+Arc-change notes:
+- Median total runtime improved on all three files, with largest percent gain on `mb-6`.
+- Median parse pipeline improved on all three files (including `mb-28`).
+- Transfer payload size is unchanged across all three captures.
+
 Memory note:
 - `heap.supported=false` in both baseline and final captures, so peak heap is unavailable.
 - Payload transfer memory is flat vs old-branch baseline; observed gains are primarily runtime (parsing + removed color post-pass).
@@ -89,9 +116,6 @@ Profiling output is printed in the app console by `Visualize.response.js` under:
 
 | Label | File Path | File Size (MB) | Notes |
 |---|---|---:|---|
-| Small |  |  |  |
-| Medium |  |  |  |
-| Large |  |  |  |
 | mb-6 |  | 6 | Single captured run from Chrome console |
 | mb-14 (Baseline) |  | 14 | Single captured run from Chrome console |
 | mb-14 (Post Step 1) |  | 14 | Single captured run from Chrome console (post step 1) |
