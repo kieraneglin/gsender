@@ -896,52 +896,55 @@ self.onmessage = function ({ data }: { data: WorkerData }) {
     markProfile(profiler, 'before_color_build');
     if (needsVisualization && theme) {
         colorArray = new Float32Array(colorValues);
-        savedColorsArray = new Float32Array(colorArray);
 
-        if (isLaser && spindleChanges.length > 0 && savedColorsArray.length > 0) {
-            const defaultColor = new THREE.Color(theme.get(LASER_PART) ?? '#FFF');
-            const fillColor = new THREE.Color(theme.get(BACKGROUND_PART) ?? '#FFF');
-            const laserR = defaultColor.r;
-            const laserG = defaultColor.g;
-            const laserB = defaultColor.b;
-            const fillR = fillColor.r;
-            const fillG = fillColor.g;
-            const fillB = fillColor.b;
-            const totalVertices = colorArray.length / 4;
-            const frameCount = Math.min(tFrames.length, spindleChanges.length);
-            const calculateOpacity = (speed: number) => {
-                if (maxSpindleSpeed <= 0) {
-                    return 1;
+        // Non-laser jobs can use colorArray directly; no duplicate saved buffer needed.
+        if (isLaser) {
+            savedColorsArray = new Float32Array(colorArray);
+            if (spindleChanges.length > 0 && savedColorsArray.length > 0) {
+                const defaultColor = new THREE.Color(theme.get(LASER_PART) ?? '#FFF');
+                const fillColor = new THREE.Color(theme.get(BACKGROUND_PART) ?? '#FFF');
+                const laserR = defaultColor.r;
+                const laserG = defaultColor.g;
+                const laserB = defaultColor.b;
+                const fillR = fillColor.r;
+                const fillG = fillColor.g;
+                const fillB = fillColor.b;
+                const totalVertices = colorArray.length / 4;
+                const frameCount = Math.min(tFrames.length, spindleChanges.length);
+                const calculateOpacity = (speed: number) => {
+                    if (maxSpindleSpeed <= 0) {
+                        return 1;
+                    }
+                    return Math.max(0, Math.min(speed / maxSpindleSpeed, 1));
+                };
+
+                let prevFrame = 0;
+                for (let i = 0; i < frameCount; i++) {
+                    const frameEnd = Math.min(tFrames[i], totalVertices);
+                    if (frameEnd <= prevFrame) {
+                        continue;
+                    }
+
+                    const spindleState = spindleChanges[i];
+                    const spindleIsOn = spindleState?.spindleOn ?? false;
+                    const spindleSpeedAtFrame = spindleState?.spindleSpeed ?? 0;
+                    const alpha = spindleIsOn
+                        ? calculateOpacity(spindleSpeedAtFrame)
+                        : 0.05;
+                    const r = spindleIsOn ? laserR : fillR;
+                    const g = spindleIsOn ? laserG : fillG;
+                    const b = spindleIsOn ? laserB : fillB;
+
+                    for (let vertexIndex = prevFrame; vertexIndex < frameEnd; vertexIndex++) {
+                        const offset = vertexIndex * 4;
+                        savedColorsArray[offset] = r;
+                        savedColorsArray[offset + 1] = g;
+                        savedColorsArray[offset + 2] = b;
+                        savedColorsArray[offset + 3] = alpha;
+                    }
+
+                    prevFrame = frameEnd;
                 }
-                return Math.max(0, Math.min(speed / maxSpindleSpeed, 1));
-            };
-
-            let prevFrame = 0;
-            for (let i = 0; i < frameCount; i++) {
-                const frameEnd = Math.min(tFrames[i], totalVertices);
-                if (frameEnd <= prevFrame) {
-                    continue;
-                }
-
-                const spindleState = spindleChanges[i];
-                const spindleIsOn = spindleState?.spindleOn ?? false;
-                const spindleSpeedAtFrame = spindleState?.spindleSpeed ?? 0;
-                const alpha = spindleIsOn
-                    ? calculateOpacity(spindleSpeedAtFrame)
-                    : 0.05;
-                const r = spindleIsOn ? laserR : fillR;
-                const g = spindleIsOn ? laserG : fillG;
-                const b = spindleIsOn ? laserB : fillB;
-
-                for (let vertexIndex = prevFrame; vertexIndex < frameEnd; vertexIndex++) {
-                    const offset = vertexIndex * 4;
-                    savedColorsArray[offset] = r;
-                    savedColorsArray[offset + 1] = g;
-                    savedColorsArray[offset + 2] = b;
-                    savedColorsArray[offset + 3] = alpha;
-                }
-
-                prevFrame = frameEnd;
             }
         }
     }
