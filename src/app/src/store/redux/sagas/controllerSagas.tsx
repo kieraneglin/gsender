@@ -288,9 +288,11 @@ export function* initialize(): Generator<any, void, any> {
                     content,
                     visualizer,
                     isNewFile,
+                    isLaser,
                     accelerations,
                     maxFeedrates,
                     atcEnabled,
+                    isLaser,
                     rotaryDiameterOffsetEnabled,
                     theme: getVisualizerTheme(),
                 });
