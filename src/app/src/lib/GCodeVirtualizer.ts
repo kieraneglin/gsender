@@ -282,22 +282,6 @@ class GCodeVirtualizer extends EventEmitter {
 
     setEstimate: boolean = false;
 
-    modalChanges: ModalChanges = [
-        {
-            change: null,
-            count: 0,
-        },
-    ];
-    modalCounter: number = 0;
-
-    feedrateChanges: FeedrateChanges = [
-        {
-            change: null,
-            count: 0,
-        },
-    ];
-    feedrateCounter: number = 0;
-
     //INVALID_GCODE_REGEX = /([^NGMXYZITPAJKFRS%\-?\.?\d+\.?\s])|((G28)|(G29)|(\$H))/gi;
     //INVALID_GCODE_REGEX = /^(?!.*\b([NGMXYZILTPAJKFRS][0-9+\-\.]+|\$\$|\$[NGMXYZILTPAJKFRS0-9#]*|\*[0-9]+|%.*|{.*})\b).+$/gi;
     VALID_GCODE_REGEX =
@@ -1449,10 +1433,10 @@ class GCodeVirtualizer extends EventEmitter {
                 // The range represents the full diameter of the workpiece
                 const yRange = this.maxBounds[1] - this.minBounds[1];
                 const zRange = this.maxBounds[2] - this.minBounds[2];
-                
+
                 // Use the larger range (Y or Z depending on machine configuration)
                 const detectedDiameter = Math.max(yRange, zRange);
-                
+
                 // Update if we found a larger diameter, with minimum of 10mm
                 if (detectedDiameter > this.rotaryDiameter) {
                     this.rotaryDiameter = Math.max(detectedDiameter, 10);
@@ -1556,7 +1540,7 @@ class GCodeVirtualizer extends EventEmitter {
             // Convert it to equivalent mm/min based on the workpiece diameter
             const aMaxFeedLinear = (this.aMaxFeed / 360) * (Math.PI * this.rotaryDiameter);
             const aAccelLinear = (this.aAccel / 360) * (Math.PI * this.rotaryDiameter);
-            
+
             maxFeedArray.push(aMaxFeedLinear);
             accelArray.push(aAccelLinear);
             axisMovements.push({
@@ -1622,7 +1606,7 @@ class GCodeVirtualizer extends EventEmitter {
 
             // if motion is G0, use the max feed
             let feed = this.modal.motion === 'G0' ? minMaxFeed : this.feed;
-            
+
             // For pure rotary moves (A-axis only), the feedrate (F value) is in degrees/min
             // Convert it to equivalent linear speed based on workpiece diameter
             if (da !== 0 && dx === 0 && dy === 0 && dz === 0) {
@@ -1688,45 +1672,6 @@ class GCodeVirtualizer extends EventEmitter {
         return {
             estimates: this.estimates,
         };
-    }
-
-    // getModalChanges(): ModalChanges {
-    //     this.modalChanges[this.modalChanges.length - 1].count =
-    //         this.modalCounter;
-    //     this.modalCounter = 0;
-    //     return this.modalChanges;
-    // }
-
-    // getFeedrateChanges(): FeedrateChanges {
-    //     this.feedrateChanges[this.feedrateChanges.length - 1].count =
-    //         this.feedrateCounter;
-    //     this.feedrateCounter = 0;
-    //     return this.feedrateChanges;
-    // }
-
-    getCurrentModal(): Modal {
-        return this.modal;
-    }
-
-    // saveModal(change: Partial<Modal>): void {
-    //     this.modalChanges[this.modalChanges.length - 1].count =
-    //         this.modalCounter;
-    //     this.modalCounter = 0;
-    //     this.modalChanges.push({ change: change, count: 0 });
-    // }
-
-    // saveFeedrate(change: string): void {
-    //     this.feedrateChanges[this.feedrateChanges.length - 1].count =
-    //         this.feedrateCounter;
-    //     this.feedrateCounter = 0;
-    //     this.feedrateChanges.push({ change: change, count: 0 });
-    // }
-
-    addToTotalTime(time: number): void {
-        if (!Number(time)) {
-            return;
-        }
-        this.totalTime += time;
     }
 
     updateSpindleToolEvents(

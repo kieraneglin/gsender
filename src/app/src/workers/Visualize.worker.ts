@@ -60,7 +60,7 @@ const getComplementaryColour = (tcCounter: number): number => {
 function computeColorBuffers(
     colors: [string, number][],
     frames: Uint32Array,
-    spindleSpeeds: Float32Array,
+    maxSpindleValue: number,
     spindleChanges: SpindleValues[],
     isLaser: boolean,
     theme: Map<string, string>,
@@ -94,12 +94,12 @@ function computeColorBuffers(
     // savedColors starts as a copy of colorValues
     let savedColorValues = [...colorValues];
 
-    if (isLaser && spindleSpeeds.length > 0) {
+    if (isLaser && spindleChanges.length > 0) {
         const defaultColor = new THREE.Color(theme.get(LASER_PART));
         const fillColor = new THREE.Color(theme.get(BACKGROUND_PART));
-        const maxSpindleValue = Math.max(...spindleSpeeds);
+
         const calculateOpacity = (speed: number) =>
-            maxSpindleValue === 0 ? 1 : speed / maxSpindleValue;
+            maxSpindleValue <= 0 ? 1 : speed / maxSpindleValue;
 
         for (let i = 0; i < frames.length; i++) {
             const { spindleOn, spindleSpeed } = spindleChanges[i];
@@ -176,7 +176,7 @@ const parseGcodeComments = (line: string): string =>
 const parseRotaryMetadata = (raw: string): RotaryMetadata => {
     const diameterMatch = raw.match(/Cylinder\s*Dia\s*:\s*([0-9.+-]+)/i);
     const diameter = diameterMatch ? Number(diameterMatch[1]) : Number.NaN;
-    
+
     const radius =
         Number.isFinite(diameter) && diameter > 0 ? diameter / 2 : null;
 
@@ -206,6 +206,8 @@ self.onmessage = function ({ data }: { data: WorkerData }) {
         theme,
     } = data;
 
+    console.log('gSender isLaser: ', isLaser)
+
     const { radius: rotaryRadius, hasYAxisMoves } = parseRotaryMetadata(content);
     const shouldOffsetRotaryRadius =
         rotaryDiameterOffsetEnabled && rotaryRadius !== null && !hasYAxisMoves;
@@ -221,6 +223,7 @@ self.onmessage = function ({ data }: { data: WorkerData }) {
 
     // Laser specific state variables
     const spindleSpeeds: number[] = [];
+    let maxSpindleSpeed = 0;
     let spindleSpeed = 0;
     let spindleOn = false;
     let spindleChanges: SpindleValues[] = [];
@@ -241,9 +244,11 @@ self.onmessage = function ({ data }: { data: WorkerData }) {
         const spindleMatches = words.filter((word) => word[0] === 'S');
         const [spindleCommand, spindleValue] = spindleMatches[0] || [];
         if (spindleCommand) {
-            spindleSpeeds.push(Number(spindleValue));
-            spindleSpeed = Number(spindleValue);
-            spindleOn = Number(spindleValue) > 0;
+            const nextSpindleSpeed = Number(spindleValue);
+            spindleSpeeds.push(nextSpindleSpeed);
+            spindleSpeed = nextSpindleSpeed;
+            spindleOn = nextSpindleSpeed > 0;
+            maxSpindleSpeed = Math.max(maxSpindleSpeed, nextSpindleSpeed);
         }
     };
 
@@ -776,8 +781,6 @@ self.onmessage = function ({ data }: { data: WorkerData }) {
     }
 
     const { estimates } = vm.getData();
-    //const modalChanges = vm.getModalChanges();
-    //const feedrateChanges = vm.getFeedrateChanges();
     fileInfo = vm.generateFileStats();
     fileInfo.toolchanges = toolchanges;
 
@@ -805,7 +808,7 @@ self.onmessage = function ({ data }: { data: WorkerData }) {
         const computed = computeColorBuffers(
             colors,
             tFrames,
-            tSpindleSpeeds,
+            maxSpindleSpeed,
             spindleChanges,
             isLaser,
             theme,
