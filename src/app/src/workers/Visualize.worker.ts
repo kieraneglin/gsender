@@ -280,25 +280,11 @@ const pushUint32_1 = (buffer: GrowableUint32Buffer, value: number): void => {
     buffer.length += 1;
 };
 
-const toExactFloat32Array = (buffer: GrowableFloat32Buffer): Float32Array => {
-    if (buffer.length === 0) {
-        return new Float32Array(0);
-    }
-    if (buffer.length === buffer.data.length) {
-        return buffer.data;
-    }
-    return buffer.data.slice(0, buffer.length);
-};
+const toUsedFloat32View = (buffer: GrowableFloat32Buffer): Float32Array =>
+    buffer.data.subarray(0, buffer.length);
 
-const toExactUint32Array = (buffer: GrowableUint32Buffer): Uint32Array => {
-    if (buffer.length === 0) {
-        return new Uint32Array(0);
-    }
-    if (buffer.length === buffer.data.length) {
-        return buffer.data;
-    }
-    return buffer.data.slice(0, buffer.length);
-};
+const toUsedUint32View = (buffer: GrowableUint32Buffer): Uint32Array =>
+    buffer.data.subarray(0, buffer.length);
 
 const parseGcodeComments = (line: string): string =>
     line.replace(/\([^\)]*\)/g, '').replace(/;.*$/, '');
@@ -1048,8 +1034,8 @@ self.onmessage = function ({ data }: { data: WorkerData }) {
     };
 
     markProfile(profiler, 'before_typed_array_build');
-    let tFrames = toExactUint32Array(frames);
-    let tVertices = toExactFloat32Array(vertices);
+    const tFrames = toUsedUint32View(frames);
+    const tVertices = toUsedFloat32View(vertices);
     const tSpindleSpeeds = isLaser
         ? new Float32Array(spindleSpeeds)
         : new Float32Array(0);
@@ -1066,7 +1052,7 @@ self.onmessage = function ({ data }: { data: WorkerData }) {
     let savedColorsArray = new Float32Array(0);
     markProfile(profiler, 'before_color_build');
     if (needsVisualization && theme) {
-        colorArray = toExactFloat32Array(colorValues);
+        colorArray = toUsedFloat32View(colorValues);
 
         // Non-laser jobs can use colorArray directly; no duplicate saved buffer needed.
         if (isLaser) {
@@ -1149,12 +1135,17 @@ self.onmessage = function ({ data }: { data: WorkerData }) {
         vertices: ArrayBuffer;
         paths: Path[];
         frames: ArrayBuffer;
+        verticesLen: number;
+        framesLen: number;
         colorArrayBuffer: ArrayBuffer;
+        colorLen: number;
         savedColorsBuffer: ArrayBuffer;
+        savedColorLen: number;
         info: any;
         needsVisualization: boolean;
         parsedData: any;
         spindleSpeeds?: ArrayBuffer;
+        spindleLen?: number;
         spindleChanges?: SpindleValues[];
         isLaser?: boolean;
         isSecondary: boolean;
@@ -1174,8 +1165,12 @@ self.onmessage = function ({ data }: { data: WorkerData }) {
         vertices: tVertices.buffer,
         paths,
         frames: tFrames.buffer,
+        verticesLen: tVertices.length,
+        framesLen: tFrames.length,
         colorArrayBuffer: colorArray.buffer,
+        colorLen: colorArray.length,
         savedColorsBuffer: savedColorsArray.buffer,
+        savedColorLen: savedColorsArray.length,
         info: fileInfo,
         needsVisualization,
         parsedData: parsedDataToSend,
@@ -1185,6 +1180,7 @@ self.onmessage = function ({ data }: { data: WorkerData }) {
 
     if (isLaser) {
         message.spindleSpeeds = tSpindleSpeeds.buffer;
+        message.spindleLen = tSpindleSpeeds.length;
         message.isLaser = isLaser;
         message.spindleChanges = spindleChanges;
     }

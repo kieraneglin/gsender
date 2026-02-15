@@ -2503,12 +2503,56 @@ class Visualizer extends Component {
         const { setVisualizerReady } = this.props.actions;
         this.visualizer = new GCodeVisualizer(currentTheme);
 
+        const toBoundedFloat32Array = (buffer, length) => {
+            if (!buffer || typeof buffer.byteLength !== 'number') {
+                return new Float32Array(0);
+            }
+            const maxLength = Math.floor(
+                buffer.byteLength / Float32Array.BYTES_PER_ELEMENT,
+            );
+            const safeLength = Number.isFinite(length)
+                ? Math.min(Math.max(Math.floor(length), 0), maxLength)
+                : maxLength;
+            return new Float32Array(buffer, 0, safeLength);
+        };
+
+        const toBoundedUint32Array = (buffer, length) => {
+            if (!buffer || typeof buffer.byteLength !== 'number') {
+                return new Uint32Array(0);
+            }
+            const maxLength = Math.floor(
+                buffer.byteLength / Uint32Array.BYTES_PER_ELEMENT,
+            );
+            const safeLength = Number.isFinite(length)
+                ? Math.min(Math.max(Math.floor(length), 0), maxLength)
+                : maxLength;
+            return new Uint32Array(buffer, 0, safeLength);
+        };
+
+        const colorArray = toBoundedFloat32Array(
+            vizualization.colorArrayBuffer,
+            vizualization.colorLen,
+        );
+        const savedColors = toBoundedFloat32Array(
+            vizualization.savedColorsBuffer,
+            vizualization.savedColorLen,
+        );
+
         const visualization = {
             ...vizualization,
-            vertices: new Float32Array(vizualization.vertices),
-            frames: new Uint32Array(vizualization.frames),
+            vertices: toBoundedFloat32Array(
+                vizualization.vertices,
+                vizualization.verticesLen,
+            ),
+            frames: toBoundedUint32Array(
+                vizualization.frames,
+                vizualization.framesLen,
+            ),
             spindleSpeeds: vizualization.spindleSpeeds
-                ? new Float32Array(vizualization.spindleSpeeds)
+                ? toBoundedFloat32Array(
+                      vizualization.spindleSpeeds,
+                      vizualization.spindleLen,
+                  )
                 : new Float32Array(0),
         };
 
@@ -2536,8 +2580,8 @@ class Visualizer extends Component {
 
             this.handleSceneRender(
                 visualization,
-                new Float32Array(vizualization.colorArrayBuffer),
-                new Float32Array(vizualization.savedColorsBuffer),
+                colorArray,
+                savedColors,
                 callback,
             );
         } else {

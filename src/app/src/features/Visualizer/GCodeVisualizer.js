@@ -41,6 +41,7 @@ class GCodeVisualizer {
         this.theme = theme;
         this.vertices = [];
         this.colors = [];
+        this.originalColors = null;
         this.spindleSpeeds = null;
         this.spindleChanges = null;
         this.isLaser = false;
@@ -67,7 +68,7 @@ class GCodeVisualizer {
         colorArray,
         savedColors,
     ) {
-        this.vertices = new THREE.Float32BufferAttribute(vertices.buffer, 3);
+        this.vertices = new THREE.BufferAttribute(vertices, 3);
         this.frames = frames;
         this.spindleSpeeds = spindleSpeeds;
         this.isLaser = isLaser;
@@ -77,6 +78,7 @@ class GCodeVisualizer {
                 ? savedColors
                 : colorArray;
         this.colors = baseColors;
+        this.originalColors = null;
         const defaultColor = new THREE.Color(this.theme.get(CUTTING_PART));
         // --rotary
         this.countdown = 16;
@@ -91,7 +93,7 @@ class GCodeVisualizer {
         this.geometry.setAttribute('position', this.vertices);
         this.geometry.setAttribute(
             'color',
-            new THREE.BufferAttribute(new Float32Array(baseColors), 4),
+            new THREE.BufferAttribute(baseColors, 4),
         );
 
         const material = new THREE.LineBasicMaterial({
@@ -106,6 +108,18 @@ class GCodeVisualizer {
         this.group.add(workpiece);
 
         return this.group;
+    }
+
+    _ensureOriginalColorsSnapshot() {
+        if (this.originalColors) {
+            return;
+        }
+        const workpiece = this.group.children[0];
+        const colorAttr = workpiece?.geometry?.getAttribute('color');
+        if (!colorAttr || !colorAttr.array) {
+            return;
+        }
+        this.originalColors = new Float32Array(colorAttr.array);
     }
 
     setFrameIndex(frameIndex) {
@@ -125,6 +139,7 @@ class GCodeVisualizer {
             // this is just a temporary fix for rotary, so there is some repeated code in both the if and else,
             // but it makes it easy to take away and edit later if i organize it like this
             if (this.isRotaryFile) {
+                this._ensureOriginalColorsSnapshot();
                 // subtract countdown and advance the queue
                 this.countdown -= 1;
                 this.frameDifferences.shift();
@@ -225,10 +240,15 @@ class GCodeVisualizer {
 
             // reset colours
             const workpiece = this.group.children[0];
+            const sourceColors = this.originalColors || this.colors;
+            if (!sourceColors) {
+                this.frameIndex = frameIndex;
+                return;
+            }
             for (let i = v2; i < v1; ++i) {
                 const offsetIndex = i * 4; // Account for RGB buffer
                 workpiece.geometry.attributes.color.set(
-                    [...this.colors.slice(offsetIndex, offsetIndex + 4)],
+                    [...sourceColors.slice(offsetIndex, offsetIndex + 4)],
                     offsetIndex,
                 );
             }
@@ -264,6 +284,7 @@ class GCodeVisualizer {
         }
 
         if (v1 < v2 && !this.isRotaryFile) {
+            this._ensureOriginalColorsSnapshot();
             const workpiece = this.group.children[0];
             const colorAttr = workpiece.geometry.getAttribute('color');
             const offsetIndex = v1 * 4;
@@ -413,6 +434,7 @@ class GCodeVisualizer {
         this.geometry = new THREE.BufferGeometry();
         this.vertices = null;
         this.colors = null;
+        this.originalColors = null;
         this.frames = null;
         this.frameIndex = 0;
         this.framesLength = 0;
