@@ -286,6 +286,7 @@ export function* initialize(): Generator<any, void, any> {
                 visualizeWorker.postMessage({
                     content,
                     visualizer,
+                    isLaser,
                     isNewFile,
                     accelerations,
                     maxFeedrates,
