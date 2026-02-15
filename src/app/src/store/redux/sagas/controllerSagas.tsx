@@ -42,6 +42,7 @@ import {
     visualizeResponse,
 } from 'app/workers/Visualize.response';
 import { isLaserMode } from 'app/lib/laserMode';
+import { getVisualizerTheme } from 'app/lib/getVisualizerTheme';
 import {
     RENDER_LOADING,
     RENDER_RENDERED,
@@ -291,6 +292,7 @@ export function* initialize(): Generator<any, void, any> {
                     maxFeedrates,
                     atcEnabled,
                     rotaryDiameterOffsetEnabled,
+                    theme: getVisualizerTheme(),
                 });
             } else {
                 reduxStore.dispatch(
@@ -344,6 +346,7 @@ export function* initialize(): Generator<any, void, any> {
             maxFeedrates,
             atcEnabled,
             rotaryDiameterOffsetEnabled,
+            theme: getVisualizerTheme(),
         });
     };
 

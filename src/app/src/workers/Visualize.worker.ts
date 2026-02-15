@@ -21,11 +21,109 @@
  *
  */
 
+import * as THREE from 'three';
 import { ArcCurve } from 'three';
 
 import GCodeVirtualizer, { rotateAxis } from 'app/lib/GCodeVirtualizer';
 import { BasicPosition } from 'app/definitions/general';
 import { VISUALIZER_TYPES_T } from 'app/features/Visualizer/definitions';
+import {
+    BACKGROUND_PART,
+    G0_PART,
+    G1_PART,
+    G2_PART,
+    G3_PART,
+    LASER_PART,
+} from 'app/features/Visualizer/constants';
+
+const toolpathColors = [
+    new THREE.Color(0.29, 0.56, 0.89), // #4A90E2
+    new THREE.Color(0.94, 0.54, 0.31), // #F08A4F
+    new THREE.Color(0.84, 0.26, 0.59), // #D74296
+    new THREE.Color(0.26, 0.84, 0.73), // #42D7BA
+    new THREE.Color(0.65, 0.84, 0.26), // #A7D742
+    new THREE.Color(0.77, 0.3, 0.21), // #C44C36
+    new THREE.Color(0.63, 0.26, 0.84), // #A142D7
+    new THREE.Color(0.26, 0.59, 0.84), // #4296D7
+    new THREE.Color(0.84, 0.73, 0.26), // #D7BA42
+    new THREE.Color(0.26, 0.84, 0.39), // #42D763
+    new THREE.Color(0.84, 0.26, 0.77), // #D742C4
+    new THREE.Color(0.84, 0.26, 0.26), // #D74242
+];
+
+const getComplementaryColour = (tcCounter: number): number => {
+    const len = toolpathColors.length;
+    if (len === 0) return 0;
+    return ((tcCounter % len) + len) % len;
+};
+
+function computeColorBuffers(
+    colors: [string, number][],
+    frames: Uint32Array,
+    spindleSpeeds: Float32Array,
+    spindleChanges: SpindleValues[],
+    isLaser: boolean,
+    theme: Map<string, string>,
+    toolchanges: number[],
+): { colorArray: Float32Array; savedColors: Float32Array } {
+    let tcCounter = 1;
+
+    const motionColor: Record<string, THREE.Color> = {
+        G0: new THREE.Color(theme.get(G0_PART)),
+        G1: new THREE.Color(theme.get(G1_PART)),
+        G2: new THREE.Color(theme.get(G2_PART)),
+        G3: new THREE.Color(theme.get(G3_PART)),
+        default: new THREE.Color('#FFF'),
+    };
+
+    const colorValues: number[] = [];
+    colors.forEach((colorTag, index) => {
+        if (toolchanges?.includes(index) && index > 20) {
+            const paletteIndex = getComplementaryColour(tcCounter);
+            const newColor = toolpathColors[paletteIndex].clone();
+            tcCounter++;
+            motionColor.G1 = newColor;
+            motionColor.G2 = newColor;
+            motionColor.G3 = newColor;
+        }
+        const [motion, opacity] = colorTag;
+        const color = motionColor[motion] ?? motionColor.default;
+        colorValues.push(...color.toArray(), opacity);
+    });
+
+    // savedColors starts as a copy of colorValues
+    let savedColorValues = [...colorValues];
+
+    if (isLaser && spindleSpeeds.length > 0) {
+        const defaultColor = new THREE.Color(theme.get(LASER_PART));
+        const fillColor = new THREE.Color(theme.get(BACKGROUND_PART));
+        const maxSpindleValue = Math.max(...spindleSpeeds);
+        const calculateOpacity = (speed: number) =>
+            maxSpindleValue === 0 ? 1 : speed / maxSpindleValue;
+
+        for (let i = 0; i < frames.length; i++) {
+            const { spindleOn, spindleSpeed } = spindleChanges[i];
+            const offsetIndex = frames[i] * 4;
+            if (spindleOn) {
+                const opacity = calculateOpacity(spindleSpeed);
+                const c = defaultColor.toArray();
+                savedColorValues.splice(offsetIndex, 8,
+                    c[0], c[1], c[2], opacity,
+                    c[0], c[1], c[2], opacity);
+            } else {
+                const c = fillColor.toArray();
+                savedColorValues.splice(offsetIndex, 8,
+                    c[0], c[1], c[2], 0.05,
+                    c[0], c[1], c[2], 0.05);
+            }
+        }
+    }
+
+    return {
+        colorArray: new Float32Array(colorValues),
+        savedColors: new Float32Array(savedColorValues),
+    };
+}
 
 interface WorkerData {
     content: string;
@@ -38,6 +136,7 @@ interface WorkerData {
     rotaryDiameterOffsetEnabled?: boolean;
     isSecondary: boolean;
     activeVisualizer: VISUALIZER_TYPES_T;
+    theme?: Map<string, string>;
 }
 
 interface SVGVertex {
@@ -104,6 +203,7 @@ self.onmessage = function ({ data }: { data: WorkerData }) {
         rotaryDiameterOffsetEnabled = true,
         isSecondary,
         activeVisualizer,
+        theme,
     } = data;
 
     const { radius: rotaryRadius, hasYAxisMoves } = parseRotaryMetadata(content);
@@ -157,9 +257,9 @@ self.onmessage = function ({ data }: { data: WorkerData }) {
 
     // create path for the vertices of the last motion
     const createPath = (motion: string) => {
-        let verticesStr = 'M';
+        const parts: string[] = ['M'];
         for (let i = 0; i < SVGVertices.length; i++) {
-            verticesStr +=
+            parts.push(
                 SVGVertices[i].x1 +
                 ',' +
                 SVGVertices[i].y1 +
@@ -167,11 +267,12 @@ self.onmessage = function ({ data }: { data: WorkerData }) {
                 SVGVertices[i].x2 +
                 ',' +
                 SVGVertices[i].y2 +
-                ',';
+                ',',
+            );
         }
         paths.push({
             motion: motion,
-            path: verticesStr,
+            path: parts.join(''),
             strokeWidth: 10,
             fill: 'none',
         });
@@ -690,7 +791,7 @@ self.onmessage = function ({ data }: { data: WorkerData }) {
 
     let tFrames = new Uint32Array(frames);
     let tVertices = new Float32Array(vertices);
-    let tSpindleSpeeds = new Float32Array(spindleSpeeds);
+    const tSpindleSpeeds = isLaser ? new Float32Array(spindleSpeeds) : new Float32Array(0);
 
     // create path for the last motion
     if (shouldIncludeSVG) {
@@ -698,11 +799,28 @@ self.onmessage = function ({ data }: { data: WorkerData }) {
     }
     paths = JSON.parse(JSON.stringify(paths));
 
+    let colorArray = new Float32Array(0);
+    let savedColorsArray = new Float32Array(0);
+    if (needsVisualization && theme) {
+        const computed = computeColorBuffers(
+            colors,
+            tFrames,
+            tSpindleSpeeds,
+            spindleChanges,
+            isLaser,
+            theme,
+            fileInfo.toolchanges ?? [],
+        );
+        colorArray = computed.colorArray;
+        savedColorsArray = computed.savedColors;
+    }
+
     const message: {
         vertices: ArrayBuffer;
         paths: Path[];
-        colors: [string, number][];
         frames: ArrayBuffer;
+        colorArrayBuffer: ArrayBuffer;
+        savedColorsBuffer: ArrayBuffer;
         info: any;
         needsVisualization: boolean;
         parsedData: any;
@@ -714,8 +832,9 @@ self.onmessage = function ({ data }: { data: WorkerData }) {
     } = {
         vertices: tVertices.buffer,
         paths,
-        colors,
         frames: tFrames.buffer,
+        colorArrayBuffer: colorArray.buffer,
+        savedColorsBuffer: savedColorsArray.buffer,
         info: fileInfo,
         needsVisualization,
         parsedData: parsedDataToSend,
@@ -729,9 +848,14 @@ self.onmessage = function ({ data }: { data: WorkerData }) {
         message.spindleChanges = spindleChanges;
     }
 
-    postMessage(message, [
+    const transferList: ArrayBuffer[] = [
         tVertices.buffer,
         tFrames.buffer,
-        tSpindleSpeeds.buffer,
-    ]);
+        colorArray.buffer,
+        savedColorsArray.buffer,
+    ];
+    if (isLaser) {
+        transferList.push(tSpindleSpeeds.buffer);
+    }
+    postMessage(message, transferList);
 };

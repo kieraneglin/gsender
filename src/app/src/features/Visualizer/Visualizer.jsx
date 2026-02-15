@@ -60,8 +60,6 @@ import * as WebGL from 'app/lib/three/WebGL';
 import _ from 'lodash';
 import store from 'app/store';
 
-import { colorsResponse } from 'app/workers/colors.response';
-
 import controller from '../../lib/controller';
 import { getBoundingBox, loadSTL, loadTexture } from './helpers';
 import Viewport from './Viewport';
@@ -150,8 +148,6 @@ class Visualizer extends Component {
     };
 
     vizualization = null;
-
-    colorsWorker = null;
 
     renderCallback = null;
 
@@ -1164,18 +1160,6 @@ class Visualizer extends Component {
                 this.updateCuttingToolPosition(data, {
                     forceUpdateAllAxes: true,
                 });
-            }),
-            pubsub.subscribe('colors:load', (_, data) => {
-                const { colorArrayBuffer, savedColorsBuffer } = data;
-                this.handleSceneRender(
-                    this.vizualization,
-                    new Float32Array(colorArrayBuffer),
-                    new Float32Array(savedColorsBuffer),
-                    this.renderCallback,
-                );
-                if (this.colorsWorker) {
-                    this.colorsWorker.terminate();
-                }
             }),
             pubsub.subscribe('outline:start', () => {
                 if (this.outlineRunning) {
@@ -2494,7 +2478,9 @@ class Visualizer extends Component {
             ...vizualization,
             vertices: new Float32Array(vizualization.vertices),
             frames: new Uint32Array(vizualization.frames),
-            spindleSpeeds: new Float32Array(vizualization.spindleSpeeds),
+            spindleSpeeds: vizualization.spindleSpeeds
+                ? new Float32Array(vizualization.spindleSpeeds)
+                : new Float32Array(0),
         };
 
         const hideProcessedLines = store.get(
@@ -2519,24 +2505,12 @@ class Visualizer extends Component {
                 this.redrawGrids();
             }
 
-            const colorsWorker = new Worker(
-                new URL('../../workers/colors.worker.js', import.meta.url),
-                { type: 'module' },
+            this.handleSceneRender(
+                visualization,
+                new Float32Array(vizualization.colorArrayBuffer),
+                new Float32Array(vizualization.savedColorsBuffer),
+                callback,
             );
-
-            this.colorsWorker = colorsWorker;
-            this.colorsWorker.onmessage = colorsResponse;
-            this.colorsWorker.postMessage({
-                colors: visualization.colors,
-                frames: visualization.frames,
-                spindleSpeeds: visualization.spindleSpeeds,
-                isLaser: visualization.isLaser,
-                spindleChanges: visualization.spindleChanges,
-                theme: currentTheme,
-                toolchanges: visualization.info.toolchanges,
-            });
-
-            // this.handleSceneRender(vizualization, callback);
         } else {
             setVisualizerReady();
         }

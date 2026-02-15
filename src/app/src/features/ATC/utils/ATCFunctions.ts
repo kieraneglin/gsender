@@ -147,7 +147,7 @@ export function sendATCHomingDialog() {
     }
 }
 
-// Keep in sync with src/app/src/workers/colors.worker.js.
+// Keep in sync with toolpathColors in src/app/src/workers/Visualize.worker.ts.
 const toolpathColors = [
     new THREE.Color(0.29, 0.56, 0.89), // #4A90E2
     new THREE.Color(0.94, 0.54, 0.31), // #F08A4F
