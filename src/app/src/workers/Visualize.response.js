@@ -17,6 +17,38 @@ import {
     updateFileRenderState,
 } from '../store/redux/slices/fileInfo.slice';
 
+const VIS_PROFILE_LAST_KEY = '__vizProfile';
+const VIS_PROFILE_RUNS_KEY = '__vizRuns';
+const VIS_PROFILE_MAX_RUNS = 50;
+
+const storeVisualizerProfile = (profile) => {
+    const root =
+        typeof window !== 'undefined'
+            ? window
+            : typeof globalThis !== 'undefined'
+                ? globalThis
+                : null;
+    if (!root) {
+        return;
+    }
+
+    const snapshot = {
+        ts: new Date().toISOString(),
+        ...profile,
+    };
+
+    root[VIS_PROFILE_LAST_KEY] = snapshot;
+
+    const runs = Array.isArray(root[VIS_PROFILE_RUNS_KEY])
+        ? root[VIS_PROFILE_RUNS_KEY]
+        : [];
+    runs.push(snapshot);
+    if (runs.length > VIS_PROFILE_MAX_RUNS) {
+        runs.shift();
+    }
+    root[VIS_PROFILE_RUNS_KEY] = runs;
+};
+
 export const visualizeResponse = async ({ data }) => {
     if (isNumber(data)) {
         pubsub.publish('toolpath:progress', data);
@@ -25,6 +57,14 @@ export const visualizeResponse = async ({ data }) => {
 
         if (data.profile) {
             const { durationsMs, bytes, counts, heap, vm } = data.profile;
+            const profileSnapshot = {
+                durationsMs,
+                bytes,
+                counts,
+                heap,
+                vm,
+            };
+            storeVisualizerProfile(profileSnapshot);
             console.groupCollapsed(
                 '[Visualizer Profile] Parse + Memory Summary',
             );
@@ -44,6 +84,9 @@ export const visualizeResponse = async ({ data }) => {
             const heapPeak = heap?.peak ?? null;
             console.info(
                 `[Visualizer Profile] transfer=${transferBytes} bytes, peakHeap=${heapPeak}, heapSupported=${heap?.supported}`,
+            );
+            console.info(
+                '[Visualizer Profile] copy(window.__vizProfile) for latest, copy(window.__vizRuns) for history',
             );
             console.groupEnd();
         }
