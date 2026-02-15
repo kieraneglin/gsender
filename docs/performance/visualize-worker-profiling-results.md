@@ -4,36 +4,38 @@
 
 Comparison basis:
 - Baseline = original single-run captures (`mb-6`, `mb-14 (Baseline)`, `mb-28`).
-- Current = `Post Step 4 - 3 Runs` median values.
+- Current = latest `Post Phase 2 - Run 1` captures for each file (`mb-6`, `mb-14`, `mb-28`).
 
-### Planned Steps
+### Implemented Steps (Through Phase 2)
 
-1. Remove post-parse color expansion/rebuild work and build final colors during parse.
-2. Stop duplicating `savedColors` for non-laser jobs.
-3. Replace large JS staging arrays with growable typed buffers.
-4. Stream lines into parser (remove full `split/reverse/pop` line buffering).
-5. Add instrumentation/output that is easy to export from console.
+1. Build final colors during parse and remove the post-parse color expansion pass.
+2. Stop duplicating `savedColors` for non-laser jobs (`saved_color_bytes` stays `0` for non-laser).
+3. Replace JS staging arrays with growable typed buffers for vertices/frames/colors.
+4. Stream lines into the parser (remove full `split/reverse/pop` line buffering path).
+5. Refactor `GCodeVirtualizer` dispatch hot path to a single token-group cursor with reusable `argsScratch`.
+6. Preserve motion fallback semantics for axis-only lines (X/Y/Z/A...) while using the new dispatch path.
+7. Split worker responses into staged messages (`geometryReady`, then `metadataReady`) with `jobId`.
+8. Add stale-message protection and active job tracking in response handling.
+9. Move worker termination to metadata completion and remove premature terminate calls from visualizer subscribers.
+10. Add copy-friendly profiling exports (`window.__vizProfile`, `window.__vizRuns`) and console guidance.
 
-### Implemented Steps
+### Quick Gains From Original Runs To Current (Post Phase 2)
 
-1. Implemented: color build moved into parse path, old post-pass removed.
-2. Implemented: `saved_color_bytes` drops to `0` for non-laser runs.
-3. Implemented: growable typed buffers for vertices/frames/colors in worker.
-4. Implemented: streaming line scan into parser (`lineSplit` now `0` in step-4 runs).
-5. Implemented: profile export helpers in response layer (`window.__vizProfile`, `window.__vizRuns`, `copy(...)` workflow).
-
-### Quick Gains From Original Runs
-
-| File | Total ms (baseline -> current median) | Total delta | Parse pipeline ms `(lineSplit + parseLoop)` | Parse pipeline delta | ColorBuild ms (baseline -> median) | ColorBuild delta | Transfer bytes (baseline -> median) | Transfer delta |
+| File | Total ms (baseline -> current) | Total delta | Parse pipeline ms `(lineSplit + parseLoop)` | Parse pipeline delta | ColorBuild ms (baseline -> current) | ColorBuild delta | Transfer bytes (baseline -> current) | Transfer delta |
 |---|---:|---:|---:|---:|---:|---:|---:|---:|
-| mb-6 | 837.1 -> 463.9 | -44.6% | 478.3 -> 435.6 | -8.9% | 324.6 -> 1.7 | -99.5% | 37378156 -> 24377068 | -34.8% |
-| mb-14 | 1909.6 -> 1171.8 | -38.6% | 1196.0 -> 1112.0 | -7.0% | 660.1 -> 4.4 | -99.3% | 74176760 -> 48376152 | -34.8% |
-| mb-28 | 3539.1 -> 2139.4 | -39.6% | 1980.6 -> 1957.8 | -1.2% | 1395.4 -> 6.6 | -99.5% | 141018180 -> 91968388 | -34.8% |
+| mb-6 | 837.1 -> 400.6 | -52.1% | 478.3 -> 370.1 | -22.6% | 324.6 -> 0.0 | -100.0% | 37378156 -> 35651584 | -4.6% |
+| mb-14 | 1909.6 -> 819.1 | -57.1% | 1196.0 -> 772.8 | -35.4% | 660.1 -> 0.0 | -100.0% | 74176760 -> 71303168 | -3.9% |
+| mb-28 | 3539.1 -> 1692.3 | -52.2% | 1980.6 -> 1515.6 | -23.5% | 1395.4 -> 0.0 | -100.0% | 141018180 -> 142606336 | +1.1% |
 
 Aggregate (all 3 files combined):
-- Total time: `6285.8 ms -> 3775.1 ms` (`-39.9%`).
-- Transfer bytes: `252573096 -> 164721608` (`-34.8%`).
-- Color build time: `2380.1 ms -> 12.7 ms` (`-99.5%`).
+- Total time: `6285.8 ms -> 2912.0 ms` (`-53.7%`).
+- Parse pipeline (`lineSplit + parseLoop`): `3654.9 ms -> 2658.5 ms` (`-27.3%`).
+- Transfer bytes: `252573096 -> 249561088` (`-1.2%`).
+- Color build time: `2380.1 ms -> 0.0 ms` (`-100.0%`).
+
+Note:
+- Current runtime speed is substantially improved versus baseline.
+- Transfer size/memory copy gains are not yet realized because growable buffer capacity is still being transferred in full; Phase 3 targets transfer compaction.
 
 Use this file to record baseline and post-change profiling for 3 representative files.
 

@@ -288,6 +288,22 @@ const toUsedFloat32View = (buffer: GrowableFloat32Buffer): Float32Array =>
 const toUsedUint32View = (buffer: GrowableUint32Buffer): Uint32Array =>
     buffer.data.subarray(0, buffer.length);
 
+const toCompactFloat32Array = (view: Float32Array): Float32Array => {
+    const fullLength = view.buffer.byteLength / Float32Array.BYTES_PER_ELEMENT;
+    if (view.byteOffset === 0 && view.length === fullLength) {
+        return view;
+    }
+    return new Float32Array(view);
+};
+
+const toCompactUint32Array = (view: Uint32Array): Uint32Array => {
+    const fullLength = view.buffer.byteLength / Uint32Array.BYTES_PER_ELEMENT;
+    if (view.byteOffset === 0 && view.length === fullLength) {
+        return view;
+    }
+    return new Uint32Array(view);
+};
+
 const parseGcodeComments = (line: string): string =>
     line.replace(/\([^\)]*\)/g, '').replace(/;.*$/, '');
 
@@ -1116,6 +1132,12 @@ self.onmessage = function ({ data }: { data: WorkerData }) {
     markProfile(profiler, 'after_color_build');
     sampleHeap(profiler, 'after_color_build');
 
+    const compactVertices = toCompactFloat32Array(tVertices);
+    const compactFrames = toCompactUint32Array(tFrames);
+    const compactColorArray = toCompactFloat32Array(colorArray);
+    const compactSavedColorsArray = toCompactFloat32Array(savedColorsArray);
+    const compactSpindleSpeeds = toCompactFloat32Array(tSpindleSpeeds);
+
     if (profiler) {
         profiler.counts.virtualized_lines = virtualizedLines;
         profiler.counts.lines_with_data = currentLines;
@@ -1132,11 +1154,17 @@ self.onmessage = function ({ data }: { data: WorkerData }) {
         profiler.counts.spindle_tool_event_count = Object.keys(
             fileInfo.spindleToolEvents || {},
         ).length;
-        profiler.bytes.vertices_bytes = tVertices.byteLength;
-        profiler.bytes.frames_bytes = tFrames.byteLength;
-        profiler.bytes.color_bytes = colorArray.byteLength;
-        profiler.bytes.saved_color_bytes = savedColorsArray.byteLength;
-        profiler.bytes.spindle_speeds_bytes = tSpindleSpeeds.byteLength;
+        profiler.bytes.vertices_bytes = compactVertices.byteLength;
+        profiler.bytes.frames_bytes = compactFrames.byteLength;
+        profiler.bytes.color_bytes = compactColorArray.byteLength;
+        profiler.bytes.saved_color_bytes = compactSavedColorsArray.byteLength;
+        profiler.bytes.spindle_speeds_bytes = compactSpindleSpeeds.byteLength;
+        profiler.bytes.vertices_capacity_bytes = tVertices.buffer.byteLength;
+        profiler.bytes.frames_capacity_bytes = tFrames.buffer.byteLength;
+        profiler.bytes.color_capacity_bytes = colorArray.buffer.byteLength;
+        profiler.bytes.saved_color_capacity_bytes = savedColorsArray.buffer.byteLength;
+        profiler.bytes.spindle_speeds_capacity_bytes =
+            tSpindleSpeeds.buffer.byteLength;
     }
 
     const effectiveVisualizer = activeVisualizer ?? visualizer;
@@ -1170,14 +1198,14 @@ self.onmessage = function ({ data }: { data: WorkerData }) {
         type: 'geometryReady',
         jobId,
         visualizer: effectiveVisualizer,
-        vertices: tVertices.buffer,
+        vertices: compactVertices.buffer,
         paths,
-        frames: tFrames.buffer,
+        frames: compactFrames.buffer,
         verticesLen: tVertices.length,
         framesLen: tFrames.length,
-        colorArrayBuffer: colorArray.buffer,
+        colorArrayBuffer: compactColorArray.buffer,
         colorLen: colorArray.length,
-        savedColorsBuffer: savedColorsArray.buffer,
+        savedColorsBuffer: compactSavedColorsArray.buffer,
         savedColorLen: savedColorsArray.length,
         info: fileInfo,
         needsVisualization,
@@ -1190,28 +1218,44 @@ self.onmessage = function ({ data }: { data: WorkerData }) {
     };
 
     if (isLaser) {
-        geometryMessage.spindleSpeeds = tSpindleSpeeds.buffer;
+        geometryMessage.spindleSpeeds = compactSpindleSpeeds.buffer;
         geometryMessage.spindleLen = tSpindleSpeeds.length;
         geometryMessage.isLaser = isLaser;
         geometryMessage.spindleChanges = spindleChanges;
     }
 
     const transferList: ArrayBuffer[] = [
-        tVertices.buffer,
-        tFrames.buffer,
-        colorArray.buffer,
-        savedColorsArray.buffer,
+        compactVertices.buffer,
+        compactFrames.buffer,
+        compactColorArray.buffer,
+        compactSavedColorsArray.buffer,
     ];
     if (isLaser) {
-        transferList.push(tSpindleSpeeds.buffer);
+        transferList.push(compactSpindleSpeeds.buffer);
     }
 
     markProfile(profiler, 'before_post_message');
     if (profiler) {
+        profiler.bytes.vertices_transfer_bytes = compactVertices.byteLength;
+        profiler.bytes.frames_transfer_bytes = compactFrames.byteLength;
+        profiler.bytes.color_transfer_bytes = compactColorArray.byteLength;
+        profiler.bytes.saved_color_transfer_bytes =
+            compactSavedColorsArray.byteLength;
+        profiler.bytes.spindle_speeds_transfer_bytes =
+            compactSpindleSpeeds.byteLength;
         profiler.bytes.transfer_total_bytes = transferList.reduce(
             (acc, buffer) => acc + buffer.byteLength,
             0,
         );
+        profiler.bytes.transfer_capacity_total_bytes =
+            tVertices.buffer.byteLength +
+            tFrames.buffer.byteLength +
+            colorArray.buffer.byteLength +
+            savedColorsArray.buffer.byteLength +
+            tSpindleSpeeds.buffer.byteLength;
+        profiler.bytes.transfer_saved_bytes =
+            profiler.bytes.transfer_capacity_total_bytes -
+            profiler.bytes.transfer_total_bytes;
         const durationBetween = (start: string, end: string): number => {
             const s = profiler.marks[start];
             const e = profiler.marks[end];
