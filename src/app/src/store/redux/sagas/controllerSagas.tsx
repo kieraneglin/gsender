@@ -335,6 +335,7 @@ export function* initialize(): Generator<any, void, any> {
             { type: 'module' },
         );
         visualizeWorker.onmessage = visualizeResponse;
+        console.time('gSender:fileLoad');
         visualizeWorker.postMessage({
             content,
             visualizer,
