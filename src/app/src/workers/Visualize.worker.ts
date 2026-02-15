@@ -97,30 +97,42 @@ function computeColorBuffers(
     if (isLaser && spindleChanges.length > 0) {
         const defaultColor = new THREE.Color(theme.get(LASER_PART));
         const fillColor = new THREE.Color(theme.get(BACKGROUND_PART));
+        const laserRgb = defaultColor.toArray();
+        const fillRgb = fillColor.toArray();
+        const totalVertices = colorValues.length / 4;
+        const frameCount = Math.min(frames.length, spindleChanges.length);
 
-        const calculateOpacity = (speed: number) =>
-            maxSpindleValue <= 0 ? 1 : speed / maxSpindleValue;
-
-        for (let i = 0; i < frames.length; i++) {
-            const { spindleOn, spindleSpeed } = spindleChanges[i];
-            const offsetIndex = frames[i] * 4;
-            if (spindleOn) {
-                const opacity = calculateOpacity(spindleSpeed);
-                const c = defaultColor.toArray();
-                savedColorValues.splice(offsetIndex, 8,
-                    c[0], c[1], c[2], opacity,
-                    c[0], c[1], c[2], opacity);
-            } else {
-                const c = fillColor.toArray();
-                savedColorValues.splice(offsetIndex, 8,
-                    c[0], c[1], c[2], 0.05,
-                    c[0], c[1], c[2], 0.05);
+        const calculateOpacity = (speed: number) => {
+            if (maxSpindleValue <= 0) {
+                return 1;
             }
+            return Math.max(0, Math.min(speed / maxSpindleValue, 1));
+        };
+
+        let prevFrame = 0;
+        for (let i = 0; i < frameCount; i++) {
+            const frameEnd = Math.min(frames[i], totalVertices);
+            if (frameEnd <= prevFrame) {
+                continue;
+            }
+
+            const spindleState = spindleChanges[i];
+            const spindleOn = spindleState?.spindleOn ?? false;
+            const spindleSpeed = spindleState?.spindleSpeed ?? 0;
+            const opacity = spindleOn ? calculateOpacity(spindleSpeed) : 0.05;
+            const c = spindleOn ? laserRgb : fillRgb;
+
+            for (let vertexIndex = prevFrame; vertexIndex < frameEnd; vertexIndex++) {
+                const offsetIndex = vertexIndex * 4;
+                savedColorValues[offsetIndex] = c[0];
+                savedColorValues[offsetIndex + 1] = c[1];
+                savedColorValues[offsetIndex + 2] = c[2];
+                savedColorValues[offsetIndex + 3] = opacity;
+            }
+
+            prevFrame = frameEnd;
         }
     }
-
-    console.log(colorValues);
-    console.log('saved', savedColorValues);
 
     return {
         colorArray: new Float32Array(colorValues),

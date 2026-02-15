@@ -72,7 +72,11 @@ class GCodeVisualizer {
         this.spindleSpeeds = spindleSpeeds;
         this.isLaser = isLaser;
         this.spindleChanges = spindleChanges;
-        this.colors = savedColors;
+        const baseColors =
+            savedColors && savedColors.length === colorArray.length
+                ? savedColors
+                : colorArray;
+        this.colors = baseColors;
         const defaultColor = new THREE.Color(this.theme.get(CUTTING_PART));
         // --rotary
         this.countdown = 16;
@@ -87,7 +91,7 @@ class GCodeVisualizer {
         this.geometry.setAttribute('position', this.vertices);
         this.geometry.setAttribute(
             'color',
-            new THREE.BufferAttribute(colorArray, 4),
+            new THREE.BufferAttribute(new Float32Array(baseColors), 4),
         );
 
         const material = new THREE.LineBasicMaterial({
