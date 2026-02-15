@@ -994,17 +994,34 @@ self.onmessage = function ({ data }: { data: WorkerData }) {
     });
 
     markProfile(profiler, 'before_line_split');
-    const lines = content.split(/\r?\n/).reverse();
     markProfile(profiler, 'after_line_split');
     sampleHeap(profiler, 'after_line_split');
 
     markProfile(profiler, 'before_parse_loop');
     let virtualizedLines = 0;
-    while (lines.length) {
-        let line = lines.pop();
+    const contentLength = content.length;
+    let lineStart = 0;
+    for (let i = 0; i < contentLength; i++) {
+        const ch = content.charCodeAt(i);
+        if (ch !== 10 && ch !== 13) {
+            continue;
+        }
+
+        const line = content.slice(lineStart, i);
         vm.virtualize(line);
         virtualizedLines++;
+
+        if (ch === 13 && i + 1 < contentLength && content.charCodeAt(i + 1) === 10) {
+            i++;
+        }
+        lineStart = i + 1;
     }
+
+    // Match split(/\r?\n/) behavior by emitting the final line, including
+    // a trailing empty line when the content ends with a newline.
+    vm.virtualize(content.slice(lineStart, contentLength));
+    virtualizedLines++;
+
     markProfile(profiler, 'after_parse_loop');
     sampleHeap(profiler, 'after_parse_loop');
 
