@@ -4,9 +4,9 @@
 
 Comparison basis:
 - Baseline = original single-run captures (`mb-6`, `mb-14 (Baseline)`, `mb-28`).
-- Current = latest `Post Phase 2 - Run 1` captures for each file (`mb-6`, `mb-14`, `mb-28`).
+- Current = latest `Post Phase 3 - Run 1` captures for each file (`mb-6`, `mb-14`, `mb-28`).
 
-### Implemented Steps (Through Phase 2)
+### Implemented Steps (Through Phase 3)
 
 1. Build final colors during parse and remove the post-parse color expansion pass.
 2. Stop duplicating `savedColors` for non-laser jobs (`saved_color_bytes` stays `0` for non-laser).
@@ -19,23 +19,23 @@ Comparison basis:
 9. Move worker termination to metadata completion and remove premature terminate calls from visualizer subscribers.
 10. Add copy-friendly profiling exports (`window.__vizProfile`, `window.__vizRuns`) and console guidance.
 
-### Quick Gains From Original Runs To Current (Post Phase 2)
+### Quick Gains From Original Runs To Current (Post Phase 3)
 
 | File | Total ms (baseline -> current) | Total delta | Parse pipeline ms `(lineSplit + parseLoop)` | Parse pipeline delta | ColorBuild ms (baseline -> current) | ColorBuild delta | Transfer bytes (baseline -> current) | Transfer delta |
 |---|---:|---:|---:|---:|---:|---:|---:|---:|
-| mb-6 | 837.1 -> 400.6 | -52.1% | 478.3 -> 370.1 | -22.6% | 324.6 -> 0.0 | -100.0% | 37378156 -> 35651584 | -4.6% |
-| mb-14 | 1909.6 -> 819.1 | -57.1% | 1196.0 -> 772.8 | -35.4% | 660.1 -> 0.0 | -100.0% | 74176760 -> 71303168 | -3.9% |
-| mb-28 | 3539.1 -> 1692.3 | -52.2% | 1980.6 -> 1515.6 | -23.5% | 1395.4 -> 0.0 | -100.0% | 141018180 -> 142606336 | +1.1% |
+| mb-6 | 837.1 -> 407.4 | -51.3% | 478.3 -> 365.6 | -23.6% | 324.6 -> 0.0 | -100.0% | 37378156 -> 24377068 | -34.8% |
+| mb-14 | 1909.6 -> 848.7 | -55.6% | 1196.0 -> 790.7 | -33.9% | 660.1 -> 0.0 | -100.0% | 74176760 -> 48376152 | -34.8% |
+| mb-28 | 3539.1 -> 1723.9 | -51.3% | 1980.6 -> 1527.6 | -22.9% | 1395.4 -> 0.0 | -100.0% | 141018180 -> 91968388 | -34.8% |
 
 Aggregate (all 3 files combined):
-- Total time: `6285.8 ms -> 2912.0 ms` (`-53.7%`).
-- Parse pipeline (`lineSplit + parseLoop`): `3654.9 ms -> 2658.5 ms` (`-27.3%`).
-- Transfer bytes: `252573096 -> 249561088` (`-1.2%`).
+- Total time: `6285.8 ms -> 2980.0 ms` (`-52.6%`).
+- Parse pipeline (`lineSplit + parseLoop`): `3654.9 ms -> 2683.9 ms` (`-26.6%`).
+- Transfer bytes: `252573096 -> 164721608` (`-34.8%`).
 - Color build time: `2380.1 ms -> 0.0 ms` (`-100.0%`).
 
 Note:
-- Current runtime speed is substantially improved versus baseline.
-- Transfer size/memory copy gains are not yet realized because growable buffer capacity is still being transferred in full; Phase 3 targets transfer compaction.
+- Runtime is substantially improved versus baseline.
+- Phase 3 compaction restored transfer-size reduction while keeping Phase 1/2 parsing gains.
 
 Use this file to record baseline and post-change profiling for 3 representative files.
 
@@ -572,6 +572,88 @@ Bytes (`bytes`):
 | saved_color_bytes | 0 |
 | spindle_speeds_bytes | 0 |
 | transfer_total_bytes | 35651584 |
+
+Worker Counts (`counts`):
+
+| Metric | Value |
+|---|---:|
+| vm_data_events | 406291 |
+| virtualized_lines | 406297 |
+| lines_with_data | 406291 |
+| frames_len | 406291 |
+| vertices_f32_len | 2437704 |
+| color_values_len | 3250272 |
+| color_vertices_len | 812568 |
+| toolchanges_len | 1 |
+| spindle_changes_len | 0 |
+| spindle_speeds_len | 0 |
+| paths_len | 17095 |
+| estimates_len | 406291 |
+| invalid_lines_len | 0 |
+| spindle_tool_event_count | 4 |
+
+Virtualizer Stats (`vm`):
+
+| Metric | Value |
+|---|---:|
+| linesSeen | 406297 |
+| tokensSeen | 836903 |
+| groupsSeen | 406292 |
+| handlerInvocations | 406291 |
+| emitDataCount | 406291 |
+| estimatesPushCount | 406291 |
+| invalidLineCount | 0 |
+
+### mb-6 (Post Phase 3 - Run 1)
+
+Summary:
+- `ts=2026-02-15T15:44:41.314Z`
+- `transfer_total_bytes=24377068`
+- `peakHeap=null`
+- `heapSupported=false`
+- Compared to `mb-6 (Post Phase 2 - Run 1)`:
+- `total: 400.6 -> 407.4 ms` (`+1.7%`)
+- `parseLoop: 370.0 -> 365.6 ms` (`-1.2%`)
+- `lineSplit + parseLoop: 370.1 -> 365.6 ms` (`-1.2%`)
+- `typedArrayBuild: 0.0 -> 0.0 ms` (`n/a`)
+- `colorBuild: 0.0 -> 0.0 ms` (`n/a`)
+- `transfer_total_bytes: 35651584 -> 24377068` (`-31.6%`)
+- `transfer_saved_bytes: 11274516`
+
+Durations (`durationsMs`):
+
+| Metric | Value |
+|---|---:|
+| rotaryScan | 16.2 |
+| lineSplit | 0 |
+| parseLoop | 365.6 |
+| typedArrayBuild | 0 |
+| colorBuild | 0 |
+| total | 407.4 |
+
+Bytes (`bytes`):
+
+| Metric | Value |
+|---|---:|
+| input_utf16_bytes | 12567944 |
+| vertices_bytes | 9750816 |
+| frames_bytes | 1625164 |
+| color_bytes | 13001088 |
+| saved_color_bytes | 0 |
+| spindle_speeds_bytes | 0 |
+| vertices_capacity_bytes | 16777216 |
+| frames_capacity_bytes | 2097152 |
+| color_capacity_bytes | 16777216 |
+| saved_color_capacity_bytes | 0 |
+| spindle_speeds_capacity_bytes | 0 |
+| vertices_transfer_bytes | 9750816 |
+| frames_transfer_bytes | 1625164 |
+| color_transfer_bytes | 13001088 |
+| saved_color_transfer_bytes | 0 |
+| spindle_speeds_transfer_bytes | 0 |
+| transfer_total_bytes | 24377068 |
+| transfer_capacity_total_bytes | 35651584 |
+| transfer_saved_bytes | 11274516 |
 
 Worker Counts (`counts`):
 
@@ -1294,6 +1376,88 @@ Virtualizer Stats (`vm`):
 | estimatesPushCount | 806272 |
 | invalidLineCount | 0 |
 
+### mb-14 (Post Phase 3 - Run 1)
+
+Summary:
+- `ts=2026-02-15T15:43:38.356Z`
+- `transfer_total_bytes=48376152`
+- `peakHeap=null`
+- `heapSupported=false`
+- Compared to `mb-14 (Post Phase 2 - Run 1)`:
+- `total: 819.1 -> 848.7 ms` (`+3.6%`)
+- `parseLoop: 772.8 -> 790.7 ms` (`+2.3%`)
+- `lineSplit + parseLoop: 772.8 -> 790.7 ms` (`+2.3%`)
+- `typedArrayBuild: 0.0 -> 0.0 ms` (`n/a`)
+- `colorBuild: 0.0 -> 0.0 ms` (`n/a`)
+- `transfer_total_bytes: 71303168 -> 48376152` (`-32.2%`)
+- `transfer_saved_bytes: 22927016`
+
+Durations (`durationsMs`):
+
+| Metric | Value |
+|---|---:|
+| rotaryScan | 29.6 |
+| lineSplit | 0 |
+| parseLoop | 790.7 |
+| typedArrayBuild | 0 |
+| colorBuild | 0 |
+| total | 848.7 |
+
+Bytes (`bytes`):
+
+| Metric | Value |
+|---|---:|
+| input_utf16_bytes | 30486572 |
+| vertices_bytes | 19350456 |
+| frames_bytes | 3225088 |
+| color_bytes | 25800608 |
+| saved_color_bytes | 0 |
+| spindle_speeds_bytes | 0 |
+| vertices_capacity_bytes | 33554432 |
+| frames_capacity_bytes | 4194304 |
+| color_capacity_bytes | 33554432 |
+| saved_color_capacity_bytes | 0 |
+| spindle_speeds_capacity_bytes | 0 |
+| vertices_transfer_bytes | 19350456 |
+| frames_transfer_bytes | 3225088 |
+| color_transfer_bytes | 25800608 |
+| saved_color_transfer_bytes | 0 |
+| spindle_speeds_transfer_bytes | 0 |
+| transfer_total_bytes | 48376152 |
+| transfer_capacity_total_bytes | 71303168 |
+| transfer_saved_bytes | 22927016 |
+
+Worker Counts (`counts`):
+
+| Metric | Value |
+|---|---:|
+| vm_data_events | 806272 |
+| virtualized_lines | 806272 |
+| lines_with_data | 806272 |
+| frames_len | 806272 |
+| vertices_f32_len | 4837614 |
+| color_values_len | 6450152 |
+| color_vertices_len | 1612538 |
+| toolchanges_len | 0 |
+| spindle_changes_len | 0 |
+| spindle_speeds_len | 0 |
+| paths_len | 1766 |
+| estimates_len | 806272 |
+| invalid_lines_len | 0 |
+| spindle_tool_event_count | 1 |
+
+Virtualizer Stats (`vm`):
+
+| Metric | Value |
+|---|---:|
+| linesSeen | 806272 |
+| tokensSeen | 2416802 |
+| groupsSeen | 806272 |
+| handlerInvocations | 806272 |
+| emitDataCount | 806272 |
+| estimatesPushCount | 806272 |
+| invalidLineCount | 0 |
+
 ### mb-28
 
 Summary:
@@ -1929,6 +2093,88 @@ Bytes (`bytes`):
 | saved_color_bytes | 0 |
 | spindle_speeds_bytes | 0 |
 | transfer_total_bytes | 142606336 |
+
+Worker Counts (`counts`):
+
+| Metric | Value |
+|---|---:|
+| vm_data_events | 1532813 |
+| virtualized_lines | 1532814 |
+| lines_with_data | 1532813 |
+| frames_len | 1532813 |
+| vertices_f32_len | 9196836 |
+| color_values_len | 12262448 |
+| color_vertices_len | 3065612 |
+| toolchanges_len | 1 |
+| spindle_changes_len | 0 |
+| spindle_speeds_len | 0 |
+| paths_len | 217 |
+| estimates_len | 1532813 |
+| invalid_lines_len | 0 |
+| spindle_tool_event_count | 4 |
+
+Virtualizer Stats (`vm`):
+
+| Metric | Value |
+|---|---:|
+| linesSeen | 1532814 |
+| tokensSeen | 4554159 |
+| groupsSeen | 1532814 |
+| handlerInvocations | 1532813 |
+| emitDataCount | 1532813 |
+| estimatesPushCount | 1532813 |
+| invalidLineCount | 0 |
+
+### mb-28 (Post Phase 3 - Run 1)
+
+Summary:
+- `ts=2026-02-15T15:43:14.228Z`
+- `transfer_total_bytes=91968388`
+- `peakHeap=null`
+- `heapSupported=false`
+- Compared to `mb-28 (Post Phase 2 - Run 1)`:
+- `total: 1692.3 -> 1723.9 ms` (`+1.9%`)
+- `parseLoop: 1515.6 -> 1527.6 ms` (`+0.8%`)
+- `lineSplit + parseLoop: 1515.6 -> 1527.6 ms` (`+0.8%`)
+- `typedArrayBuild: 0.1 -> 0.0 ms` (`-100.0%`)
+- `colorBuild: 0.0 -> 0.0 ms` (`n/a`)
+- `transfer_total_bytes: 142606336 -> 91968388` (`-35.5%`)
+- `transfer_saved_bytes: 50637948`
+
+Durations (`durationsMs`):
+
+| Metric | Value |
+|---|---:|
+| rotaryScan | 57.2 |
+| lineSplit | 0 |
+| parseLoop | 1527.6 |
+| typedArrayBuild | 0 |
+| colorBuild | 0 |
+| total | 1723.9 |
+
+Bytes (`bytes`):
+
+| Metric | Value |
+|---|---:|
+| input_utf16_bytes | 55988574 |
+| vertices_bytes | 36787344 |
+| frames_bytes | 6131252 |
+| color_bytes | 49049792 |
+| saved_color_bytes | 0 |
+| spindle_speeds_bytes | 0 |
+| vertices_capacity_bytes | 67108864 |
+| frames_capacity_bytes | 8388608 |
+| color_capacity_bytes | 67108864 |
+| saved_color_capacity_bytes | 0 |
+| spindle_speeds_capacity_bytes | 0 |
+| vertices_transfer_bytes | 36787344 |
+| frames_transfer_bytes | 6131252 |
+| color_transfer_bytes | 49049792 |
+| saved_color_transfer_bytes | 0 |
+| spindle_speeds_transfer_bytes | 0 |
+| transfer_total_bytes | 91968388 |
+| transfer_capacity_total_bytes | 142606336 |
+| transfer_saved_bytes | 50637948 |
 
 Worker Counts (`counts`):
 
