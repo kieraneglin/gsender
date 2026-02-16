@@ -63,6 +63,12 @@ Across all test files (`mb-6`, `mb-14`, `mb-28`, and `Rotary`), compared to the 
 13. Added copy-friendly profiling exports (`window.__vizProfile`, `window.__vizRuns`).
 14. Improved rotary/arc behavior with adaptive arc tessellation and lower segment floors on A-axis moves.
 
+### Laser Mode Improvements
+
+15. Replaced per-frame `{spindleOn, spindleSpeed}` objects with a compact `GrowableFloat32Buffer` (`spindleFrameSpeeds`) — one float per visualization frame instead of an object allocation.
+16. Eliminated the separate opacity post-processing pass for laser files; opacity is now baked directly from `spindleFrameSpeeds` during geometry transfer, removing a full extra loop over all frames.
+17. Fixed M5 (spindle off) not being honored during opacity baking: speed is now stored as `0` for frames where `vm.modal.spindle` is `M5`, so segments after an M5 command correctly render dim even when the last `S` value was non-zero.
+
 ## Practical Impact
 
 - Faster time-to-visual: users see usable geometry sooner because parsing and rendering prep are streamlined.
