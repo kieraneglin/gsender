@@ -96,11 +96,6 @@ interface Modal {
     tool?: number;
 }
 
-interface SpindleValues {
-    spindleOn: boolean;
-    spindleSpeed: number;
-}
-
 type RotaryMetadata = {
     radius: number | null;
     hasYAxisMoves: boolean;
@@ -282,6 +277,12 @@ const pushUint32_1 = (buffer: GrowableUint32Buffer, value: number): void => {
     buffer.length += 1;
 };
 
+const pushFloat32_1 = (buffer: GrowableFloat32Buffer, value: number): void => {
+    ensureFloat32Capacity(buffer, 1);
+    buffer.data[buffer.length] = value;
+    buffer.length += 1;
+};
+
 const toUsedFloat32View = (buffer: GrowableFloat32Buffer): Float32Array =>
     buffer.data.subarray(0, buffer.length);
 
@@ -427,11 +428,12 @@ self.onmessage = function ({ data }: { data: WorkerData }) {
     };
 
     // Laser specific state variables
-    const spindleSpeeds: number[] = [];
+    const spindleFrameSpeeds: GrowableFloat32Buffer = {
+        data: new Float32Array(4096),
+        length: 0,
+    };
     let maxSpindleSpeed = 0;
     let spindleSpeed = 0;
-    let spindleOn = false;
-    let spindleChanges: SpindleValues[] = [];
 
     // SVG specific state variables
     let SVGVertices: SVGVertex[] = [];
@@ -451,9 +453,7 @@ self.onmessage = function ({ data }: { data: WorkerData }) {
     const updateSpindleStateFromLine = (lineData: any) => {
         if (typeof lineData === 'number' && Number.isFinite(lineData)) {
             const nextSpindleSpeed = lineData;
-            spindleSpeeds.push(nextSpindleSpeed);
             spindleSpeed = nextSpindleSpeed;
-            spindleOn = nextSpindleSpeed > 0;
             maxSpindleSpeed = Math.max(maxSpindleSpeed, nextSpindleSpeed);
             return;
         }
@@ -463,9 +463,7 @@ self.onmessage = function ({ data }: { data: WorkerData }) {
         const [spindleCommand, spindleValue] = spindleMatches[0] || [];
         if (spindleCommand) {
             const nextSpindleSpeed = Number(spindleValue);
-            spindleSpeeds.push(nextSpindleSpeed);
             spindleSpeed = nextSpindleSpeed;
-            spindleOn = nextSpindleSpeed > 0;
             maxSpindleSpeed = Math.max(maxSpindleSpeed, nextSpindleSpeed);
         }
     };
@@ -1024,18 +1022,10 @@ self.onmessage = function ({ data }: { data: WorkerData }) {
                 (profiler.counts.vm_data_events || 0) + 1;
         }
 
-        let spindleValues = {
-            spindleOn: false,
-            spindleSpeed: 0,
-        };
         if (isLaser && needsVisualization) {
             updateSpindleStateFromLine(data);
-            spindleValues = {
-                spindleOn,
-                spindleSpeed,
-            };
-
-            spindleChanges.push(spindleValues); //TODO:  Make this work for laser mode
+            const spindleIsOn = vm.modal.spindle === 'M3' || vm.modal.spindle === 'M4';
+            pushFloat32_1(spindleFrameSpeeds, spindleIsOn ? spindleSpeed : 0);
         }
         onData();
     });
@@ -1087,8 +1077,8 @@ self.onmessage = function ({ data }: { data: WorkerData }) {
     markProfile(profiler, 'before_typed_array_build');
     const tFrames = toUsedUint32View(frames);
     const tVertices = toUsedFloat32View(vertices);
-    const tSpindleSpeeds = isLaser
-        ? new Float32Array(spindleSpeeds)
+    const compactSpindleFrameSpeeds = isLaser
+        ? toCompactFloat32Array(toUsedFloat32View(spindleFrameSpeeds))
         : new Float32Array(0);
     markProfile(profiler, 'after_typed_array_build');
     sampleHeap(profiler, 'after_typed_array_build');
@@ -1106,7 +1096,7 @@ self.onmessage = function ({ data }: { data: WorkerData }) {
         // Non-laser jobs can use colorArray directly; no duplicate saved buffer needed.
         if (isLaser) {
             savedColorsArray = new Float32Array(colorArray);
-            if (spindleChanges.length > 0 && savedColorsArray.length > 0) {
+            if (spindleFrameSpeeds.length > 0 && savedColorsArray.length > 0) {
                 const defaultColor = new THREE.Color(theme.get(LASER_PART) ?? '#FFF');
                 const fillColor = new THREE.Color(theme.get(BACKGROUND_PART) ?? '#FFF');
                 const laserR = defaultColor.r;
@@ -1116,7 +1106,7 @@ self.onmessage = function ({ data }: { data: WorkerData }) {
                 const fillG = fillColor.g;
                 const fillB = fillColor.b;
                 const totalVertices = colorArray.length / 4;
-                const frameCount = Math.min(tFrames.length, spindleChanges.length);
+                const frameCount = Math.min(tFrames.length, spindleFrameSpeeds.length);
                 const calculateOpacity = (speed: number) => {
                     if (maxSpindleSpeed <= 0) {
                         return 1;
@@ -1131,12 +1121,9 @@ self.onmessage = function ({ data }: { data: WorkerData }) {
                         continue;
                     }
 
-                    const spindleState = spindleChanges[i];
-                    const spindleIsOn = spindleState?.spindleOn ?? false;
-                    const spindleSpeedAtFrame = spindleState?.spindleSpeed ?? 0;
-                    const alpha = spindleIsOn
-                        ? calculateOpacity(spindleSpeedAtFrame)
-                        : 0.05;
+                    const speed = spindleFrameSpeeds.data[i];
+                    const spindleIsOn = speed > 0;
+                    const alpha = spindleIsOn ? calculateOpacity(speed) : 0.05;
                     const r = spindleIsOn ? laserR : fillR;
                     const g = spindleIsOn ? laserG : fillG;
                     const b = spindleIsOn ? laserB : fillB;
@@ -1161,7 +1148,6 @@ self.onmessage = function ({ data }: { data: WorkerData }) {
     const compactFrames = toCompactUint32Array(tFrames);
     const compactColorArray = toCompactFloat32Array(colorArray);
     const compactSavedColorsArray = toCompactFloat32Array(savedColorsArray);
-    const compactSpindleSpeeds = toCompactFloat32Array(tSpindleSpeeds);
 
     if (profiler) {
         profiler.counts.virtualized_lines = virtualizedLines;
@@ -1171,8 +1157,7 @@ self.onmessage = function ({ data }: { data: WorkerData }) {
         profiler.counts.color_values_len = colorValues.length;
         profiler.counts.color_vertices_len = colorVertexCount;
         profiler.counts.toolchanges_len = toolchanges.length;
-        profiler.counts.spindle_changes_len = spindleChanges.length;
-        profiler.counts.spindle_speeds_len = spindleSpeeds.length;
+        profiler.counts.spindle_frame_speeds_len = spindleFrameSpeeds.length;
         profiler.counts.paths_len = paths.length;
         profiler.counts.estimates_len = estimates.length;
         profiler.counts.invalid_lines_len = fileInfo.invalidLines?.length || 0;
@@ -1183,13 +1168,11 @@ self.onmessage = function ({ data }: { data: WorkerData }) {
         profiler.bytes.frames_bytes = compactFrames.byteLength;
         profiler.bytes.color_bytes = compactColorArray.byteLength;
         profiler.bytes.saved_color_bytes = compactSavedColorsArray.byteLength;
-        profiler.bytes.spindle_speeds_bytes = compactSpindleSpeeds.byteLength;
+        profiler.bytes.spindle_frame_speeds_bytes = compactSpindleFrameSpeeds.byteLength;
         profiler.bytes.vertices_capacity_bytes = tVertices.buffer.byteLength;
         profiler.bytes.frames_capacity_bytes = tFrames.buffer.byteLength;
         profiler.bytes.color_capacity_bytes = colorArray.buffer.byteLength;
         profiler.bytes.saved_color_capacity_bytes = savedColorsArray.buffer.byteLength;
-        profiler.bytes.spindle_speeds_capacity_bytes =
-            tSpindleSpeeds.buffer.byteLength;
     }
 
     const effectiveVisualizer = activeVisualizer ?? visualizer;
@@ -1213,9 +1196,8 @@ self.onmessage = function ({ data }: { data: WorkerData }) {
             info: any;
             invalidLines: string[];
         };
-        spindleSpeeds?: ArrayBuffer;
-        spindleLen?: number;
-        spindleChanges?: SpindleValues[];
+        spindleFrameSpeeds?: ArrayBuffer;
+        spindleFrameLen?: number;
         isLaser?: boolean;
         isSecondary?: boolean;
         activeVisualizer?: VISUALIZER_TYPES_T;
@@ -1243,10 +1225,9 @@ self.onmessage = function ({ data }: { data: WorkerData }) {
     };
 
     if (isLaser) {
-        geometryMessage.spindleSpeeds = compactSpindleSpeeds.buffer;
-        geometryMessage.spindleLen = tSpindleSpeeds.length;
+        geometryMessage.spindleFrameSpeeds = compactSpindleFrameSpeeds.buffer;
+        geometryMessage.spindleFrameLen = compactSpindleFrameSpeeds.length;
         geometryMessage.isLaser = isLaser;
-        geometryMessage.spindleChanges = spindleChanges;
     }
 
     const transferList: ArrayBuffer[] = [
@@ -1256,7 +1237,7 @@ self.onmessage = function ({ data }: { data: WorkerData }) {
         compactSavedColorsArray.buffer,
     ];
     if (isLaser) {
-        transferList.push(compactSpindleSpeeds.buffer);
+        transferList.push(compactSpindleFrameSpeeds.buffer);
     }
 
     markProfile(profiler, 'before_post_message');
@@ -1266,8 +1247,8 @@ self.onmessage = function ({ data }: { data: WorkerData }) {
         profiler.bytes.color_transfer_bytes = compactColorArray.byteLength;
         profiler.bytes.saved_color_transfer_bytes =
             compactSavedColorsArray.byteLength;
-        profiler.bytes.spindle_speeds_transfer_bytes =
-            compactSpindleSpeeds.byteLength;
+        profiler.bytes.spindle_frame_speeds_transfer_bytes =
+            compactSpindleFrameSpeeds.byteLength;
         profiler.bytes.transfer_total_bytes = transferList.reduce(
             (acc, buffer) => acc + buffer.byteLength,
             0,
@@ -1277,7 +1258,7 @@ self.onmessage = function ({ data }: { data: WorkerData }) {
             tFrames.buffer.byteLength +
             colorArray.buffer.byteLength +
             savedColorsArray.buffer.byteLength +
-            tSpindleSpeeds.buffer.byteLength;
+            spindleFrameSpeeds.data.buffer.byteLength;
         profiler.bytes.transfer_saved_bytes =
             profiler.bytes.transfer_capacity_total_bytes -
             profiler.bytes.transfer_total_bytes;

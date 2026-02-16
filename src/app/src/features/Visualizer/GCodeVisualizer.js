@@ -42,8 +42,6 @@ class GCodeVisualizer {
         this.vertices = [];
         this.colors = [];
         this.originalColors = null;
-        this.spindleSpeeds = null;
-        this.spindleChanges = null;
         this.isLaser = false;
         this.frames = []; // Example
         this.frameIndex = 0;
@@ -64,15 +62,13 @@ class GCodeVisualizer {
     }
 
     render(
-        { vertices, frames, spindleSpeeds, isLaser = false, spindleChanges },
+        { vertices, frames, isLaser = false },
         colorArray,
         savedColors,
     ) {
         this.vertices = new THREE.BufferAttribute(vertices, 3);
         this.frames = frames;
-        this.spindleSpeeds = spindleSpeeds;
         this.isLaser = isLaser;
-        this.spindleChanges = spindleChanges;
         const baseColors =
             savedColors && savedColors.length === colorArray.length
                 ? savedColors

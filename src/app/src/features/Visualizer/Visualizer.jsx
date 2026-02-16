@@ -2547,12 +2547,6 @@ class Visualizer extends Component {
                 vizualization.frames,
                 vizualization.framesLen,
             ),
-            spindleSpeeds: vizualization.spindleSpeeds
-                ? toBoundedFloat32Array(
-                      vizualization.spindleSpeeds,
-                      vizualization.spindleLen,
-                  )
-                : new Float32Array(0),
         };
 
         const hideProcessedLines = store.get(
