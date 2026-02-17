@@ -7,6 +7,7 @@ import {
     IToolListing,
     ToolInstance,
 } from 'app/features/ATC/components/ToolTable.tsx';
+import { ToolFlags } from 'app/features/ATC/types.ts';
 import { Confirm } from 'app/components/ConfirmationDialog/ConfirmationDialogLib.ts';
 import * as THREE from 'three';
 import pubsub from 'pubsub-js';
@@ -28,28 +29,29 @@ export function mapToolNicknamesAndStatus(
     Object.values(tools).forEach((tool) => {
         tool = { ...tool };
         tool.nickname = lookupToolName(tool.id);
-        if (tool.toolOffsets.z < 0) {
-            tool.status = 'probed';
-        } else {
-            tool.status = 'unprobed';
-        }
-        if (tool.id > rackSize) {
-            tool.status = 'offrack';
-        }
+        const flags = getToolFlags(tool.id, rackSize, tool.toolOffsets.z);
+        tool.status = flags.probeState;
+        tool.isManual = flags.isManual;
         toolsArray.push(tool);
     });
     return toolsArray;
 }
 
+export function getToolFlags(
+    toolNumber: number,
+    rackSize: number,
+    zOffset: number,
+): ToolFlags {
+    return {
+        probeState: zOffset < 0 ? 'probed' : 'unprobed',
+        isManual: toolNumber > rackSize,
+    };
+}
+
 function setToolStatus(tool: ToolInstance, rackSize): ToolInstance {
-    if (tool.toolOffsets.z < 0) {
-        tool.status = 'probed';
-    } else {
-        tool.status = 'unprobed';
-    }
-    if (tool.id > rackSize) {
-        tool.status = 'offrack';
-    }
+    const flags = getToolFlags(tool.id, rackSize, tool.toolOffsets.z);
+    tool.status = flags.probeState;
+    tool.isManual = flags.isManual;
     return tool;
 }
 
@@ -107,11 +109,8 @@ export function loadAndSaveToRack(toolID) {
     controller.command('gcode', [`G65 P901 Q${toolID}`, '$#']);
 }
 
-export function saveToRack(toolID) {
-    controller.command('gcode', [`G65 P901 Q${toolID}`, '$#']);
-}
 
-export type LoadToolMode = 'load' | 'save' | 'loadAndSave';
+export type LoadToolMode = 'load' | 'manual' | 'unload' | 'loadAndSave';
 
 export function isATCAvailable() {
     const reduxState = reduxStore.getState();
@@ -148,7 +147,7 @@ export function sendATCHomingDialog() {
     }
 }
 
-// Keep in sync with src/app/src/workers/colors.worker.js.
+// Keep in sync with toolpathColors in src/app/src/workers/Visualize.worker.ts.
 const toolpathColors = [
     new THREE.Color(0.29, 0.56, 0.89), // #4A90E2
     new THREE.Color(0.94, 0.54, 0.31), // #F08A4F
