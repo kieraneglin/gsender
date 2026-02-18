@@ -400,6 +400,10 @@ const defaultState: State = {
             showLineWarnings: false,
             showSoftLimitWarning: false,
             hideProcessedLines: false,
+            debug: {
+                profileWorker: true,
+                profileSampleEvery: 10000
+            }
         },
     },
     commandKeys: {},

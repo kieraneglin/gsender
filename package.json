@@ -101,7 +101,7 @@
     "productName": "gSender Edge",
     "generateUpdatesFilesForAllChannels": true,
     "npmRebuild": false,
-    "compression": "maximum",
+    "compression": "store",
     "removePackageScripts": true,
     "buildDependenciesFromSource": false,
     "files": [

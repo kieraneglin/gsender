@@ -38,10 +38,12 @@ import { Confirm } from 'app/components/ConfirmationDialog/ConfirmationDialogLib
 // @ts-ignore
 import VisualizeWorker from 'app/workers/Visualize.worker';
 import {
+    setActiveVisualizeJobId,
     shouldVisualize,
     visualizeResponse,
 } from 'app/workers/Visualize.response';
 import { isLaserMode } from 'app/lib/laserMode';
+import { getVisualizerTheme } from 'app/lib/getVisualizerTheme';
 import {
     RENDER_LOADING,
     RENDER_RENDERED,
@@ -108,7 +110,6 @@ import {
     updateFileProcessing,
     updateFileRenderState,
 } from '../slices/fileInfo.slice';
-import { getEstimateData } from 'app/lib/indexedDB';
 import { setIpList } from '../slices/preferences.slice';
 import { updateJobOverrides } from '../slices/visualizer.slice';
 import { toast } from 'app/lib/toaster';
@@ -121,11 +122,24 @@ import get from 'lodash/get';
 
 export function* initialize(): Generator<any, void, any> {
     let visualizeWorker: typeof VisualizeWorker | null = null;
+    let visualizeJobId = 0;
     // let estimateWorker: EstimateWorker | null = null;
     let currentState: GRBL_ACTIVE_STATES_T = GRBL_ACTIVE_STATE_IDLE;
     let prevState: GRBL_ACTIVE_STATES_T = GRBL_ACTIVE_STATE_IDLE;
     let errors: any[] = [];
-    let finishLoad = false;
+    let latestEstimateData: { estimates: number[]; estimatedTime: number } = {
+        estimates: [],
+        estimatedTime: 0,
+    };
+    let hasEstimateData = false;
+
+    const clearEstimateDataCache = () => {
+        latestEstimateData = {
+            estimates: [],
+            estimatedTime: 0,
+        };
+        hasEstimateData = false;
+    };
 
     /* Health check - every 3 minutes */
     setInterval(
@@ -212,6 +226,13 @@ export function* initialize(): Generator<any, void, any> {
         const reduxState = reduxStore.getState();
         const isLaser = isLaserMode();
         const shouldIncludeSVG = shouldVisualizeSVG();
+        const profileWorker = store.get(
+            'widgets.visualizer.debug.profileWorker',
+            false,
+        );
+        const profileSampleEvery = Number(
+            store.get('widgets.visualizer.debug.profileSampleEvery', 10000),
+        );
         const accelerations = {
             xAccel: _get(reduxState, 'controller.settings.settings.$120'),
             yAccel: _get(reduxState, 'controller.settings.settings.$121'),
@@ -255,6 +276,9 @@ export function* initialize(): Generator<any, void, any> {
             isNewFile = false;
         }
 
+        // Ensure a previous parse worker does not continue emitting stale messages.
+        visualizeWorker?.terminate();
+
         if (visualizer === VISUALIZER_SECONDARY) {
             reduxStore.dispatch(
                 updateFileRenderState({ renderState: RENDER_LOADING }),
@@ -282,16 +306,23 @@ export function* initialize(): Generator<any, void, any> {
                     { type: 'module' },
                 );
                 visualizeWorker.onmessage = visualizeResponse;
-                // await getParsedData().then((value) => {
+                const jobId = ++visualizeJobId;
+                setActiveVisualizeJobId(jobId);
                 visualizeWorker.postMessage({
+                    jobId,
                     content,
                     visualizer,
-                    isLaser,
+                    activeVisualizer: visualizer,
+                    isSecondary: visualizer === VISUALIZER_SECONDARY,
                     isNewFile,
+                    isLaser,
                     accelerations,
                     maxFeedrates,
                     atcEnabled,
                     rotaryDiameterOffsetEnabled,
+                    theme: getVisualizerTheme(),
+                    profile: profileWorker,
+                    profileSampleEvery,
                 });
             } else {
                 reduxStore.dispatch(
@@ -334,9 +365,15 @@ export function* initialize(): Generator<any, void, any> {
             { type: 'module' },
         );
         visualizeWorker.onmessage = visualizeResponse;
+        const jobId = ++visualizeJobId;
+        setActiveVisualizeJobId(jobId);
+        console.time('gSender:fileLoad');
         visualizeWorker.postMessage({
+            jobId,
             content,
             visualizer,
+            activeVisualizer: visualizer,
+            isSecondary: visualizer === VISUALIZER_SECONDARY,
             isLaser,
             shouldIncludeSVG,
             needsVisualization,
@@ -345,6 +382,9 @@ export function* initialize(): Generator<any, void, any> {
             maxFeedrates,
             atcEnabled,
             rotaryDiameterOffsetEnabled,
+            theme: getVisualizerTheme(),
+            profile: profileWorker,
+            profileSampleEvery,
         });
     };
 
@@ -660,7 +700,7 @@ export function* initialize(): Generator<any, void, any> {
     });
 
     controller.addListener('gcode:load', (name: string, content: string) => {
-        finishLoad = false;
+        clearEstimateDataCache();
         const size = new Blob([content]).size;
         reduxStore.dispatch(updateFileContent({ content, size, name }));
     });
@@ -673,6 +713,7 @@ export function* initialize(): Generator<any, void, any> {
     );
 
     controller.addListener('gcode:unload', () => {
+        clearEstimateDataCache();
         reduxStore.dispatch(unloadFileInfo());
     });
 
@@ -719,16 +760,14 @@ export function* initialize(): Generator<any, void, any> {
     );
 
     controller.addListener('requestEstimateData', () => {
-        if (finishLoad) {
-            finishLoad = false;
-            getEstimateData().then((value) => {
-                controller.command('updateEstimateData', value);
-            });
+        if (hasEstimateData) {
+            controller.command('updateEstimateData', latestEstimateData);
         }
     });
 
     // // Need this to handle unload when machine not connected since controller event isn't sent
     pubsub.subscribe('gcode:unload', () => {
+        clearEstimateDataCache();
         reduxStore.dispatch(unloadFileInfo());
     });
 
@@ -737,12 +776,22 @@ export function* initialize(): Generator<any, void, any> {
         visualizeWorker?.terminate();
     });
 
-    pubsub.subscribe('parsedData:stored', () => {
-        finishLoad = true;
-        getEstimateData().then((value) => {
-            controller.command('updateEstimateData', value);
-        });
-    });
+    pubsub.subscribe(
+        'estimateData:ready',
+        (
+            _msg,
+            value: { estimates?: number[]; estimatedTime?: number } = {},
+        ) => {
+            latestEstimateData = {
+                estimates: Array.isArray(value?.estimates)
+                    ? value.estimates
+                    : [],
+                estimatedTime: Number(value?.estimatedTime) || 0,
+            };
+            hasEstimateData = true;
+            controller.command('updateEstimateData', latestEstimateData);
+        },
+    );
 
     // // for when you don't want to send file to backend
     // pubsub.subscribe(
