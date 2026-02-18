@@ -77,6 +77,7 @@ import {
     updateFeederStatus,
     updateWorkflowState,
     addSpindle,
+    clearSpindles,
     updateAlarmDescriptions,
     updateSettingsDescriptions,
     updateHomingFlag,
@@ -516,6 +517,7 @@ export function* initialize(): Generator<any, void, any> {
                 'workspace.rotaryAxis.useAaxisForGrbl',
                 false,
             );
+            reduxStore.dispatch(clearSpindles());
             // Reset homing run flag to prevent rapid position without running homing
             reduxStore.dispatch(resetHoming());
 
@@ -553,6 +555,7 @@ export function* initialize(): Generator<any, void, any> {
     controller.addListener(
         'serialport:close',
         (options: SerialPortOptions, _received: number) => {
+            reduxStore.dispatch(clearSpindles());
             // Reset homing run flag to prevent rapid position without running homing
             reduxStore.dispatch(resetHoming());
             reduxStore.dispatch(closeConnection({ port: options.port }));
