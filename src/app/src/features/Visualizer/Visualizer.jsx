@@ -60,8 +60,6 @@ import * as WebGL from 'app/lib/three/WebGL';
 import _ from 'lodash';
 import store from 'app/store';
 
-import { colorsResponse } from 'app/workers/colors.response';
-
 import controller from '../../lib/controller';
 import { getBoundingBox, loadSTL, loadTexture } from './helpers';
 import Viewport from './Viewport';
@@ -150,8 +148,6 @@ class Visualizer extends Component {
     };
 
     vizualization = null;
-
-    colorsWorker = null;
 
     renderCallback = null;
 
@@ -1055,9 +1051,36 @@ class Visualizer extends Component {
                     this.visualizer.setHideProcessedLines(hideProcessedLines);
                 }
             }),
+            pubsub.subscribe('spindle:mode', () => {
+                if (!this.cuttingTool || !this.laserPointer || !this.cuttingPointer) {
+                    return;
+                }
+                const { state, isConnected } = this.props;
+                const { liteMode } = state;
+                const isLaser = isLaserMode();
+                if (isConnected) {
+                    this.cuttingTool.visible =
+                        !isLaser &&
+                        (liteMode
+                            ? state.objects.cuttingTool.visibleLite
+                            : state.objects.cuttingTool.visible);
+                    this.laserPointer.visible =
+                        isLaser &&
+                        (liteMode
+                            ? state.objects.cuttingTool.visibleLite
+                            : state.objects.cuttingTool.visible);
+                    this.cuttingPointer.visible = liteMode
+                        ? !state.objects.cuttingTool.visibleLite
+                        : !state.objects.cuttingTool.visible;
+                } else {
+                    this.cuttingTool.visible = false;
+                    this.laserPointer.visible = false;
+                    this.cuttingPointer.visible = false;
+                }
+                this.updateScene({ forceUpdate: true });
+            }),
             pubsub.subscribe('file:load', (msg, data) => {
                 const { isSecondary, activeVisualizer } = this.props;
-                pubsub.publish('visualizeWorker:terminate');
 
                 const showWarningsOnLoad = store.get(
                     'widgets.visualizer.showWarning',
@@ -1164,18 +1187,6 @@ class Visualizer extends Component {
                 this.updateCuttingToolPosition(data, {
                     forceUpdateAllAxes: true,
                 });
-            }),
-            pubsub.subscribe('colors:load', (_, data) => {
-                const { colorArrayBuffer, savedColorsBuffer } = data;
-                this.handleSceneRender(
-                    this.vizualization,
-                    new Float32Array(colorArrayBuffer),
-                    new Float32Array(savedColorsBuffer),
-                    this.renderCallback,
-                );
-                if (this.colorsWorker) {
-                    this.colorsWorker.terminate();
-                }
             }),
             pubsub.subscribe('outline:start', () => {
                 if (this.outlineRunning) {
@@ -1790,8 +1801,8 @@ class Visualizer extends Component {
                         this.cuttingTool = object;
                         this.cuttingTool.name = 'CuttingTool';
                         this.cuttingTool.visible =
-                            isConnected &&
-                            !isLaser &&
+                            this.props.isConnected &&
+                            !isLaserMode() &&
                             (liteMode
                                 ? state.objects.cuttingTool.visibleLite
                                 : state.objects.cuttingTool.visible);
@@ -2436,6 +2447,7 @@ class Visualizer extends Component {
         reduxStore.dispatch(
             updateFileRenderState({ renderState: RENDER_RENDERED }),
         );
+        console.timeEnd('gSender:fileLoad');
 
         typeof callback === 'function' && callback({ bbox: bbox });
 
@@ -2490,11 +2502,51 @@ class Visualizer extends Component {
         const { setVisualizerReady } = this.props.actions;
         this.visualizer = new GCodeVisualizer(currentTheme);
 
+        const toBoundedFloat32Array = (buffer, length) => {
+            if (!buffer || typeof buffer.byteLength !== 'number') {
+                return new Float32Array(0);
+            }
+            const maxLength = Math.floor(
+                buffer.byteLength / Float32Array.BYTES_PER_ELEMENT,
+            );
+            const safeLength = Number.isFinite(length)
+                ? Math.min(Math.max(Math.floor(length), 0), maxLength)
+                : maxLength;
+            return new Float32Array(buffer, 0, safeLength);
+        };
+
+        const toBoundedUint32Array = (buffer, length) => {
+            if (!buffer || typeof buffer.byteLength !== 'number') {
+                return new Uint32Array(0);
+            }
+            const maxLength = Math.floor(
+                buffer.byteLength / Uint32Array.BYTES_PER_ELEMENT,
+            );
+            const safeLength = Number.isFinite(length)
+                ? Math.min(Math.max(Math.floor(length), 0), maxLength)
+                : maxLength;
+            return new Uint32Array(buffer, 0, safeLength);
+        };
+
+        const colorArray = toBoundedFloat32Array(
+            vizualization.colorArrayBuffer,
+            vizualization.colorLen,
+        );
+        const savedColors = toBoundedFloat32Array(
+            vizualization.savedColorsBuffer,
+            vizualization.savedColorLen,
+        );
+
         const visualization = {
             ...vizualization,
-            vertices: new Float32Array(vizualization.vertices),
-            frames: new Uint32Array(vizualization.frames),
-            spindleSpeeds: new Float32Array(vizualization.spindleSpeeds),
+            vertices: toBoundedFloat32Array(
+                vizualization.vertices,
+                vizualization.verticesLen,
+            ),
+            frames: toBoundedUint32Array(
+                vizualization.frames,
+                vizualization.framesLen,
+            ),
         };
 
         const hideProcessedLines = store.get(
@@ -2519,24 +2571,12 @@ class Visualizer extends Component {
                 this.redrawGrids();
             }
 
-            const colorsWorker = new Worker(
-                new URL('../../workers/colors.worker.js', import.meta.url),
-                { type: 'module' },
+            this.handleSceneRender(
+                visualization,
+                colorArray,
+                savedColors,
+                callback,
             );
-
-            this.colorsWorker = colorsWorker;
-            this.colorsWorker.onmessage = colorsResponse;
-            this.colorsWorker.postMessage({
-                colors: visualization.colors,
-                frames: visualization.frames,
-                spindleSpeeds: visualization.spindleSpeeds,
-                isLaser: visualization.isLaser,
-                spindleChanges: visualization.spindleChanges,
-                theme: currentTheme,
-                toolchanges: visualization.info.toolchanges,
-            });
-
-            // this.handleSceneRender(vizualization, callback);
         } else {
             setVisualizerReady();
         }

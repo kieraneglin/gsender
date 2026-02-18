@@ -1,6 +1,6 @@
 
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { useLongPress } from 'use-long-press';
+import { LongPressCallbackReason, useLongPress } from 'use-long-press';
 
 import { cn } from 'app/lib/utils';
 
@@ -13,7 +13,12 @@ export type LongPressButtonOptions = {
 
 export type LongPressButtonProps = Omit<
     React.ButtonHTMLAttributes<HTMLButtonElement>,
-    'onClick' | 'onPointerDown' | 'onPointerUp' | 'onPointerLeave' | 'onPointerCancel'
+    | 'onClick'
+    | 'onPointerDown'
+    | 'onPointerUp'
+    | 'onPointerLeave'
+    | 'onPointerCancel'
+    | 'onTouchCancel'
 > & {
     label: React.ReactNode;
     icon?: React.ReactNode;
@@ -30,6 +35,19 @@ const defaultOptions: LongPressButtonOptions = {
     progressDelayMs: 100,
     progressHideDelayMs: 140,
     flashDurationMs: 160,
+};
+
+const isTouchInput = (
+    event:
+        | React.MouseEvent<Element>
+        | React.TouchEvent<Element>
+        | React.PointerEvent<Element>,
+) => {
+    if ('pointerType' in event && typeof event.pointerType === 'string') {
+        return event.pointerType === 'touch';
+    }
+
+    return 'touches' in event;
 };
 
 export const LongPressButton: React.FC<LongPressButtonProps> = ({
@@ -60,7 +78,7 @@ export const LongPressButton: React.FC<LongPressButtonProps> = ({
     const progressDelayTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
     const progressHideTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
     const flashTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-    const touchCancelledRef = useRef(false);
+    const pressCancelledRef = useRef(false);
 
     const clearPressTimers = useCallback(() => {
         if (progressDelayTimeoutRef.current) {
@@ -129,6 +147,12 @@ export const LongPressButton: React.FC<LongPressButtonProps> = ({
         rafRef.current = requestAnimationFrame(update);
     }, [resolvedOptions.holdDurationMs]);
 
+    const handlePressCancel = useCallback(() => {
+        pressCancelledRef.current = true;
+        clearPressTimers();
+        stopProgress(0);
+    }, [clearPressTimers, stopProgress]);
+
     const longPressHandlers = useLongPress(
         () => {
             if (disabled) {
@@ -144,6 +168,7 @@ export const LongPressButton: React.FC<LongPressButtonProps> = ({
         },
         {
             threshold: resolvedOptions.holdDurationMs,
+            cancelOnMovement: true,
             filterEvents: (event) => {
                 if (disabled) {
                     return false;
@@ -153,11 +178,15 @@ export const LongPressButton: React.FC<LongPressButtonProps> = ({
                 }
                 return true;
             },
-            onStart: () => {
+            onStart: (event) => {
                 if (disabled) {
                     return;
                 }
-                touchCancelledRef.current = false;
+                if (isTouchInput(event)) {
+                    event.preventDefault();
+                }
+
+                pressCancelledRef.current = false;
                 startTimeRef.current = performance.now();
                 setProgress(0);
                 setIsFlashing(false);
@@ -174,27 +203,30 @@ export const LongPressButton: React.FC<LongPressButtonProps> = ({
                 }, resolvedOptions.progressDelayMs);
                 startProgressLoop();
             },
-            onCancel: () => {
+            onCancel: (event, meta) => {
                 clearPressTimers();
                 stopProgress(0);
-                if (touchCancelledRef.current) {
-                    touchCancelledRef.current = false;
+                if (pressCancelledRef.current) {
+                    pressCancelledRef.current = false;
                     return;
                 }
                 if (disabled) {
                     return;
                 }
+                if (meta.reason !== LongPressCallbackReason.CancelledByRelease) {
+                    return;
+                }
+
+                if (isTouchInput(event)) {
+                    event.preventDefault();
+                }
+
                 if (onClick) {
                     onClick();
                 }
             },
-            onTouchCancel: () => {
-                touchCancelledRef.current = true;
-                clearPressTimers();
-                stopProgress(0);
-            },
             onFinish: () => {
-                touchCancelledRef.current = false;
+                pressCancelledRef.current = false;
                 clearPressTimers();
                 stopProgress(resolvedOptions.progressHideDelayMs);
             },
@@ -209,12 +241,15 @@ export const LongPressButton: React.FC<LongPressButtonProps> = ({
                     'relative w-full min-h-12 select-none overflow-hidden rounded-lg border border-blue-500 bg-blue-500 px-4 py-3    text-center text-white shadow-md transition duration-150 hover:opacity-95',
                     'active:shadow-[inset_7px_4px_6px_0px_rgba(30,_64,_175,_0.25)]',
                     'disabled:cursor-not-allowed disabled:border-gray-400 disabled:bg-gray-300 disabled:text-gray-500 disabled:opacity-100 disabled:hover:bg-gray-300 dark:disabled:bg-dark',
+                    'touch-manipulation',
                     isFlashing && 'ring-2 ring-white/70 brightness-110',
                     className,
                 )}
                 disabled={disabled}
                 {...longPressHandlers}
                 onContextMenu={(event) => event.preventDefault()}
+                onPointerCancel={handlePressCancel}
+                onTouchCancel={handlePressCancel}
                 {...rest}
             >
                 {isProgressVisible && (

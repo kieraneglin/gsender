@@ -108,7 +108,7 @@ export function ToolTimeline({
     return (
         <div
             className={cn('bg-gray-500 bg-opacity-70 rounded-xl', {
-                'w-[28rem]': !isCollapsed,
+                'w-[27rem]': !isCollapsed,
             })}
         >
             <div className="shadow-xl p-0.5">
