@@ -69,6 +69,7 @@ class GCodeVisualizer {
         this.vertices = new THREE.BufferAttribute(vertices, 3);
         this.frames = frames;
         this.isLaser = isLaser;
+        this.isRotaryFile = false;
         const baseColors =
             savedColors && savedColors.length === colorArray.length
                 ? savedColors
