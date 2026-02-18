@@ -34,22 +34,10 @@ import {
     G2_PART,
     G3_PART,
     LASER_PART,
+    TOOLPATH_COLOR_HEXES,
 } from 'app/features/Visualizer/constants';
 
-const toolpathColors = [
-    new THREE.Color('#4A90E2'),
-    new THREE.Color('#F08A4F'),
-    new THREE.Color('#D74296'),
-    new THREE.Color('#42D7BA'),
-    new THREE.Color('#A7D742'),
-    new THREE.Color('#C44C36'),
-    new THREE.Color('#A142D7'),
-    new THREE.Color('#4296D7'),
-    new THREE.Color('#D7BA42'),
-    new THREE.Color('#42D763'),
-    new THREE.Color('#D742C4'),
-    new THREE.Color('#D74242'),
-];
+const toolpathColors = TOOLPATH_COLOR_HEXES.map((hex) => new THREE.Color(hex));
 
 const getComplementaryColour = (tcCounter: number): number => {
     const len = toolpathColors.length;

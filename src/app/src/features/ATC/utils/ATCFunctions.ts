@@ -10,6 +10,7 @@ import {
 import { ToolFlags } from 'app/features/ATC/types.ts';
 import { Confirm } from 'app/components/ConfirmationDialog/ConfirmationDialogLib.ts';
 import * as THREE from 'three';
+import { TOOLPATH_COLOR_HEXES } from 'app/features/Visualizer/constants';
 import pubsub from 'pubsub-js';
 
 export function unimplemented() {
@@ -147,21 +148,7 @@ export function sendATCHomingDialog() {
     }
 }
 
-// Keep in sync with toolpathColors in src/app/src/workers/Visualize.worker.ts.
-const toolpathColors = [
-    new THREE.Color('#4A90E2'),
-    new THREE.Color('#F08A4F'),
-    new THREE.Color('#D74296'),
-    new THREE.Color('#42D7BA'),
-    new THREE.Color('#A7D742'),
-    new THREE.Color('#C44C36'),
-    new THREE.Color('#A142D7'),
-    new THREE.Color('#4296D7'),
-    new THREE.Color('#D7BA42'),
-    new THREE.Color('#42D763'),
-    new THREE.Color('#D742C4'),
-    new THREE.Color('#D74242'),
-];
+const toolpathColors = TOOLPATH_COLOR_HEXES.map((hex) => new THREE.Color(hex));
 
 /**
  * Always returns the index into `toolpathColors` for a given tool-change counter.
