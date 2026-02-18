@@ -32,7 +32,7 @@ const TOOL_OPTIONS = {
         'End Mill (Ball Nose) - 3/8"',
         'End Mill (Ball Nose) - 1/4"',
         'End Mill (Ball Nose) - 1/8"',
-        'End Mill (Corncob) - 1/16"',
+        'End Mill (Corncob) - 1/16" / 1.6mm',
         'V-Bit - 120 Degree',
         'V-Bit - 90 Degree',
         'V-Bit - 60 Degree',
