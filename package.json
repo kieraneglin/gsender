@@ -284,7 +284,7 @@
     "@radix-ui/react-toggle": "^1.1.0",
     "@radix-ui/react-toggle-group": "^1.1.0",
     "@radix-ui/react-tooltip": "^1.1.2",
-    "@react-pdf/renderer": "3.1.14",
+    "@react-pdf/renderer": "^4.3.2",
     "@reduxjs/toolkit": "^2.2.7",
     "@sentry/esbuild-plugin": "^4.4.0",
     "@sentry/vite-plugin": "^3.5.0",
@@ -385,21 +385,6 @@
     "vite-tsconfig-paths": "5.0.1",
     "xterm": "^5.3.0",
     "xterm-addon-fit": "^0.8.0"
-  },
-  "overrides": {
-    "@react-pdf/fns": "2.0.1",
-    "@react-pdf/font": "2.3.7",
-    "@react-pdf/image": "2.2.2",
-    "@react-pdf/layout": "3.6.3",
-    "@react-pdf/pdfkit": "3.0.2",
-    "@react-pdf/png-js": "2.2.0",
-    "@react-pdf/primitives": "3.0.1",
-    "@react-pdf/render": "3.2.7",
-    "@react-pdf/renderer": "3.1.14",
-    "@react-pdf/stylesheet": "4.1.8",
-    "@react-pdf/textkit": "4.2.0",
-    "@react-pdf/types": "2.3.4",
-    "@react-pdf/yoga": "4.1.2"
   },
   "packageManager": "yarn@1.22.22"
 }
