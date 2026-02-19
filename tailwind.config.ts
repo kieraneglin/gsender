@@ -115,7 +115,7 @@ export default {
         },
         rotate: {
           "0%": { transform: "rotate(0deg) scale(10)" },
-          "100%": { transform: "rotate(-360deg) scale(10)" },
+          "100%": { transform: "rotate(360deg) scale(10)" },
         },
         glowPulse: {
           "0%, 100%": {
