@@ -20,6 +20,9 @@ interface PositionInputProps {
     disableZ?: boolean;
     hideZ?: boolean;
     actionLabel?: string;
+    secondaryActionLabel?: string;
+    onSecondaryAction?: () => void;
+    secondaryActionDisabled?: boolean;
     hideLabel?: boolean;
 }
 
@@ -32,9 +35,13 @@ export const PositionInput: React.FC<PositionInputProps> = ({
     disableZ = false,
     hideZ = false,
     actionLabel = 'Set Position',
+    secondaryActionLabel,
+    onSecondaryAction,
+    secondaryActionDisabled = false,
     hideLabel = false,
 }) => {
     const { units } = useWorkspaceState();
+    const hasSecondaryAction = Boolean(secondaryActionLabel && onSecondaryAction);
     const validateZ = !disableZ && !hideZ;
     const hasZeroAxis =
         !disabled &&
@@ -61,14 +68,14 @@ export const PositionInput: React.FC<PositionInputProps> = ({
     });
 
     return (
-        <div className="flex flex-wrap items-center gap-3 py-1 portrait:w-full">
+        <div className="flex flex-wrap items-start gap-3 py-1 w-full">
             {!hideLabel && (
                 <Label className="text-xs font-medium">{label}</Label>
             )}
-            <div className="flex items-center gap-2 portrait:w-full">
+            <div className="flex items-start gap-2 flex-1 w-full">
                 <div
                     className={cn(
-                        'flex items-center gap-2 rounded-md border p-2 portrait:flex-col portrait:items-stretch portrait:gap-1 portrait:w-full flex-1',
+                        'flex flex-col gap-2 rounded-md border p-2 w-full flex-1',
                         hasZeroAxis
                             ? 'border-orange-400 bg-orange-50/10'
                             : 'border-gray-200',
@@ -82,80 +89,98 @@ export const PositionInput: React.FC<PositionInputProps> = ({
                             : undefined
                     }
                 >
-                <div className="flex items-center gap-2 portrait:gap-1 portrait:justify-between">
-                    <div className="flex items-center gap-1">
-                        <Label className="text-xs text-muted-foreground w-4">
-                            X:
-                        </Label>
-                        <Input
-                            type="number"
-                            step="0.1"
-                            value={unitPosition.x}
-                            onChange={(e) =>
-                                handleAxisChange('x', e.target.value)
-                            }
-                            className={cn(
-                                'w-20 h-8 text-xs border-gray-300 focus:border-blue-500 focus:ring-blue-500 portrait:w-24',
-                                hasZeroAxis &&
-                                    'border-orange-400 focus:border-orange-500 focus:ring-orange-500',
-                            )}
-                            disabled={disabled}
-                        />
+                    <div className="flex items-center gap-2 flex-wrap">
+                        <div className="flex items-center gap-1 flex-1 min-w-[6.5rem]">
+                            <Label className="text-xs text-muted-foreground w-4">
+                                X:
+                            </Label>
+                            <Input
+                                type="number"
+                                step="0.1"
+                                value={unitPosition.x}
+                                onChange={(e) =>
+                                    handleAxisChange('x', e.target.value)
+                                }
+                                className={cn(
+                                    'w-full h-8 text-xs border-gray-300 focus:border-blue-500 focus:ring-blue-500',
+                                    hasZeroAxis &&
+                                        'border-orange-400 focus:border-orange-500 focus:ring-orange-500',
+                                )}
+                                disabled={disabled}
+                            />
+                        </div>
+                        <div className="flex items-center gap-1 flex-1 min-w-[6.5rem]">
+                            <Label className="text-xs text-muted-foreground w-4">
+                                Y:
+                            </Label>
+                            <Input
+                                type="number"
+                                step="0.1"
+                                value={unitPosition.y}
+                                onChange={(e) =>
+                                    handleAxisChange('y', e.target.value)
+                                }
+                                className={cn(
+                                    'w-full h-8 text-xs border-gray-300 focus:border-blue-500 focus:ring-blue-500',
+                                    hasZeroAxis &&
+                                        'border-orange-400 focus:border-orange-500 focus:ring-orange-500',
+                                )}
+                                disabled={disabled}
+                            />
+                        </div>
+                        {!hideZ && (
+                            <div
+                                className={cn(
+                                    'flex items-center gap-1 flex-1 min-w-[6.5rem]',
+                                    disableZ && 'max-xl:hidden',
+                                )}
+                            >
+                                <Label className="text-xs text-muted-foreground w-4">
+                                    Z:
+                                </Label>
+                                <Input
+                                    type="number"
+                                    step="0.1"
+                                    value={unitPosition.z}
+                                    onChange={(e) =>
+                                        handleAxisChange('z', e.target.value)
+                                    }
+                                    className={cn(
+                                        'w-full h-8 text-xs border-gray-300 focus:border-blue-500 focus:ring-blue-500',
+                                        hasZeroAxis &&
+                                            'border-orange-400 focus:border-orange-500 focus:ring-orange-500',
+                                    )}
+                                    disabled={disabled || disableZ}
+                                />
+                            </div>
+                        )}
                     </div>
-                    <div className="flex items-center gap-1">
-                        <Label className="text-xs text-muted-foreground w-4">
-                            Y:
-                        </Label>
-                        <Input
-                            type="number"
-                            step="0.1"
-                            value={unitPosition.y}
-                            onChange={(e) =>
-                                handleAxisChange('y', e.target.value)
-                            }
-                            className={cn(
-                                'w-20 h-8 text-xs border-gray-300 focus:border-blue-500 focus:ring-blue-500 portrait:w-24',
-                                hasZeroAxis &&
-                                    'border-orange-400 focus:border-orange-500 focus:ring-orange-500',
-                            )}
-                            disabled={disabled}
-                        />
-                    </div>
-                {!hideZ && (
                     <div
-                        className={`flex items-center gap-1${
-                            disableZ ? ' portrait:hidden' : ''
-                        }`}
+                        className={cn(
+                            'w-full',
+                            hasSecondaryAction && 'grid grid-cols-2 gap-2',
+                        )}
                     >
-                        <Label className="text-xs text-muted-foreground w-4">
-                            Z:
-                        </Label>
-                        <Input
-                            type="number"
-                            step="0.1"
-                            value={unitPosition.z}
-                            onChange={(e) =>
-                                handleAxisChange('z', e.target.value)
-                            }
-                            className={cn(
-                                'w-20 h-8 text-xs border-gray-300 focus:border-blue-500 focus:ring-blue-500 portrait:w-24',
-                                hasZeroAxis &&
-                                    'border-orange-400 focus:border-orange-500 focus:ring-orange-500',
-                            )}
-                            disabled={disabled || disableZ}
-                        />
+                        <Button
+                            size="sm"
+                            onClick={onUseCurrent}
+                            className="h-8 text-xs px-3 flex flex-row gap-1 items-center justify-center w-full"
+                            disabled={disabled}
+                        >
+                            <FiTarget className="h-4 w-4" />
+                            {actionLabel}
+                        </Button>
+                        {hasSecondaryAction && (
+                            <Button
+                                size="sm"
+                                onClick={onSecondaryAction}
+                                className="h-8 text-xs px-3 flex flex-row items-center justify-center w-full"
+                                disabled={disabled || secondaryActionDisabled}
+                            >
+                                {secondaryActionLabel}
+                            </Button>
+                        )}
                     </div>
-                )}
-                </div>
-                <Button
-                    size="sm"
-                    onClick={onUseCurrent}
-                    className="h-8 text-xs px-3 flex flex-row gap-1 items-center portrait:mt-1 portrait:w-full portrait:justify-center"
-                    disabled={disabled}
-                >
-                    <FiTarget className="h-4 w-4" />
-                    {actionLabel}
-                </Button>
                 </div>
             </div>
             <div
