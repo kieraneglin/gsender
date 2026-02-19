@@ -56,8 +56,8 @@ export function Coolant({ mistActive, floodActive }: CoolantProps) {
                     text="Mist"
                     icon={<FaShower />}
                     onClick={startMist}
-                    size="lg"
                     className="w-full px-4 max-xl:px-3 h-16"
+                    size="lg"                    
                     active={mistActive}
                     disabled={!canClick()}
                     tooltip={{ content: 'Turn on mist coolant' }}
@@ -66,8 +66,8 @@ export function Coolant({ mistActive, floodActive }: CoolantProps) {
                     text="Flood"
                     icon={<FaWater />}
                     onClick={startFlood}
-                    size="lg"
-                    className="w-full px-4 max-xl:px-3h-16"
+                    className="w-full px-4 max-xl:px-3 h-16"
+                    size="lg"                    
                     active={floodActive}
                     disabled={!canClick()}
                     tooltip={{ content: 'Turn on flood coolant' }}
@@ -76,8 +76,8 @@ export function Coolant({ mistActive, floodActive }: CoolantProps) {
                     text="Off"
                     icon={<FaBan />}
                     onClick={stopCoolant}
-                    size="lg"
-                    className="w-full px-4 max-xl:px-3h-16"
+                    className="w-full px-4 max-xl:px-3 h-16"
+                    size="lg"                    
                     disabled={!canClick()}
                     tooltip={{ content: 'Turn off coolant' }}
                 />
