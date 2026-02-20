@@ -141,8 +141,8 @@ export default {
       animation: {
         attention: "attention 1s ease-in-out infinite",
         gradient: "gradient-shift 15s ease infinite",
-        rotatef: "rotate 1s linear infinite",
-        rotater: "rotate 1s linear infinite",
+        rotatef: "rotatef 1s linear infinite",
+        rotater: "rotater 1s linear infinite",
         glowPulse: "glowPulse 1.5s ease-in-out infinite",
         glowPacity: "glowPacity 1.5s ease-in-out infinite",
       },
