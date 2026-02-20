@@ -27,7 +27,7 @@ export function ActiveStateButton({
             <div className="relative z-10 flex w-full cursor-pointer items-center overflow-hidden rounded-xl border border-transparent p-[1px]">
                 <div
                     className={cn(
-                        'animate-rotate absolute inset-0 h-full w-full rounded-full bg-[conic-gradient(transparent_0deg,theme(colors.robin.500)_120deg,theme(colors.robin.500)_140deg,transparent_140deg)]',
+                        'animate-rotatef absolute inset-0 h-full w-full rounded-full bg-[conic-gradient(transparent_0deg,theme(colors.robin.500)_120deg,theme(colors.robin.500)_140deg,transparent_140deg)]',
                         {
                             'bg-none': !active,
                         },
