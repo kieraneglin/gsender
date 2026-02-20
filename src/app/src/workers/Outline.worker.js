@@ -26,7 +26,7 @@ import concaveman from 'concaveman';
 self.onmessage = ({ data }) => {
     const { isLaser = false, parsedData = [], mode, bbox, zTravel } = data;
 
-    const getOutlineGcode = (concavity = 6) => {
+    const getOutlineGcode = (concavity = Infinity) => {
         // 1. Extract 2D [x, y] points (parsedData is flat: x0,y0,z0,x1,y1,z1,...)
         const points2D = [];
         for (let i = 0; i < parsedData.length; i += 3) {
