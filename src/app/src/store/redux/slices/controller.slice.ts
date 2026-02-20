@@ -299,9 +299,13 @@ const controllerSlice = createSlice({
         },
         addSpindle: (state, action: PayloadAction<Spindle>) => {
             const otherSpindles = state.spindles.filter(
-                (spindle: Spindle) => spindle.label !== action.payload.label,
+                (spindle: Spindle) =>
+                    String(spindle.id) !== String(action.payload.id),
             );
             state.spindles = [...otherSpindles, action.payload];
+        },
+        clearSpindles: (state) => {
+            state.spindles = [];
         },
         updateControllerType: (
             state,
@@ -360,6 +364,7 @@ export const {
     updateSettingsDescriptions,
     updateAlarmDescriptions,
     addSpindle,
+    clearSpindles,
     updateControllerType,
     updateSDCardMountStatus,
     addSDCardFileToList,

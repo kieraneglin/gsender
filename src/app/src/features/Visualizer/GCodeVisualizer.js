@@ -69,6 +69,7 @@ class GCodeVisualizer {
         this.vertices = new THREE.BufferAttribute(vertices, 3);
         this.frames = frames;
         this.isLaser = isLaser;
+        this.isRotaryFile = false;
         const baseColors =
             savedColors && savedColors.length === colorArray.length
                 ? savedColors
@@ -194,16 +195,14 @@ class GCodeVisualizer {
                         ],
                         offsetIndex,
                     );
-                    colorAttr.updateRange.count =
-                        colorArray.length +
-                        placeHolderArray.length +
-                        bufferColorArray.length;
-                    colorAttr.updateRange.offset = offsetIndex;
+                    colorAttr.addUpdateRange({
+                        start: offsetIndex,
+                        count: colorArray.length + placeHolderArray.length + bufferColorArray.length,
+                    });
                 } else {
                     // if not finished, continue colouring yellow
                     colorAttr.set([...bufferColorArray], bufferOffsetIndex);
-                    colorAttr.updateRange.count = bufferColorArray.length;
-                    colorAttr.updateRange.offset = bufferOffsetIndex;
+                    colorAttr.addUpdateRange({ start: bufferOffsetIndex, count: bufferColorArray.length });
                 }
                 colorAttr.needsUpdate = true;
             } else {
@@ -316,6 +315,7 @@ class GCodeVisualizer {
 
             // if we have reached the end, fill in the rest of the yellow
             // we know its at the end if the amount to update overflows the buffer, or if the frameIndex is at the last frame
+            let updateCount = 0;
             if (
                 this.plannedState !== STATES.DONE &&
                 (isOverflowing || this.frameIndex === this.frames.length - 1)
@@ -332,8 +332,7 @@ class GCodeVisualizer {
                     [...runColorArray, ...newBufferColorArray],
                     offsetIndex,
                 );
-                colorAttr.updateRange.count =
-                    runColorArray.length + newBufferColorArray.length;
+                updateCount = runColorArray.length + newBufferColorArray.length;
                 this.plannedState = STATES.DONE;
                 // beginning lines, for regular start or start from line
             } else if (this.plannedState === STATES.START) {
@@ -351,13 +350,12 @@ class GCodeVisualizer {
                 ).flat();
 
                 colorAttr.set([...runColorArray, ...colorArray], offsetIndex);
-                colorAttr.updateRange.count =
-                    runColorArray.length + colorArray.length;
+                updateCount = runColorArray.length + colorArray.length;
                 this.plannedState = STATES.RUNNING;
                 // if the end has alrdy been reached, only update grey
             } else if (this.plannedState === STATES.DONE) {
                 colorAttr.set(runColorArray, offsetIndex);
-                colorAttr.updateRange.count = runColorArray.length;
+                updateCount = runColorArray.length;
                 // end not reached, update everything
             } else {
                 // set grey lines, planned lines that were previously calculated, and the buffer in between
@@ -369,12 +367,12 @@ class GCodeVisualizer {
                     ],
                     offsetIndex,
                 );
-                colorAttr.updateRange.count =
+                updateCount =
                     runColorArray.length +
                     bufferColorArray.length +
                     this.plannedColorArray.length;
             }
-            colorAttr.updateRange.offset = offsetIndex;
+            colorAttr.addUpdateRange({ start: offsetIndex, count: updateCount });
             colorAttr.needsUpdate = true;
         }
 

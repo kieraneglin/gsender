@@ -4,7 +4,10 @@ import debounce from 'lodash/debounce';
 import pubsub from 'pubsub-js';
 
 import { useTypedSelector } from 'app/hooks/useTypedSelector';
-import { updatePartialControllerSettings } from 'app/store/redux/slices/controller.slice';
+import {
+    clearSpindles,
+    updatePartialControllerSettings,
+} from 'app/store/redux/slices/controller.slice';
 import store from 'app/store';
 import Widget from 'app/components/Widget';
 import controller from 'app/lib/controller';
@@ -561,6 +564,7 @@ const SpindleWidget = () => {
             value: string | number;
         }) => {
             pendingSpindleIdRef.current = selectedSpindle.value;
+            dispatch(clearSpindles());
             const isModernFirmware = firmwarePastVersion(
                 ATCI_SUPPORTED_VERSION,
             );
