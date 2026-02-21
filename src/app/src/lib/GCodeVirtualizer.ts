@@ -1277,11 +1277,11 @@ class GCodeVirtualizer extends EventEmitter {
             const code = values[i];
             if (letter === 'F') {
                 this.feed = Number(code);
-                this.vmState.feedrates.add(`F${code}`);
+                if (this.collate) this.vmState.feedrates.add(`F${code}`);
                 // this.saveFeedrate(code);
             }
             if (letter === 'S') {
-                this.vmState.spindle.add(`S${code}`);
+                if (this.collate) this.vmState.spindle.add(`S${code}`);
                 const spindleSpeed = Number(code);
                 this.updateSpindleToolEvents('S', spindleSpeed);
                 if (!Number.isNaN(spindleSpeed)) {
