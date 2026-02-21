@@ -45,7 +45,7 @@ import {
     GRBL,
     GRBLHAL,
     GRBL_ACTIVE_STATE_CHECK,
-    LASER_MODE,
+    LASER_MODE, OUTLINE_MODE_RAPIDLESS_SQUARE,
 } from 'app/constants';
 import CombinedCamera from 'app/lib/three/oldCombinedCamera';
 import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer';
@@ -1221,7 +1221,7 @@ class Visualizer extends Component {
                         'Detailed',
                     );
 
-                    const isRapidless = outlineMode === 'RapidlessSquare';
+                    const isRapidless = outlineMode === OUTLINE_MODE_RAPIDLESS_SQUARE;
                     const content = isRapidless
                         ? reduxStore.getState().file.content
                         : null;
