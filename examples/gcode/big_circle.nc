@@ -1,24 +1,24 @@
-%
-(600mm Diameter Circle Centered at 0,0)
-G21         (Set units to mm)
-G90         (Absolute positioning)
-G17         (XY plane)
+(150mm Diameter Circle - Centered at 0,0)
 
-G0 Z5.0     (Safe height)
+G21         ; Set units to mm
+G90         ; Absolute positioning
+G17         ; XY plane selection
 
-(Go to start point at rightmost edge of circle)
-G0 X300.0 Y0.0
+G0 Z5       ; Safe height
 
-(Plunge to cutting depth)
-G1 Z-2.0 F300
+; Move to circle start point (right side of circle)
+G0 X75 Y0
 
-(Cut full circle in two 180-degree CCW arcs)
-G3 X-300.0 Y0.0 I-300.0 J0.0 F800
-G3 X300.0 Y0.0 I300.0 J0.0
+; Plunge to cutting depth
+G1 Z-1.0 F300
 
-(Retract)
-G0 Z5.0
+; Draw full circle (clockwise)
+G2 X75 Y0 I-75 J0 F800
 
+; Retract
+G0 Z5
+
+; Return home (optional)
 G0 X0 Y0
+
 M30
-%
