@@ -28,6 +28,8 @@ import {OUTLINE_MODE_RAPIDLESS_SQUARE} from "app/constants";
 self.onmessage = ({ data }) => {
     const { isLaser = false, parsedData = [], mode, bbox, zTravel, content = '' } = data;
 
+    console.log('this one');
+
     const getOutlineGcode = (concavity = Infinity) => {
         // 1. Extract 2D [x, y] points (parsedData is flat: x0,y0,z0,x1,y1,z1,...)
         const points2D = [];
@@ -112,6 +114,7 @@ self.onmessage = ({ data }) => {
     };
 
     const getRapidlessSquareOutline = (fileContent: string) => {
+        console.log('rapidless');
         let xmin = Infinity, xmax = -Infinity, ymin = Infinity, ymax = -Infinity;
 
         const updateBounds = (v1: any, v2: any) => {
@@ -151,7 +154,7 @@ self.onmessage = ({ data }) => {
             // No cutting moves found — fall back to regular square
             return getSimpleOutline();
         }
-
+        console.log('bounds', xmin, xmax, ymin, ymax);
         return [
             '%X0=posx,Y0=posy,Z0=posz',
             '%MM=modal.distance',
