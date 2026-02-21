@@ -1201,7 +1201,7 @@ class Visualizer extends Component {
                 try {
                     const outlineWorker = new Worker(
                         new URL(
-                            '../../workers/Outline.worker.js',
+                            '../../workers/Outline.worker.ts',
                             import.meta.url,
                         ),
                         { type: 'module' },
@@ -1221,6 +1221,11 @@ class Visualizer extends Component {
                         'Detailed',
                     );
 
+                    const isRapidless = outlineMode === 'RapidlessSquare';
+                    const content = isRapidless
+                        ? reduxStore.getState().file.content
+                        : null;
+
                     // We want to make sure that in situations outline fails, you can try again in ~5 seconds
                     const maxRuntime = setTimeout(() => {
                         outlineWorker.terminate();
@@ -1238,9 +1243,10 @@ class Visualizer extends Component {
                     };
                     outlineWorker.postMessage({
                         isLaser,
-                        parsedData: vertices,
+                        parsedData: isRapidless ? [] : vertices,
                         mode: outlineMode,
                         zTravel,
+                        ...(isRapidless && { content }),
                     });
                 } catch (e) {
                     console.log(e);
