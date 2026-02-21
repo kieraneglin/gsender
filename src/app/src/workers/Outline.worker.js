@@ -123,6 +123,11 @@ self.onmessage = ({ data }) => {
             const [x, y] = point;
             gCode.push(`G21 G90 ${movementModal} X${x} Y${y}`);
         });
+        // Close the loop by returning to the first point
+        if (points.length > 0) {
+            const [x, y] = points[0];
+            gCode.push(`G21 G90 ${movementModal} X${x} Y${y}`);
+        }
         if (isLaser) {
             gCode.push('M5 S0');
         }
