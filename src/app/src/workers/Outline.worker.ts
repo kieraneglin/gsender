@@ -127,8 +127,40 @@ self.onmessage = ({ data }) => {
             addLine: (modal: any, v1: any, v2: any) => {
                 if (modal.motion !== 'G0') updateBounds(v1, v2);
             },
-            addArcCurve: (_modal: any, v1: any, v2: any) => {
+            addArcCurve: (modal: any, v1: any, v2: any, v0: any) => {
+                // Always include the chord endpoints
                 updateBounds(v1, v2);
+
+                // Compute arc extrema
+                const r = Math.sqrt((v1.x - v0.x) ** 2 + (v1.y - v0.y) ** 2);
+                if (r === 0) return;
+
+                const startAngle = Math.atan2(v1.y - v0.y, v1.x - v0.x);
+                const endAngle   = Math.atan2(v2.y - v0.y, v2.x - v0.x);
+                const isCCW = modal.motion === 'G3';
+
+                // Helper: is angle theta (normalized to [0, 2π)) within the arc sweep?
+                const normalize = (a: number) => ((a % (2 * Math.PI)) + 2 * Math.PI) % (2 * Math.PI);
+                const sa = normalize(startAngle);
+                const ea = normalize(endAngle);
+
+                const inSweep = (theta: number): boolean => {
+                    const t = normalize(theta);
+                    if (isCCW) {
+                        return sa <= ea ? (t >= sa && t <= ea) : (t >= sa || t <= ea);
+                    } else {
+                        // CW: sweep goes from sa down to ea
+                        return sa >= ea ? (t <= sa && t >= ea) : (t <= sa || t >= ea);
+                    }
+                };
+
+                // Check the 4 axis-aligned extrema
+                for (const theta of [0, Math.PI / 2, Math.PI, 3 * Math.PI / 2]) {
+                    if (inSweep(theta)) {
+                        const ex = { x: v0.x + r * Math.cos(theta), y: v0.y + r * Math.sin(theta) };
+                        updateBounds(ex, ex);
+                    }
+                }
             },
             addCurve: (modal: any, v1: any, v2: any) => {
                 if (modal.motion !== 'G0') updateBounds(v1, v2);
