@@ -34,11 +34,11 @@ export function SecondaryContentPanel({ content }: SecondaryContentPanelProps) {
     }
 
     return (
-        <div className="flex flex-col gap-6 h-full">
+        <div className="flex flex-col portrait:flex-row portrait:items-center gap-6 h-full">
             {content.map((item, index) => {
                 const containerClassName = item.fill
-                    ? 'flex-1 min-h-0 overflow-hidden'
-                    : 'flex-shrink-0';
+                    ? 'flex-1 min-h-0 overflow-hidden portrait:min-w-0'
+                    : 'flex-shrink-0 portrait:flex-1 portrait:min-w-0 portrait:overflow-hidden';
 
                 if (item.type === 'image') {
                     return (
@@ -51,7 +51,7 @@ export function SecondaryContentPanel({ content }: SecondaryContentPanelProps) {
                             <img
                                 src={item.content as string}
                                 alt={item.title || 'Secondary content'}
-                                className="w-full rounded-lg shadow-sm"
+                                className="w-full portrait:max-h-full portrait:object-contain rounded-lg shadow-sm"
                             />
                         </div>
                     );

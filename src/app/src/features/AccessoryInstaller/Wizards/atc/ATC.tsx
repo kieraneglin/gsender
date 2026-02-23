@@ -53,7 +53,7 @@ export function useSienciATCWizard(): Wizard {
                             secondaryContent: [
                                 {
                                     type: 'image',
-                                    content: PlaceholderImageFour,
+                                    content: PlaceholderImageFive,
                                 },
                                 {
                                     type: 'component',
