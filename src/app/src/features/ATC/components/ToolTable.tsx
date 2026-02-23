@@ -114,7 +114,7 @@ const ToolSection = ({
                             {tools.map((tool) => (
                                 <TableRow
                                     key={tool.id}
-                                    className="grid grid-cols-[2fr_1fr_1fr_1fr] portrait:grid-cols-[2fr_1fr_1fr]"
+                                    className="grid grid-cols-[2fr_1fr_1fr_1fr] portrait:grid-cols-[2fr_1fr_1fr] items-center [&>td]:flex [&>td]:items-center"
                                 >
                                     <TableCell className="font-mono">
                                         <div className="flex flex-col">
