@@ -6,7 +6,6 @@ import store from 'app/store';
 import {
     ATCIJSON,
     ATCIMacroConfig,
-    defaultATCIMacros,
 } from 'app/features/ATC/assets/defaultATCIMacros.ts';
 
 export interface Macro {
@@ -147,7 +146,7 @@ export function repopulateFromSDCard(config) {
     Object.entries(retrievedConfig.variables).forEach(([key, value]) => {
         if (updatedConfig.variables[key]) {
             updatedConfig.variables[key] = {
-                default: defaultATCIMacros.variables[key]?.default ?? updatedConfig.variables[key].default,
+                default: updatedConfig.variables[key].default,
                 value: Number(value.value),
             };
         }

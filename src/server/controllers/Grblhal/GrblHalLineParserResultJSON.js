@@ -6,6 +6,8 @@ class GrblHalLineParserResultJSON {
             return null;
         }
 
+        console.log(r);
+
         const payload = {
             code: r[1]
         };

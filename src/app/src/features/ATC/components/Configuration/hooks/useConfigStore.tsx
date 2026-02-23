@@ -11,7 +11,7 @@ import { RootState } from 'app/store/redux';
 import get from 'lodash/get';
 import pick from 'lodash/pick';
 import mapValues from 'lodash/mapValues';
-import { ATCIMacroConfig, defaultATCIMacros } from 'app/features/ATC/assets/defaultATCIMacros.ts';
+import { ATCIMacroConfig } from 'app/features/ATC/assets/defaultATCIMacros.ts';
 import store from 'app/store';
 import { generateAllMacros } from 'app/features/ATC/components/Configuration/utils/ConfigUtils.ts';
 import delay from '../../../../../../../server/lib/delay';
@@ -72,17 +72,20 @@ export interface ConfigState {
     slot1Position: Position;
 }*/
 
-export const defaultATCIConfig: ConfigState = {
-    variables: Object.fromEntries(
-        Object.entries(defaultATCIMacros.variables).map(([key, { default: d }]) => [
-            key,
-            { default: d, value: d },
-        ]),
-    ),
-    manualLoadPosition: defaultPosition,
-    tlsPosition: defaultPosition,
-    slot1Position: defaultPosition,
-};
+function buildConfigFromStore(): ConfigState {
+    const storedVariables = store.get('widgets.atc.templates.variables', {}) as Record<string, ATCIVariable>;
+    return {
+        variables: Object.fromEntries(
+            Object.entries(storedVariables).map(([key, v]) => [
+                key,
+                { default: v.default, value: v.default },
+            ]),
+        ),
+        manualLoadPosition: defaultPosition,
+        tlsPosition: defaultPosition,
+        slot1Position: defaultPosition,
+    };
+}
 
 interface ConfigContextValue {
     config: ConfigState;
@@ -117,14 +120,13 @@ interface ConfigProviderProps {
 
 export function mapDefaultsToValues(variables) {
     Object.entries(variables).forEach(([key, value]) => {
-        const authDefault = defaultATCIMacros.variables[key]?.default ?? value.default;
-        variables[key] = { default: authDefault, value: authDefault };
+        variables[key].value = value.default;
     });
     return variables;
 }
 
 export const ConfigProvider: React.FC<ConfigProviderProps> = ({ children }) => {
-    const [config, setConfig] = useState<ConfigState>(defaultATCIConfig);
+    const [config, setConfig] = useState<ConfigState>(buildConfigFromStore);
     const [templates, setTemplates] = useState<ATCIMacroConfig>();
     const [isApplying, setIsApplying] = useState(false);
     const [progress, setProgress] = useState(0);
