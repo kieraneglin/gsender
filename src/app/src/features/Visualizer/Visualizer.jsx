@@ -1220,6 +1220,10 @@ class Visualizer extends Component {
                         'workspace.outlineMode',
                         'Detailed',
                     );
+                    const outlineSpeed = store.get(
+                        'workspace.outlineSpeed',
+                        null,
+                    );
 
                     const isRapidless = outlineMode === OUTLINE_MODE_RAPIDLESS_SQUARE;
                     const content = isRapidless
@@ -1247,6 +1251,7 @@ class Visualizer extends Component {
                         mode: outlineMode,
                         zTravel,
                         ...(isRapidless && { content }),
+                        outlineSpeed,
                     });
                 } catch (e) {
                     console.log(e);

@@ -24,7 +24,7 @@
 import concaveman from 'concaveman';
 
 self.onmessage = ({ data }) => {
-    const { isLaser = false, parsedData = [], mode, bbox, zTravel } = data;
+    const { isLaser = false, parsedData = [], mode, bbox, zTravel, outlineSpeed = null } = data;
 
     const getOutlineGcode = (concavity = Infinity) => {
         // 1. Extract 2D [x, y] points (parsedData is flat: x0,y0,z0,x1,y1,z1,...)
@@ -76,6 +76,9 @@ self.onmessage = ({ data }) => {
     };
 
     const getSimpleOutline = () => {
+        const movementModal = outlineSpeed ? 'G1' : 'G0';
+        const feedrateCmd = outlineSpeed ? `F${outlineSpeed}` : '';
+
         if (parsedData && parsedData.length <= 0) {
             return [
                 '%X0=posx,Y0=posy,Z0=posz',

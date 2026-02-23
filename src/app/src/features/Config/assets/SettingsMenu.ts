@@ -228,6 +228,14 @@ export const SettingsMenu: SettingsMenuSection[] = [
                         options: OUTLINE_MODES,
                     },
                     {
+                        label: 'Outline speed',
+                        key: 'workspace.outlineSpeed',
+                        type: 'number',
+                        unit: 'mm/min',
+                        description:
+                            'Set a specific feedrate for outline movements (e.g. 3000). If left blank, uses rapid moves (G0) at maximum machine speed. Lower values provide more controlled movements.',
+                    },
+                    {
                         label: 'Revert workspace',
                         key: 'workspace.revertWorkspace',
                         type: 'boolean',
