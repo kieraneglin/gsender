@@ -233,7 +233,7 @@ export const SettingsMenu: SettingsMenuSection[] = [
                         type: 'number',
                         unit: 'mm/min',
                         description:
-                            'Set a specific feedrate for outline movements (e.g. 3000). If left blank, uses rapid moves (G0) at maximum machine speed. Lower values provide more controlled movements.',
+                            'Set a specific feedrate for outline movements (e.g. 3000). If zero, uses rapid moves (G0) at maximum machine speed. Lower values provide more controlled movements.',
                     },
                     {
                         label: 'Revert workspace',

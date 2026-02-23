@@ -402,7 +402,7 @@ const defaultState: State = {
             showSoftLimitWarning: false,
             hideProcessedLines: false,
             debug: {
-                profileWorker: true,
+                profileWorker: false,
                 profileSampleEvery: 10000
             }
         },
