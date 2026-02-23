@@ -47,24 +47,6 @@ export function useSienciATCWizard(): Wizard {
                     completionPage: ATCCompletion,
                     steps: [
                         {
-                            id: 'tool-length-sensor',
-                            title: 'Tool Length Sensor Position',
-                            component: TLSPosition,
-                            secondaryContent: [
-                                {
-                                    type: 'image',
-                                    content: PlaceholderImageFive,
-                                },
-                                {
-                                    type: 'component',
-                                    content: Jogging,
-                                    props: {
-                                        hideRotary: true,
-                                    },
-                                },
-                            ],
-                        },
-                        {
                             id: 'macro-configuration',
                             title: 'Macro Configuration',
                             component: MacroConfiguration,

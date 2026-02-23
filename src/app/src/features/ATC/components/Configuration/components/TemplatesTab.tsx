@@ -31,7 +31,6 @@ interface TemplateManagerContextValue {
     sortedTemplates: Macro[];
     templates: ATCIMacroConfig | undefined;
     uploadError: string;
-    versionMismatch: boolean;
 }
 
 const TemplateManagerContext = createContext<
@@ -61,8 +60,6 @@ export function TemplateManagerProvider({
     const fileInputRef = useRef<HTMLInputElement>(null);
 
     const defaultVersion = store.get('widgets.atc.templates.version', 20250909);
-    const versionMismatch =
-        !!templates && templates.sdVersion !== defaultVersion;
 
     const sortedTemplates = useMemo(() => {
         if (!templates?.macros) {
@@ -158,7 +155,6 @@ export function TemplateManagerProvider({
         sortedTemplates,
         templates,
         uploadError,
-        versionMismatch,
     };
 
     return (
@@ -169,39 +165,112 @@ export function TemplateManagerProvider({
 }
 
 function TemplateManagerVersionInfo() {
-    const { defaultVersion, templates, versionMismatch } =
-        useTemplateManagerContext();
+    const { defaultVersion, templates } = useTemplateManagerContext();
+    const localTemplateVersion = templates?.version ?? defaultVersion;
+    const controllerTemplateVersion = templates?.sdVersion;
+    const hasControllerTemplateVersion =
+        typeof controllerTemplateVersion === 'number' &&
+        Number.isFinite(controllerTemplateVersion);
+
+    type VersionSyncState =
+        | 'in_sync'
+        | 'controller_outdated'
+        | 'local_outdated'
+        | 'unknown';
+
+    let versionSyncState: VersionSyncState = 'unknown';
+
+    if (hasControllerTemplateVersion) {
+        if (localTemplateVersion > controllerTemplateVersion) {
+            versionSyncState = 'controller_outdated';
+        } else if (localTemplateVersion < controllerTemplateVersion) {
+            versionSyncState = 'local_outdated';
+        } else {
+            versionSyncState = 'in_sync';
+        }
+    }
+
+    const baseVersionBadgeClass =
+        'text-sm border-2 font-bold px-3 py-1 bg-white dark:bg-slate-900';
+    const neutralBadgeClass =
+        'border-slate-500 text-slate-700 dark:border-slate-500 dark:text-slate-200';
+    const upToDateBadgeClass =
+        'border-emerald-600 bg-emerald-100/70 text-emerald-800 dark:border-emerald-400 dark:bg-emerald-900/30 dark:text-emerald-200';
+    const controllerOutdatedBadgeClass =
+        'border-amber-600 bg-amber-100/70 text-amber-800 dark:border-amber-400 dark:bg-amber-900/30 dark:text-amber-200';
+    const localOutdatedBadgeClass =
+        'border-sky-600 bg-sky-100/70 text-sky-800 dark:border-sky-400 dark:bg-sky-900/30 dark:text-sky-200';
+
+    const localVersionBadgeClass = cn(baseVersionBadgeClass, {
+        [neutralBadgeClass]:
+            versionSyncState === 'unknown' || versionSyncState === 'in_sync',
+        [upToDateBadgeClass]: versionSyncState === 'controller_outdated',
+        [localOutdatedBadgeClass]: versionSyncState === 'local_outdated',
+    });
+    const controllerVersionBadgeClass = cn(baseVersionBadgeClass, {
+        [neutralBadgeClass]:
+            versionSyncState === 'unknown' || versionSyncState === 'in_sync',
+        [controllerOutdatedBadgeClass]:
+            versionSyncState === 'controller_outdated',
+        [upToDateBadgeClass]: versionSyncState === 'local_outdated',
+    });
+
+    const syncStatusLabel =
+        versionSyncState === 'controller_outdated'
+            ? 'Controller out of date'
+            : versionSyncState === 'local_outdated'
+              ? 'Local templates out of date'
+              : versionSyncState === 'in_sync'
+                ? 'In sync'
+                : 'Controller version unavailable';
+    const syncStatusBadgeClass = cn(baseVersionBadgeClass, {
+        [upToDateBadgeClass]: versionSyncState === 'in_sync',
+        [controllerOutdatedBadgeClass]:
+            versionSyncState === 'controller_outdated',
+        [localOutdatedBadgeClass]: versionSyncState === 'local_outdated',
+        [neutralBadgeClass]: versionSyncState === 'unknown',
+    });
 
     return (
         <div className="border border-border bg-white dark:border-slate-700 dark:bg-dark-darker px-4 py-3">
-            <div className="flex flex-wrap items-center gap-4">
-                <div className="flex items-center gap-2">
-                    <span className="text-sm font-semibold dark:text-white">
-                        Template Version:
-                    </span>
-                    <Badge
-                        variant="secondary"
-                        className={cn(
-                            'text-sm font-bold border px-3 py-1 bg-white text-blue-800 dark:bg-slate-900 dark:text-blue-200 dark:border-slate-600',
-                        )}
-                    >
-                        {templates?.version || defaultVersion}
+            <div className="flex flex-wrap items-start gap-4">
+                <div className="flex items-center gap-2 min-w-[16rem]">
+                    <div className="flex flex-col">
+                        <span className="text-sm font-semibold dark:text-white">
+                            Local Template Pack:
+                        </span>
+                        <span className="text-xs text-gray-500 dark:text-gray-300">
+                            Used when installing templates.
+                        </span>
+                    </div>
+                    <Badge variant="secondary" className={localVersionBadgeClass}>
+                        v{localTemplateVersion}
                     </Badge>
                 </div>
-                <div className="flex items-center gap-2">
-                    <span className="text-sm font-semibold dark:text-white">
-                        Reported Version:
-                    </span>
+                <div className="flex items-center gap-2 min-w-[16rem]">
+                    <div className="flex flex-col">
+                        <span className="text-sm font-semibold dark:text-white">
+                            Controller Template Pack:
+                        </span>
+                        <span className="text-xs text-gray-500 dark:text-gray-300">
+                            Read from the connected controller.
+                        </span>
+                    </div>
                     <Badge
                         variant="secondary"
-                        className={cn(
-                            'text-sm border-2 border font-bold px-3 py-1 bg-white text-gray-800 dark:bg-slate-900 dark:text-gray-200 dark:border-slate-600',
-                            versionMismatch
-                                ? 'border-red-600 bg-red-600/20 text-red-600 dark:border-red-500 dark:bg-red-900/30 dark:text-red-300'
-                                : '',
-                        )}
+                        className={controllerVersionBadgeClass}
                     >
-                        {templates?.sdVersion}
+                        {hasControllerTemplateVersion
+                            ? `v${controllerTemplateVersion}`
+                            : '--'}
+                    </Badge>
+                </div>
+                <div className="flex items-center gap-2 min-w-[14rem]">
+                    <span className="text-sm font-semibold dark:text-white">
+                        Status:
+                    </span>
+                    <Badge variant="secondary" className={syncStatusBadgeClass}>
+                        {syncStatusLabel}
                     </Badge>
                 </div>
             </div>
