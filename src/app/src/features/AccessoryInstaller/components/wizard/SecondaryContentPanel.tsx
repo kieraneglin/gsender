@@ -1,4 +1,5 @@
 import { ExternalLink, QrCode } from 'lucide-react';
+import type { ComponentType } from 'react';
 import QRCodeComponent from 'react-qr-code';
 import { SecondaryContent } from '../../types/wizard';
 import {
@@ -35,9 +36,13 @@ export function SecondaryContentPanel({ content }: SecondaryContentPanelProps) {
     return (
         <div className="flex flex-col gap-6 h-full">
             {content.map((item, index) => {
+                const containerClassName = item.fill
+                    ? 'flex-1 min-h-0 overflow-hidden'
+                    : 'flex-shrink-0';
+
                 if (item.type === 'image') {
                     return (
-                        <div key={index} className="flex-shrink-0">
+                        <div key={index} className={containerClassName}>
                             {item.title && (
                                 <h3 className="text-sm font-semibold text-gray-700 mb-2">
                                     {item.title}
@@ -53,22 +58,22 @@ export function SecondaryContentPanel({ content }: SecondaryContentPanelProps) {
                 }
 
                 if (item.type === 'component') {
-                    const Component = item.content as React.ComponentType<any>;
+                    const Component = item.content as ComponentType<any>;
                     return (
-                        <div key={index} className="flex-shrink-0">
+                        <div key={index} className={containerClassName}>
                             {item.title && (
                                 <h3 className="text-sm font-semibold text-gray-700 mb-2">
                                     {item.title}
                                 </h3>
                             )}
-                            <Component {...item.props}/>
+                            <Component {...item.props} />
                         </div>
                     );
                 }
 
                 if (item.type === 'link') {
                     return (
-                        <div key={index} className="flex-shrink-0">
+                        <div key={index} className={containerClassName}>
                             <div className="bg-white rounded-lg border border-gray-200 p-3 shadow-sm">
                                 <div className="flex items-start gap-3">
                                     <ExternalLink

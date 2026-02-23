@@ -120,12 +120,15 @@ interface ConfigContextValue {
     setWorkspacePosition: (workspace: string) => void;
     isApplying: boolean;
     progress: number;
-    status: {
-        type: 'idle' | 'success' | 'error' | 'warning';
-        message: string;
-    };
-    setStatus: (s) => void;
-    templates: ATCIMacroConfig;
+    status: ConfigStatus;
+    setStatus: (status: ConfigStatus) => void;
+    templates: ATCIMacroConfig | undefined;
+    setTemplates: (templates: ATCIMacroConfig) => void;
+}
+
+export interface ConfigStatus {
+    type: 'idle' | 'success' | 'error' | 'warning';
+    message: string;
 }
 
 const ConfigContext = createContext<ConfigContextValue | undefined>(undefined);
@@ -147,10 +150,10 @@ export const ConfigProvider: React.FC<ConfigProviderProps> = ({ children }) => {
     const [templates, setTemplates] = useState<ATCIMacroConfig>();
     const [isApplying, setIsApplying] = useState(false);
     const [progress, setProgress] = useState(0);
-    const [status, setStatus] = useState<{
-        type: 'idle' | 'success' | 'error' | 'warning';
-        message: string;
-    }>({ type: 'idle', message: '' });
+    const [status, setStatus] = useState<ConfigStatus>({
+        type: 'idle',
+        message: '',
+    });
 
     const offsetParameters = useTypedSelector(
         (state: RootState) => state.controller.settings.parameters,

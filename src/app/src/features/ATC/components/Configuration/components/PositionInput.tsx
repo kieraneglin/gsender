@@ -84,7 +84,7 @@ export const PositionInput: React.FC<PositionInputProps> = ({
                         hasZeroAxis
                             ? {
                                   backgroundImage:
-                                      'repeating-linear-gradient(135deg, rgba(249, 115, 22, 0.05) 0, rgba(249, 115, 22, 0.05) 8px, transparent 8px, transparent 16px)',
+                                      'repeating-linear-gradient(135deg, rgba(2`49, 115, 22, 0.05) 0, rgba(249, 115, 22, 0.05) 8px, transparent 8px, transparent 16px)',
                               }
                             : undefined
                     }
