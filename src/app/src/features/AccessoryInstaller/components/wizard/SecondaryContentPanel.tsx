@@ -37,7 +37,7 @@ export function SecondaryContentPanel({ content }: SecondaryContentPanelProps) {
         <div className="flex flex-col portrait:flex-row portrait:items-center gap-6 h-full">
             {content.map((item, index) => {
                 const containerClassName = item.fill
-                    ? 'flex-1 min-h-0 overflow-hidden portrait:min-w-0'
+                    ? 'flex-1 min-h-0 overflow-hidden portrait:min-w-0 portrait:h-full'
                     : 'flex-shrink-0 portrait:flex-1 portrait:min-w-0 portrait:overflow-hidden';
 
                 if (item.type === 'image') {

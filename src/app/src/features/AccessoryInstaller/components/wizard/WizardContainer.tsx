@@ -113,7 +113,7 @@ export function WizardContainer({ subWizard, onExit }: WizardContainerProps) {
             <StepContextProvider>
                 <div className={subWizard.secondaryContentLeft ? 'flex flex-row-reverse flex-1 overflow-hidden portrait:flex-col' : 'flex flex-1 overflow-hidden portrait:flex-col-reverse'}>
                     <div
-                        className={`w-3/5 portrait:w-full portrait:text-xl portrait:h-3/5 p-12 ${
+                        className={`w-3/5 portrait:w-full portrait:text-xl portrait:h-3/5 p-12 portrait:p-6 ${
                             fillPrimaryContent
                                 ? 'flex flex-col min-h-0 overflow-hidden'
                                 : 'overflow-y-auto'
@@ -156,7 +156,7 @@ export function WizardContainer({ subWizard, onExit }: WizardContainerProps) {
                         )}
                     </div>
 
-                    <div className="w-2/5 portrait:h-2/5 portrait:w-full bg-gray-200 dark:bg-dark p-12 overflow-y-auto">
+                    <div className="w-2/5 portrait:h-2/5 portrait:w-full bg-gray-200 dark:bg-dark p-12 portrait:p-4 flex flex-col overflow-hidden">
                         <SecondaryContentPanel
                             content={
                                 showCompletion

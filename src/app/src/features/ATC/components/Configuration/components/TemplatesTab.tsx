@@ -255,7 +255,7 @@ function TemplateManagerVersionInfo() {
             <div className="flex flex-wrap items-start gap-4">
                 <div className="flex items-center gap-2 min-w-[16rem]">
                     <span className="text-sm font-semibold dark:text-white">
-                        Local Template Pack:
+                        Local Templates:
                     </span>
                     <Badge variant="secondary" className={localVersionBadgeClass}>
                         v{localTemplateVersion}
@@ -263,7 +263,7 @@ function TemplateManagerVersionInfo() {
                 </div>
                 <div className="flex items-center gap-2 min-w-[16rem]">
                     <span className="text-sm font-semibold dark:text-white">
-                        Controller Template Pack:
+                        Controller Templates:
                     </span>
                     <Badge
                         variant="secondary"
@@ -415,7 +415,7 @@ export function TemplateManagerMainContent({
     return (
         <div
             className={cn(
-                'flex h-full flex-col gap-4 min-h-0 overflow-hidden',
+                'flex h-full flex-col gap-4 min-h-0 overflow-hidden portrait:text-base',
                 className,
             )}
         >
