@@ -15,6 +15,7 @@ import { useConfigContext } from 'app/features/ATC/components/Configuration/hook
 interface ConfigModalProps {
     open: boolean;
     uploading: boolean;
+    uploadError?: string;
     onOpenChange: (open: boolean) => void;
 }
 
@@ -22,6 +23,7 @@ export const ConfigModal: React.FC<ConfigModalProps> = ({
     open,
     onOpenChange,
     uploading,
+    uploadError,
 }) => {
     const [activeTab, setActiveTab] = useState('config');
     const { updateConfig, setTemplates } = useConfigContext();
@@ -69,7 +71,7 @@ export const ConfigModal: React.FC<ConfigModalProps> = ({
                         value="config"
                         className="flex-1 mt-4 min-h-0 h-0"
                     >
-                        <ConfigTab uploading={uploading} />
+                        <ConfigTab uploading={uploading} uploadError={uploadError} />
                     </TabsContent>
 
                     <TabsContent

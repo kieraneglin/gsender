@@ -32,9 +32,10 @@ import {
 
 export interface ConfigTabProps {
     uploading: boolean;
+    uploadError?: string;
 }
 
-export const ConfigTab: React.FC = ({ uploading }: ConfigTabProps) => {
+export const ConfigTab: React.FC = ({ uploading, uploadError }: ConfigTabProps) => {
     const {
         config,
         updateConfig,
@@ -528,6 +529,12 @@ export const ConfigTab: React.FC = ({ uploading }: ConfigTabProps) => {
                         <div className={cn('text-xs', getStatusColor())}>
                             {status.message}
                         </div>
+                    )}
+
+                    {uploadError && !uploading && (
+                        <p className="text-xs font-bold text-red-600">
+                            {uploadError}
+                        </p>
                     )}
                 </div>
 

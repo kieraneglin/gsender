@@ -1186,14 +1186,14 @@ export const defaultATCIMacros: ATCIMacroConfig = {
             value: 0,
         },
         _tc_slot_offset: {
-            default: 92,
+            default: 90,
             value: 0,
         },
         _passthrough_offset_setting: {
             default: 0,
             value: 0,
         },
-        _pres_sense: { default: 0, value: 0 },
+        _pres_sense: { default: 1, value: 0 },
         _holder_sense: { default: 1, value: 0 },
     },
     variableFile: 'P100.macro',
