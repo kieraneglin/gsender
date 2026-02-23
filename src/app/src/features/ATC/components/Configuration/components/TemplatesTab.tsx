@@ -224,9 +224,9 @@ function TemplateManagerVersionInfo() {
 
     const syncStatusLabel =
         versionSyncState === 'controller_outdated'
-            ? 'Controller out of date'
+            ? 'Controller outdated'
             : versionSyncState === 'local_outdated'
-              ? 'Local templates out of date'
+              ? 'Local outdated'
               : versionSyncState === 'in_sync'
                 ? 'In sync'
                 : 'Controller version unavailable';
