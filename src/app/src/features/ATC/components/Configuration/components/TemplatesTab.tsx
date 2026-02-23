@@ -8,7 +8,14 @@ import React, {
 } from 'react';
 import { Button } from 'app/components/Button';
 import { Badge } from 'app/components/shadcn/Badge';
-import { Upload, FileText, AlertCircle } from 'lucide-react';
+import {
+    Upload,
+    FileText,
+    AlertCircle,
+    CheckCircle2,
+    AlertTriangle,
+    CircleHelp,
+} from 'lucide-react';
 import cn from 'classnames';
 import { useConfigContext } from 'app/features/ATC/components/Configuration/hooks/useConfigStore.tsx';
 import {
@@ -223,13 +230,25 @@ function TemplateManagerVersionInfo() {
               : versionSyncState === 'in_sync'
                 ? 'In sync'
                 : 'Controller version unavailable';
-    const syncStatusBadgeClass = cn(baseVersionBadgeClass, {
-        [upToDateBadgeClass]: versionSyncState === 'in_sync',
-        [controllerOutdatedBadgeClass]:
-            versionSyncState === 'controller_outdated',
-        [localOutdatedBadgeClass]: versionSyncState === 'local_outdated',
-        [neutralBadgeClass]: versionSyncState === 'unknown',
-    });
+    const syncStatusBadgeClass = cn(
+        'h-6 min-w-[11rem] justify-center gap-1.5 border px-2.5 py-0 text-xs font-semibold shadow-sm',
+        {
+            'border-emerald-600 bg-emerald-600 text-white dark:border-emerald-500 dark:bg-emerald-500 dark:text-white':
+                versionSyncState === 'in_sync',
+            'border-amber-500 bg-amber-500 text-black dark:border-amber-400 dark:bg-amber-400 dark:text-black':
+                versionSyncState === 'controller_outdated',
+            'border-sky-600 bg-sky-600 text-white dark:border-sky-500 dark:bg-sky-500 dark:text-white':
+                versionSyncState === 'local_outdated',
+            'border-slate-600 bg-slate-600 text-white dark:border-slate-500 dark:bg-slate-500 dark:text-white':
+                versionSyncState === 'unknown',
+        },
+    );
+    const SyncStatusIcon =
+        versionSyncState === 'in_sync'
+            ? CheckCircle2
+            : versionSyncState === 'unknown'
+              ? CircleHelp
+              : AlertTriangle;
 
     return (
         <div className="border border-border bg-white dark:border-slate-700 dark:bg-dark-darker px-4 py-3">
@@ -260,6 +279,7 @@ function TemplateManagerVersionInfo() {
                         Status:
                     </span>
                     <Badge variant="secondary" className={syncStatusBadgeClass}>
+                        <SyncStatusIcon className="h-3.5 w-3.5" />
                         {syncStatusLabel}
                     </Badge>
                 </div>
