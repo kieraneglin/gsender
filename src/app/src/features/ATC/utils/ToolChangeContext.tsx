@@ -106,7 +106,6 @@ export const ToolchangeProvider = ({ children }: { children: JSX.Element }) => {
     }, [reportedRackSize, tools]);
 
     const payload = {
-        mode: loadToolMode,
         loadToolOpen: toolPopoutOpen,
         setLoadToolOpen: setToolPopoutOpen,
         setLoadToolMode: setLoadToolMode,
