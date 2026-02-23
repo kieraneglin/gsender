@@ -11,7 +11,7 @@ import { RootState } from 'app/store/redux';
 import get from 'lodash/get';
 import pick from 'lodash/pick';
 import mapValues from 'lodash/mapValues';
-import { ATCIMacroConfig } from 'app/features/ATC/assets/defaultATCIMacros.ts';
+import { ATCIMacroConfig, defaultATCIMacros } from 'app/features/ATC/assets/defaultATCIMacros.ts';
 import store from 'app/store';
 import { generateAllMacros } from 'app/features/ATC/components/Configuration/utils/ConfigUtils.ts';
 import delay from '../../../../../../../server/lib/delay';
@@ -73,34 +73,12 @@ export interface ConfigState {
 }*/
 
 export const defaultATCIConfig: ConfigState = {
-    variables: {
-        _ort_offset_mode: {
-            default: 0,
-            value: 0,
-        },
-        _irt_offset_mode: {
-            default: 2,
-            value: 0,
-        },
-        _tc_rack_enable: {
-            default: 0,
-            value: 0,
-        },
-        _tc_slots: {
-            default: 6,
-            value: 0,
-        },
-        _tc_slot_offset: {
-            default: 92,
-            value: 0,
-        },
-        _passthrough_offset_setting: {
-            default: 0,
-            value: 0,
-        },
-        _pres_sense: { default: 0, value: 0 },
-        _holder_sense: { default: 1, value: 0 },
-    },
+    variables: Object.fromEntries(
+        Object.entries(defaultATCIMacros.variables).map(([key, { default: d }]) => [
+            key,
+            { default: d, value: d },
+        ]),
+    ),
     manualLoadPosition: defaultPosition,
     tlsPosition: defaultPosition,
     slot1Position: defaultPosition,
@@ -139,9 +117,9 @@ interface ConfigProviderProps {
 
 export function mapDefaultsToValues(variables) {
     Object.entries(variables).forEach(([key, value]) => {
-        variables[key].value = value.default;
+        const authDefault = defaultATCIMacros.variables[key]?.default ?? value.default;
+        variables[key] = { default: authDefault, value: authDefault };
     });
-
     return variables;
 }
 
@@ -161,7 +139,8 @@ export const ConfigProvider: React.FC<ConfigProviderProps> = ({ children }) => {
 
     useEffect(() => {
         const storedValues = store.get('widgets.atc.templates.variables', {});
-        const mappedVariables = mapDefaultsToValues(storedValues);
+        const cloned = JSON.parse(JSON.stringify(storedValues));
+        const mappedVariables = mapDefaultsToValues(cloned);
         updateConfig({ variables: mappedVariables });
         setTemplates(store.get('widgets.atc.templates', {}));
     }, []);
