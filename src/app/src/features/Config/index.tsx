@@ -1,4 +1,4 @@
-import React, { MouseEventHandler, useEffect } from 'react';
+import React, { MouseEventHandler, useEffect, useMemo } from 'react';
 import { Menu } from './components/Menu';
 import { Section } from './components/Section';
 import { Search } from 'app/features/Config/components/Search.tsx';
@@ -114,30 +114,34 @@ export function Config() {
     ]);
 
     // lets extract all the eeprom settings
-    let allEEPROM: gSenderSetting[] = EEPROM.map((filtered, i) => {
-        const formatted: gSenderSetting = {
-            type: 'eeprom',
-            description: filtered.description,
-            unit: filtered.unit,
-            eID: filtered.setting,
-            globalIndex: filtered.globalIndex,
-            value: filtered.value,
-            defaultValue: filtered.defaultValue,
-        };
-        return formatted;
-    });
-    const eepromSettings: SettingsMenuSection[] = [
-        {
-            label: '',
-            icon: null,
-            settings: [
-                {
-                    label: '',
-                    settings: allEEPROM,
-                },
-            ],
-        },
-    ];
+    const allEEPROM: gSenderSetting[] = useMemo(
+        () =>
+            EEPROM.map((filtered) => ({
+                type: 'eeprom' as const,
+                description: filtered.description,
+                unit: filtered.unit,
+                eID: filtered.setting,
+                globalIndex: filtered.globalIndex,
+                value: filtered.value,
+                defaultValue: filtered.defaultValue,
+            })),
+        [EEPROM],
+    );
+    const eepromSettings: SettingsMenuSection[] = useMemo(
+        () => [
+            {
+                label: '',
+                icon: null,
+                settings: [
+                    {
+                        label: '',
+                        settings: allEEPROM,
+                    },
+                ],
+            },
+        ],
+        [allEEPROM],
+    );
 
     function navigateToSection(
         _e: MouseEventHandler<HTMLButtonElement>,
