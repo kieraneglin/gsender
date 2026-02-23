@@ -1174,7 +1174,7 @@ export const defaultATCIMacros: ATCIMacroConfig = {
             value: 0,
         },
         _irt_offset_mode: {
-            default: 2,
+            default: 0,
             value: 0,
         },
         _tc_rack_enable: {
