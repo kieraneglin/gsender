@@ -186,6 +186,7 @@ export function useSienciATCWizard(): Wizard {
                     estimatedTime: '5 minutes',
                     configVersion: storeVersion,
                     secondaryContentLeft: true,
+                    hideVersionPrintout: true,
                     steps: [
                         {
                             id: 'template-management',

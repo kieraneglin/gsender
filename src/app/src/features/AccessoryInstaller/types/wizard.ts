@@ -35,6 +35,7 @@ export interface SubWizard {
     icon?: ComponentType<any>;
     completionPage?: ComponentType<any>;
     secondaryContentLeft?: boolean;
+    hideVersionPrintout?: boolean;
 }
 
 export interface ValidationResult {

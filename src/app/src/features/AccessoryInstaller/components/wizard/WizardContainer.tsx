@@ -129,7 +129,7 @@ export function WizardContainer({ subWizard, onExit }: WizardContainerProps) {
                                     </h1>
                                 )}
 
-                                {subWizard.configVersion && (
+                                {subWizard.configVersion && !subWizard.hideVersionPrintout && (
                                     <p className="text-gray-600 dark:text-gray-400 mb-8">
                                         Configuration File Version:{' '}
                                         {subWizard.configVersion}
