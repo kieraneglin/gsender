@@ -752,8 +752,7 @@ const SpindleWidget = () => {
     return (
         <Widget>
             <div className="flex flex-col gap-4 justify-center items-center h-full">
-                <div>
-                    <div className="flex gap-2 justify-center">
+                    <div className="grid grid-cols-2 gap-2 justify-center w-full">
                         <ModalToggle
                             mode={givenMode}
                             onChange={actions.handleModeToggle}
@@ -768,8 +767,6 @@ const SpindleWidget = () => {
                             />
                         )}
                     </div>
-                </div>
-                <div>
                     {!laserAsSpindle ? (
                         <SpindleControls
                             state={state}
@@ -783,7 +780,6 @@ const SpindleWidget = () => {
                             canClick={canClick()}
                         />
                     )}
-                </div>
             </div>
         </Widget>
     );
