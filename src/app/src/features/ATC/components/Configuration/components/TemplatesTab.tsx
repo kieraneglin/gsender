@@ -235,27 +235,17 @@ function TemplateManagerVersionInfo() {
         <div className="border border-border bg-white dark:border-slate-700 dark:bg-dark-darker px-4 py-3">
             <div className="flex flex-wrap items-start gap-4">
                 <div className="flex items-center gap-2 min-w-[16rem]">
-                    <div className="flex flex-col">
-                        <span className="text-sm font-semibold dark:text-white">
-                            Local Template Pack:
-                        </span>
-                        <span className="text-xs text-gray-500 dark:text-gray-300">
-                            Used when installing templates.
-                        </span>
-                    </div>
+                    <span className="text-sm font-semibold dark:text-white">
+                        Local Template Pack:
+                    </span>
                     <Badge variant="secondary" className={localVersionBadgeClass}>
                         v{localTemplateVersion}
                     </Badge>
                 </div>
                 <div className="flex items-center gap-2 min-w-[16rem]">
-                    <div className="flex flex-col">
-                        <span className="text-sm font-semibold dark:text-white">
-                            Controller Template Pack:
-                        </span>
-                        <span className="text-xs text-gray-500 dark:text-gray-300">
-                            Read from the connected controller.
-                        </span>
-                    </div>
+                    <span className="text-sm font-semibold dark:text-white">
+                        Controller Template Pack:
+                    </span>
                     <Badge
                         variant="secondary"
                         className={controllerVersionBadgeClass}
