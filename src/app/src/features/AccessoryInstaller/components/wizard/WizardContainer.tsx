@@ -111,7 +111,7 @@ export function WizardContainer({ subWizard, onExit }: WizardContainerProps) {
             )}
 
             <StepContextProvider>
-                <div className="flex flex-1 overflow-hidden portrait:flex-col-reverse">
+                <div className={subWizard.secondaryContentLeft ? 'flex flex-row-reverse flex-1 overflow-hidden portrait:flex-col-reverse' : 'flex flex-1 overflow-hidden portrait:flex-col-reverse'}>
                     <div
                         className={`w-3/5 portrait:w-full portrait:text-xl portrait:h-3/5 p-12 ${
                             fillPrimaryContent

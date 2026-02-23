@@ -34,6 +34,7 @@ export interface SubWizard {
     steps: WizardStep[];
     icon?: ComponentType<any>;
     completionPage?: ComponentType<any>;
+    secondaryContentLeft?: boolean;
 }
 
 export interface ValidationResult {
