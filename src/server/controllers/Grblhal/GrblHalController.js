@@ -1043,17 +1043,19 @@ class GrblHalController {
             this.emit('serialport:read', res.raw);
         });
 
-        this.runner.on('description', (payload) => {
+        const emitDescriptions = _.debounce(() => {
             this.emit('settings:description', this.runner.settings.descriptions);
-        });
+        }, 150);
+        this.runner.on('description', emitDescriptions);
 
         this.runner.on('alarmDetail', (payload) => {
             this.emit('settings:alarms', this.runner.settings.alarms);
         });
 
-        this.runner.on('groupDetail', (payload) => {
+        const emitGroups = _.debounce(() => {
             this.emit('settings:group', this.runner.settings.groups);
-        });
+        }, 150);
+        this.runner.on('groupDetail', emitGroups);
 
         this.runner.on('sdcard', (payload) => {
             this.emit('serialport:read', payload.raw);

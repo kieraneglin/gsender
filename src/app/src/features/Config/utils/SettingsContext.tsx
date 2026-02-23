@@ -316,7 +316,8 @@ export function SettingsProvider({ children }: SettingsProviderProps) {
         );
     }
 
-    const updateFromDetectedEEPROM = useCallback(
+    // Fires on EEPROM value/group changes — fast path, does NOT re-run applyEEPROMDescriptions
+    const updateEEPROM = useCallback(
         debounce(
             (
                 baseSettingsMap: Map<EEPROM, any>,
@@ -324,11 +325,7 @@ export function SettingsProvider({ children }: SettingsProviderProps) {
                 detectedEEPROMDescriptions: EEPROMDescriptions,
                 detectedEEPROMGroups: BasicObject,
                 currentEEPROM: FilteredEEPROM[],
-                currentSettings: SettingsMenuSection[],
-                ctrlType: string,
-                fwVersion: string,
             ) => {
-                // Update EEPROM array, preserving dirty (unsaved) values
                 const filteredEEPROMSettings = getFilteredEEPROMSettings(
                     baseSettingsMap,
                     detectedEEPROM,
@@ -340,28 +337,43 @@ export function SettingsProvider({ children }: SettingsProviderProps) {
                         .filter((e) => e.dirty)
                         .map((e) => [e.setting, e]),
                 );
-                const newEEPROM = filteredEEPROMSettings.map((eeprom) =>
-                    dirtyMap.get(eeprom.setting) ?? eeprom,
+                setEEPROM(
+                    filteredEEPROMSettings.map(
+                        (eeprom) => dirtyMap.get(eeprom.setting) ?? eeprom,
+                    ),
                 );
-                setEEPROM(newEEPROM);
+            },
+            100,
+        ),
+        [],
+    );
 
-                // Update settings with device-provided labels/descriptions (immutably)
-                if (!currentSettings.length) {
+    // Fires only when descriptions change — runs once on connect
+    const updateDescriptions = useCallback(
+        debounce(
+            (
+                currentSettings: SettingsMenuSection[],
+                detectedEEPROMDescriptions: EEPROMDescriptions,
+                ctrlType: string,
+                fwVersion: string,
+            ) => {
+                if (!currentSettings.length || !detectedEEPROMDescriptions) {
                     return;
                 }
                 const firmwareCurrent = firmwarePastVersion(
                     ATCI_SUPPORTED_VERSION,
                 );
-                const newSettings = applyEEPROMDescriptions(
-                    currentSettings,
-                    detectedEEPROMDescriptions,
-                    ctrlType,
-                    fwVersion,
-                    firmwareCurrent,
+                setSettings(
+                    applyEEPROMDescriptions(
+                        currentSettings,
+                        detectedEEPROMDescriptions,
+                        ctrlType,
+                        fwVersion,
+                        firmwareCurrent,
+                    ),
                 );
-                setSettings(newSettings);
             },
-            500,
+            200,
         ),
         [],
     );
@@ -381,17 +393,23 @@ export function SettingsProvider({ children }: SettingsProviderProps) {
     }, [connectionState]);
 
     useEffect(() => {
-        updateFromDetectedEEPROM(
+        updateEEPROM(
             BASE_SETTINGS_MAP,
             detectedEEPROM,
             detectedEEPROMDescriptions,
             detectedEEPROMGroups,
             EEPROM,
+        );
+    }, [detectedEEPROM, detectedEEPROMGroups]);
+
+    useEffect(() => {
+        updateDescriptions(
             settings,
+            detectedEEPROMDescriptions,
             controllerType,
             firmwareVersion,
         );
-    }, [detectedEEPROM, detectedEEPROMDescriptions, detectedEEPROMGroups]);
+    }, [detectedEEPROMDescriptions]);
 
     function checkIfModified(v: gSenderSetting) {
         if (v.type === 'wizard' || v.type === 'event') {
@@ -450,7 +468,7 @@ export function SettingsProvider({ children }: SettingsProviderProps) {
      * Filter remaining by matching search term
      * @param v - The setting to filter
      */
-    function settingsFilter(v: gSenderSetting) {
+    const settingsFilter = useCallback((v: gSenderSetting) => {
         // ***first, check conditions that are always applicable
 
         // Hide hidden when filtering
@@ -500,7 +518,7 @@ export function SettingsProvider({ children }: SettingsProviderProps) {
             }
             return searched;
         }
-    }
+    }, [connectionState, eepromMap, isFirmwareCurrent, controllerType, firmwareVersion, searchTerm, filterNonDefault, settingsValues]);
 
     function eepromIsDefault(settingData: gSenderSetting | FilteredEEPROM) {
         const profileDefaults =

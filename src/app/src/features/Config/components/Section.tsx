@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import {
     gSenderEEEPROMSettings,
     gSenderSettings,
@@ -36,11 +36,14 @@ export const Section = React.forwardRef(
     ) => {
         const { settingsFilter } = useSettings();
 
-        const filteredSettings = settings.map((s: gSenderSubSection) => {
-            const fs = { ...s };
-            fs.settings = fs.settings.filter((o) => settingsFilter(o));
-            return fs;
-        });
+        const filteredSettings = useMemo(
+            () =>
+                settings.map((s: gSenderSubSection) => ({
+                    ...s,
+                    settings: s.settings.filter((o) => settingsFilter(o)),
+                })),
+            [settings, settingsFilter],
+        );
 
         const settingsAvailable = filteredSettings.reduce(
             (a, b) => a + b.settings.length,
