@@ -77,7 +77,7 @@ export function WizardContainer({ subWizard, onExit }: WizardContainerProps) {
     const CompletionComponent = subWizard.completionPage;
 
     return (
-        <div className="h-full bg-gray-50 dark:bg-slate-800 flex flex-col">
+        <div className="h-full min-h-0 bg-gray-50 dark:bg-slate-800 flex flex-col">
             {isSingleStep ? (
                 <div className="bg-white dark:bg-dark-darker border-b border-gray-200 px-4 py-2 flex items-center justify-between">
                     <span className="text-sm font-medium text-gray-700 dark:text-gray-300">

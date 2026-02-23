@@ -173,31 +173,31 @@ function TemplateManagerVersionInfo() {
         useTemplateManagerContext();
 
     return (
-        <div className="border border-border bg-white px-4 py-3">
+        <div className="border border-border bg-white dark:border-slate-700 dark:bg-dark-darker px-4 py-3">
             <div className="flex flex-wrap items-center gap-4">
                 <div className="flex items-center gap-2">
-                    <span className="text-sm font-semibold">
+                    <span className="text-sm font-semibold dark:text-white">
                         Template Version:
                     </span>
                     <Badge
                         variant="secondary"
                         className={cn(
-                            'text-sm font-bold border px-3 py-1 bg-white text-blue-800',
+                            'text-sm font-bold border px-3 py-1 bg-white text-blue-800 dark:bg-slate-900 dark:text-blue-200 dark:border-slate-600',
                         )}
                     >
                         {templates?.version || defaultVersion}
                     </Badge>
                 </div>
                 <div className="flex items-center gap-2">
-                    <span className="text-sm font-semibold">
+                    <span className="text-sm font-semibold dark:text-white">
                         Reported Version:
                     </span>
                     <Badge
                         variant="secondary"
                         className={cn(
-                            'text-sm border-2 border font-bold px-3 py-1',
+                            'text-sm border-2 border font-bold px-3 py-1 bg-white text-gray-800 dark:bg-slate-900 dark:text-gray-200 dark:border-slate-600',
                             versionMismatch
-                                ? 'border-red-600 bg-red-600/20 text-red-600'
+                                ? 'border-red-600 bg-red-600/20 text-red-600 dark:border-red-500 dark:bg-red-900/30 dark:text-red-300'
                                 : '',
                         )}
                     >
@@ -213,7 +213,7 @@ function TemplateManagerUploadSection() {
     const { handleUploadClick, uploadError } = useTemplateManagerContext();
 
     return (
-        <div className="border border-border bg-white p-3">
+        <div className="border border-border bg-white dark:border-slate-700 dark:bg-dark-darker p-3">
             <Button
                 onClick={handleUploadClick}
                 className="w-full flex items-center gap-2 bg-blue-500 hover:bg-blue-600 text-white"
@@ -241,7 +241,7 @@ function TemplateViewer({
     return (
         <div
             className={cn(
-                'border border-border bg-white flex flex-col min-h-0 overflow-hidden',
+                'border border-border bg-white dark:border-slate-700 dark:bg-dark-darker flex flex-col min-h-0 overflow-hidden',
                 className,
             )}
         >
@@ -249,10 +249,13 @@ function TemplateViewer({
                 {selectedTemplate ? selectedTemplate.name : 'Content'}
             </h1>
             <div className="flex-1 min-h-0 p-2 overflow-hidden">
-                <div className="border rounded h-full min-h-0 overflow-hidden">
+                <div className="border rounded h-full min-h-0 overflow-hidden dark:border-slate-700 dark:bg-slate-900/50">
                     {selectedTemplate ? (
                         <div className="h-full min-h-0 overflow-auto overscroll-contain p-2">
-                            <GcodeViewer gcode={selectedTemplate.content} />
+                            <GcodeViewer
+                                gcode={selectedTemplate.content}
+                                className="dark:text-white"
+                            />
                         </div>
                     ) : (
                         <div className="text-center text-muted-foreground text-sm py-8">
@@ -284,7 +287,7 @@ export function TemplateManagerListContent({
         >
             {showUploadButton && <TemplateManagerUploadSection />}
 
-            <div className="border border-border bg-white flex flex-col min-h-0 flex-1 overflow-hidden">
+            <div className="border border-border bg-white dark:border-slate-700 dark:bg-dark-darker flex flex-col min-h-0 flex-1 overflow-hidden">
                 <h1 className="text-sm font-semibold text-blue-500 p-2">
                     Macros ({sortedTemplates.length})
                 </h1>
@@ -294,13 +297,15 @@ export function TemplateManagerListContent({
                             key={template.name}
                             onClick={() => selectTemplate(template)}
                             className={cn(
-                                'w-full text-left px-4 py-3 text-sm hover:bg-gray-50 border-b border-gray-100 flex items-center gap-2 transition-colors',
+                                'w-full text-left px-4 py-3 text-sm text-gray-800 dark:text-white hover:bg-gray-50 dark:hover:bg-slate-800 border-b border-gray-100 dark:border-slate-700 flex items-center gap-2 transition-colors',
                                 selectedTemplate?.name === template.name &&
-                                    'bg-blue-50 border-blue-200',
+                                    'bg-blue-50 border-blue-200 dark:bg-blue-900/20 dark:border-blue-700/50',
                             )}
                         >
-                            <FileText className="h-4 w-4 text-gray-400" />
-                            <span className="font-medium">{template.name}</span>
+                            <FileText className="h-4 w-4 text-gray-400 dark:text-gray-300" />
+                            <span className="font-medium dark:text-white">
+                                {template.name}
+                            </span>
                         </button>
                     ))}
                 </div>
