@@ -35,6 +35,7 @@ export interface Workspace {
     longestTimeRun: number;
     defaultFirmware: string;
     outlineMode: string;
+    outlineSpeed: number | null;
     revertWorkspace: boolean;
     park: object;
     jobTimes: number[];

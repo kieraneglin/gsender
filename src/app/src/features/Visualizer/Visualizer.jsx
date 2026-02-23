@@ -1168,6 +1168,10 @@ class Visualizer extends Component {
                         'workspace.outlineMode',
                         'Detailed',
                     );
+                    const outlineSpeed = store.get(
+                        'workspace.outlineSpeed',
+                        null,
+                    );
 
                     // We want to make sure that in situations outline fails, you can try again in ~5 seconds
                     const maxRuntime = setTimeout(() => {
@@ -1189,6 +1193,7 @@ class Visualizer extends Component {
                         parsedData: vertices,
                         mode: outlineMode,
                         zTravel,
+                        outlineSpeed,
                     });
                 } catch (e) {
                     console.log(e);
