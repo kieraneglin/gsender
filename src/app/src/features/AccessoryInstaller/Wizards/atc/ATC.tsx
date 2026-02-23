@@ -185,6 +185,7 @@ export function useSienciATCWizard(): Wizard {
                     description: 'Manage ATC template macros',
                     estimatedTime: '5 minutes',
                     configVersion: storeVersion,
+                    secondaryContentLeft: true,
                     steps: [
                         {
                             id: 'template-management',
