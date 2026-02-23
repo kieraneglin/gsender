@@ -4,6 +4,8 @@ import { useMemo } from 'react';
 import PlaceholderImageSd from './assets/placeholder_sd.png';
 import PlaceholderImageTwo from './assets/placeholder_2.png';
 import PlaceholderImageThree from './assets/placeholder_3.png';
+import PlaceholderImageFour from './assets/placeholder_4.png';
+import PlaceholderImageFive from './assets/placeholder_TLS.png';
 import { MacroConfiguration } from 'app/features/AccessoryInstaller/Wizards/atc/components/MacroConfiguration.tsx';
 import { ControllerConfiguration } from 'app/features/AccessoryInstaller/Wizards/atc/components/ControllerConfiguration.tsx';
 import { RackPosition } from 'app/features/AccessoryInstaller/Wizards/atc/components/RackPosition.tsx';
@@ -44,6 +46,24 @@ export function useSienciATCWizard(): Wizard {
                     configVersion: storeVersion,
                     completionPage: ATCCompletion,
                     steps: [
+                        {
+                            id: 'tool-length-sensor',
+                            title: 'Tool Length Sensor Position',
+                            component: TLSPosition,
+                            secondaryContent: [
+                                {
+                                    type: 'image',
+                                    content: PlaceholderImageFour,
+                                },
+                                {
+                                    type: 'component',
+                                    content: Jogging,
+                                    props: {
+                                        hideRotary: true,
+                                    },
+                                },
+                            ],
+                        },
                         {
                             id: 'macro-configuration',
                             title: 'Macro Configuration',
@@ -105,6 +125,10 @@ export function useSienciATCWizard(): Wizard {
                             component: TLSPosition,
                             secondaryContent: [
                                 {
+                                    type: 'image',
+                                    content: PlaceholderImageFour,
+                                },
+                                {
                                     type: 'component',
                                     content: Jogging,
                                     props: {
@@ -117,7 +141,12 @@ export function useSienciATCWizard(): Wizard {
                             id: 'spindle-config',
                             title: 'Spindle Configuration',
                             component: SpindleSetRestart,
-                            secondaryContent: [],
+                            secondaryContent: [
+                                {
+                                    type: 'image',
+                                    content: PlaceholderImageFive,
+                                },
+                            ],
                         },
                         {
                             id: 'modbus-config',
