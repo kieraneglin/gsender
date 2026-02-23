@@ -23,12 +23,58 @@
 
 import concaveman from 'concaveman';
 import GCodeVirtualizer from 'app/lib/GCodeVirtualizer';
-import {OUTLINE_MODE_RAPIDLESS_SQUARE} from "app/constants";
+import { OUTLINE_MODE_RAPIDLESS_SQUARE } from 'app/constants';
 
 self.onmessage = ({ data }) => {
-    const { isLaser = false, parsedData = [], mode, bbox, zTravel, content = '' } = data;
+    const { isLaser = false, parsedData = [], mode, bbox, zTravel, content = '', outlineSpeed = null } = data;
+    const parsedOutlineSpeed = Number(outlineSpeed);
+    const hasCustomOutlineSpeed = Number.isFinite(parsedOutlineSpeed) && parsedOutlineSpeed > 0;
+    const movementModal = isLaser || hasCustomOutlineSpeed ? 'G1' : 'G0';
+    const movementFeed = movementModal === 'G1'
+        ? (hasCustomOutlineSpeed ? parsedOutlineSpeed : 3000)
+        : null;
 
-    console.log('this one');
+    type OutlinePoint = [number | string, number | string];
+
+    const pushOutlinePreamble = (gCode: string[]) => {
+        gCode.push('%X0=posx,Y0=posy,Z0=posz');
+        gCode.push('%MM=modal.distance');
+        gCode.push(`G21 G91 G0 Z${zTravel}`);
+        gCode.push('G21 G90');
+        gCode.push(movementFeed !== null ? `${movementModal} F${movementFeed}` : movementModal);
+        if (isLaser) {
+            gCode.push('M3 S1');
+        }
+    };
+
+    const pushOutlineMoves = (gCode: string[], points: OutlinePoint[]) => {
+        points.forEach(([x, y]) => {
+            gCode.push(`X${x} Y${y}`);
+        });
+    };
+
+    const finalizeOutlineGCode = (gCode: string[]) => {
+        if (isLaser) {
+            gCode.push('M5 S0');
+        }
+        gCode.push('X[X0] Y[Y0]');
+        gCode.push(`G21 G91 G0 Z-${zTravel}`);
+        gCode.push('[MM]');
+        return gCode;
+    };
+
+    const buildOutlineFromPoints = (points: OutlinePoint[], closeLoop = false) => {
+        const gCode = [];
+        pushOutlinePreamble(gCode);
+        pushOutlineMoves(gCode, points);
+
+        if (closeLoop && points.length > 0) {
+            const [x, y] = points[0];
+            gCode.push(`X${x} Y${y}`);
+        }
+
+        return finalizeOutlineGCode(gCode);
+    };
 
     const getOutlineGcode = (concavity = Infinity) => {
         // 1. Extract 2D [x, y] points (parsedData is flat: x0,y0,z0,x1,y1,z1,...)
@@ -76,45 +122,30 @@ self.onmessage = ({ data }) => {
         });
         const orderedHull = [...hull.slice(startIdx), ...hull.slice(0, startIdx)];
 
-        return convertPointsToGCode(orderedHull, isLaser);
+        return convertPointsToGCode(orderedHull);
     };
 
     const getSimpleOutline = () => {
         if (parsedData && parsedData.length <= 0) {
-            return [
-                '%X0=posx,Y0=posy,Z0=posz',
-                '%MM=modal.distance',
-                `G21 G91 G0 Z${zTravel}`,
-                'G90',
-                `G0 X[${bbox.min.x}] Y[${bbox.min.y}]`,
-                `G0 X[${bbox.min.x}] Y[${bbox.max.y}]`,
-                `G0 X[${bbox.max.x}] Y[${bbox.max.y}]`,
-                `G0 X[${bbox.max.x}] Y[${bbox.min.y}]`,
-                `G0 X[${bbox.min.x}] Y[${bbox.min.y}]`,
-                'G0 X[X0] Y[Y0]',
-                `G21 G91 G0 Z-${zTravel}`,
-                '[MM]',
-            ];
+            return buildOutlineFromPoints([
+                [`[${bbox.min.x}]`, `[${bbox.min.y}]`],
+                [`[${bbox.min.x}]`, `[${bbox.max.y}]`],
+                [`[${bbox.max.x}]`, `[${bbox.max.y}]`],
+                [`[${bbox.max.x}]`, `[${bbox.min.y}]`],
+                [`[${bbox.min.x}]`, `[${bbox.min.y}]`],
+            ]);
         } else {
-            return [
-                '%X0=posx,Y0=posy,Z0=posz',
-                '%MM=modal.distance',
-                `G21 G91 G0 Z${zTravel}`,
-                'G90',
-                'G0 X[xmin] Y[ymin]',
-                'G0 X[xmin] Y[ymax]',
-                'G0 X[xmax] Y[ymax]',
-                'G0 X[xmax] Y[ymin]',
-                'G0 X[xmin] Y[ymin]',
-                'G0 X[X0] Y[Y0]',
-                `G21 G91 G0 Z-${zTravel}`,
-                '[MM]',
-            ];
+            return buildOutlineFromPoints([
+                ['[xmin]', '[ymin]'],
+                ['[xmin]', '[ymax]'],
+                ['[xmax]', '[ymax]'],
+                ['[xmax]', '[ymin]'],
+                ['[xmin]', '[ymin]'],
+            ]);
         }
     };
 
     const getRapidlessSquareOutline = (fileContent: string) => {
-        console.log('rapidless');
         let xmin = Infinity, xmax = -Infinity, ymin = Infinity, ymax = -Infinity;
 
         const updateBounds = (v1: any, v2: any) => {
@@ -187,49 +218,18 @@ self.onmessage = ({ data }) => {
             return getSimpleOutline();
         }
         console.log('bounds', xmin, xmax, ymin, ymax);
-        return [
-            '%X0=posx,Y0=posy,Z0=posz',
-            '%MM=modal.distance',
-            `G21 G91 G0 Z${zTravel}`,
-            'G90',
-            `G0 X${xmin.toFixed(3)} Y${ymin.toFixed(3)}`,
-            `G0 X${xmin.toFixed(3)} Y${ymax.toFixed(3)}`,
-            `G0 X${xmax.toFixed(3)} Y${ymax.toFixed(3)}`,
-            `G0 X${xmax.toFixed(3)} Y${ymin.toFixed(3)}`,
-            `G0 X${xmin.toFixed(3)} Y${ymin.toFixed(3)}`,
-            'G0 X[X0] Y[Y0]',
-            `G21 G91 G0 Z-${zTravel}`,
-            '[MM]',
-        ];
+        return buildOutlineFromPoints([
+            [xmin.toFixed(3), ymin.toFixed(3)],
+            [xmin.toFixed(3), ymax.toFixed(3)],
+            [xmax.toFixed(3), ymax.toFixed(3)],
+            [xmax.toFixed(3), ymin.toFixed(3)],
+            [xmin.toFixed(3), ymin.toFixed(3)],
+        ]);
     };
 
-    function convertPointsToGCode(points: number[][], isLaser = false) {
-        const gCode = [];
-        const movementModal = isLaser ? 'G1' : 'G0'; // G1 is necessary for laser outline since G0 won't enable it
-        gCode.push('%X0=posx,Y0=posy,Z0=posz');
-        gCode.push('%MM=modal.distance');
-        gCode.push(`G21 G91 G0 Z${zTravel}`);
-        // Laser outline requires some additional preamble for feedrate and enabling the laser
-        if (isLaser) {
-            gCode.push('G1F3000 M3 S1');
-        }
-        points.forEach((point) => {
-            const [x, y] = point;
-            gCode.push(`G21 G90 ${movementModal} X${x} Y${y}`);
-        });
-        // Close the loop by returning to the first point
-        if (points.length > 0) {
-            const [x, y] = points[0];
-            gCode.push(`G21 G90 ${movementModal} X${x} Y${y}`);
-        }
-        if (isLaser) {
-            gCode.push('M5 S0');
-        }
-        gCode.push('G0 X[X0] Y[Y0]');
-        gCode.push(`G21 G91 G0 Z-${zTravel}`);
-
-        gCode.push('[MM]');
-        return gCode;
+    function convertPointsToGCode(points: number[][]) {
+        const outlinePoints: OutlinePoint[] = points.map(([x, y]) => [x, y]);
+        return buildOutlineFromPoints(outlinePoints, true);
     }
 
     let outlineGcode;
