@@ -129,13 +129,12 @@ const SpindleWidget = () => {
         order: 0,
     };
 
-    const enabledSpindle =
-        availableSpindles.find((s) => s.enabled) ?? null;
+    const enabledSpindle = availableSpindles.find((s) => s.enabled) ?? null;
     const pendingSpindle =
         pendingSpindleIdRef.current !== null
-            ? availableSpindles.find(
+            ? (availableSpindles.find(
                   (s) => s.id === pendingSpindleIdRef.current,
-              ) ?? null
+              ) ?? null)
             : null;
     const spindle =
         enabledSpindle ??
@@ -752,34 +751,36 @@ const SpindleWidget = () => {
     return (
         <Widget>
             <div className="flex flex-col gap-4 justify-center items-center h-full">
-                    <div className="flex gap-2 justify-center w-full">
-                        <ModalToggle
-                            mode={givenMode}
-                            onChange={actions.handleModeToggle}
+                <div className="flex gap-2 justify-center w-full">
+                    <ModalToggle
+                        mode={givenMode}
+                        onChange={actions.handleModeToggle}
+                        disabled={!canClick()}
+                    />
+                    {controllerType === GRBLHAL && (
+                        <SpindleSelector
+                            spindles={availableSpindles}
+                            onChange={actions.handleHALSpindleSelect}
+                            spindle={spindle}
                             disabled={!canClick()}
                         />
-                        {controllerType === GRBLHAL && (
-                            <SpindleSelector
-                                spindles={availableSpindles}
-                                onChange={actions.handleHALSpindleSelect}
-                                spindle={spindle}
-                                disabled={!canClick()}
-                            />
-                        )}
-                    </div>
-                    {!laserAsSpindle ? (
-                        <SpindleControls
-                            state={state}
-                            actions={actions}
-                            canClick={canClick()}
-                        />
-                    ) : (
-                        <LaserControls
-                            state={state}
-                            actions={actions}
-                            canClick={canClick()}
-                        />
                     )}
+                </div>
+                {!laserAsSpindle ? (
+                    <SpindleControls
+                        state={state}
+                        actions={actions}
+                        canClick={canClick()}
+                        isConnected={isConnected}
+                    />
+                ) : (
+                    <LaserControls
+                        state={state}
+                        actions={actions}
+                        canClick={canClick()}
+                        isConnected={isConnected}
+                    />
+                )}
             </div>
         </Widget>
     );
