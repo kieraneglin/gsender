@@ -171,10 +171,6 @@ class CNCEngine {
                 // IP Address Access Control
                 const ipaddr = socket.handshake.address;
                 await authorizeIPAddress(ipaddr);
-
-                // User Validation
-                //const user = socket.decoded_token || {};
-                //await validateUser(user);
             } catch (err) {
                 log.warn(err);
                 next(err);
