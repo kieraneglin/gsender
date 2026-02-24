@@ -23,6 +23,9 @@ import Button from 'app/components/Button';
 import partition from 'lodash/partition';
 import { useToolChange } from 'app/features/ATC/utils/ToolChangeContext.tsx';
 import { ToolProbeState } from 'app/features/ATC/types.ts';
+import { useTypedSelector } from 'app/hooks/useTypedSelector.ts';
+import { RootState } from 'app/store/redux';
+import get from 'lodash/get';
 
 export type ToolStatus = ToolProbeState;
 
@@ -180,10 +183,17 @@ export interface ToolTableProps {
 export function ToolTable({ tools = [], disabled }: ToolTableProps) {
     const { rackSize, connected, atcAvailable } = useToolChange();
     const allowManualBadge = connected && atcAvailable;
+    const settings = useTypedSelector(
+        (state: RootState) => state.controller.settings,
+    );
+    const reportedRackEnable = Number(
+        get(settings, 'atci.rack_enable', get(settings, 'atci._rack_enable', 1)),
+    );
+    const rackEnabled = reportedRackEnable !== 0;
 
     const [onRackTools, offRackTools] = partition(
         tools,
-        (tool) => tool.id <= rackSize,
+        (tool) => rackEnabled && tool.id <= rackSize,
     );
 
     return (
