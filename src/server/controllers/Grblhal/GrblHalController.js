@@ -2400,7 +2400,10 @@ class GrblHalController {
                 this.emit('controller:state', GRBLHAL, this.runner.state);
 
                 if (type === 'cnc') {
-                    this.write('$FM\n$F\n');
+                    this.write('$FM\n');
+                    delay(100).then(() => {
+                        this.write('$F\n');
+                    });
                     return;
                 }
 
