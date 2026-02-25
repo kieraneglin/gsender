@@ -1754,7 +1754,7 @@ export const SettingsMenu: SettingsMenuSection[] = [
                                 'workspace.toolChangeOption',
                                 '',
                             );
-                            return strategy === 'Ignore';
+                            return strategy !== 'Fixed Tool Sensor';
                         },
                     },
                     {
@@ -1773,7 +1773,7 @@ export const SettingsMenu: SettingsMenuSection[] = [
                                 'workspace.toolChange.moveToManualLocation',
                                 false,
                             );
-                            return strategy === 'Ignore' || !moveToLocation;
+                            return strategy !== 'Fixed Tool Sensor' || !moveToLocation;
                         },
                     },
                     {
