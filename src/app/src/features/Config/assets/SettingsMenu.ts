@@ -1757,16 +1757,13 @@ export const SettingsMenu: SettingsMenuSection[] = [
                         unit: 'mm',
                         description:
                             'The start location for probing. To not break bits, set it using a long tool with extra Z-axis space above the sensor. (Z should be negative)',
-                        hidden: (_settingsValues) => {
-                            // const strategy = getSettingValue<string>(
-                            //     settingsValues,
-                            //     'workspace.toolChangeOption',
-                            //     '',
-                            // );
-                                                        const strategy = store.get(
+                        hidden: (settingsValues) => {
+                            const strategy = getSettingValue<string>(
+                                settingsValues,
                                 'workspace.toolChangeOption',
                                 '',
                             );
+
                             return strategy !== 'Fixed Tool Sensor';
                         },
                     },
