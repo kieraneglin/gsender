@@ -1744,17 +1744,36 @@ export const SettingsMenu: SettingsMenuSection[] = [
                         },
                     },
                     {
-                        label: 'Move to toolchange location',
+                        label: 'Move to manual toolchange location',
                         type: 'boolean',
-                        key: 'workspace.toolChange.moveToLocation',
+                        key: 'workspace.toolChange.moveToManualLocation',
                         description:
-                            'Move the CNC to a specified toolchange location as part of the toolchange routine.',
+                            'Move the CNC to a specified location as part of the manual toolchange routine.',
                         hidden: () => {
                             const strategy = store.get(
                                 'workspace.toolChangeOption',
                                 '',
                             );
                             return strategy === 'Ignore';
+                        },
+                    },
+                    {
+                        label: 'Manual toolchange location',
+                        type: 'location',
+                        key: 'workspace.toolChange.manualLocation',
+                        unit: 'mm',
+                        description:
+                            'The location where the CNC will move to during the manual toolchange routine.',
+                        hidden: () => {
+                            const strategy = store.get(
+                                'workspace.toolChangeOption',
+                                '',
+                            );
+                            const moveToLocation = store.get(
+                                'workspace.toolChange.moveToManualLocation',
+                                false,
+                            );
+                            return strategy === 'Ignore' || !moveToLocation;
                         },
                     },
                     {
