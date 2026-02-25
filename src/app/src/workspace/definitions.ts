@@ -44,8 +44,8 @@ export interface Workspace {
     toolChange: {
         passthrough: boolean;
         skipDialog: boolean;
-        moveToManualLocation: boolean;
-        manualLocation: BasicPosition;
+        moveToManualPosition: boolean;
+        manualPosition: BasicPosition;
     };
     toolChangeOption:
         | 'Ignore'

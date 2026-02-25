@@ -1746,7 +1746,7 @@ export const SettingsMenu: SettingsMenuSection[] = [
                     {
                         label: 'Move to manual toolchange location',
                         type: 'boolean',
-                        key: 'workspace.toolChange.moveToManualLocation',
+                        key: 'workspace.toolChange.moveToManualPosition',
                         description:
                             'Move the CNC to a specified location as part of the manual toolchange routine.',
                         hidden: () => {
@@ -1760,7 +1760,7 @@ export const SettingsMenu: SettingsMenuSection[] = [
                     {
                         label: 'Manual toolchange location',
                         type: 'location',
-                        key: 'workspace.toolChange.manualLocation',
+                        key: 'workspace.toolChange.manualPosition',
                         unit: 'mm',
                         description:
                             'The location where the CNC will move to during the manual toolchange routine.',
@@ -1770,7 +1770,7 @@ export const SettingsMenu: SettingsMenuSection[] = [
                                 '',
                             );
                             const moveToLocation = store.get(
-                                'workspace.toolChange.moveToManualLocation',
+                                'workspace.toolChange.moveToManualPosition',
                                 false,
                             );
                             return strategy !== 'Fixed Tool Sensor' || !moveToLocation;

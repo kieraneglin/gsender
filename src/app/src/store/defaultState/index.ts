@@ -72,8 +72,8 @@ const defaultState: State = {
         toolChange: {
             passthrough: false,
             skipDialog: false,
-            moveToManualLocation: false,
-            manualLocation: {
+            moveToManualPosition: false,
+            manualPosition: {
                 x: 0,
                 y: 0,
                 z: 0,

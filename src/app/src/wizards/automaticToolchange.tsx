@@ -136,15 +136,15 @@ const wizard = {
                     ),
                     overlay: false,
                     actions: [
-                        ...(store.get('workspace.toolChange.moveToManualLocation', false) ? [{
+                        ...(store.get('workspace.toolChange.moveToManualPosition', false) ? [{
                             label: 'Move to Tool Change Location',
                             cb: () => {
-                                const manualLocation = store.get('workspace.toolChange.manualLocation', { x: 0, y: 0, z: 0 });
+                                const manualPosition = store.get('workspace.toolChange.manualPosition', { x: 0, y: 0, z: 0 });
                                 controller.command('gcode', [
                                     '(Moving to manual toolchange location)',
                                     'G90 G53 G0 Z[global.toolchange.Z_SAFE_HEIGHT]',
-                                    `G90 G53 G0 X${manualLocation.x} Y${manualLocation.y}`,
-                                    `G90 G53 G0 Z${manualLocation.z}`,
+                                    `G90 G53 G0 X${manualPosition.x} Y${manualPosition.y}`,
+                                    `G90 G53 G0 Z${manualPosition.z}`,
                                 ]);
                             },
                         }] : []),
