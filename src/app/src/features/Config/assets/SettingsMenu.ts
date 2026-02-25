@@ -70,6 +70,28 @@ import {
 } from 'app/lib/toaster/ToasterLib';
 import isElectron from 'is-electron';
 
+/**
+ * Helper function to get a setting value from either unsaved state or the store.
+ * Checks settingsValues first (for immediate reactivity), then falls back to store value.
+ * @param settingsValues - Array of settings with potential unsaved values
+ * @param key - The setting key to look up
+ * @param defaultValue - Default value if not found
+ * @returns The setting value from unsaved state or store
+ */
+function getSettingValue<T = any>(
+    settingsValues: gSenderSetting[] | undefined,
+    key: string,
+    defaultValue: T = '' as T,
+): T {
+    if (settingsValues) {
+        const setting = settingsValues.find((s) => s.key === key);
+        if (setting && setting.value !== undefined) {
+            return setting.value as T;
+        }
+    }
+    return store.get(key, defaultValue);
+}
+
 export interface SettingsMenuSection {
     label: string;
     icon: IconType;
@@ -114,7 +136,7 @@ export interface gSenderSetting {
     toolLink?: string;
     toolLinkLabel?: string;
     disabled?: () => boolean;
-    hidden?: () => boolean;
+    hidden?: (settingsValues?: gSenderSetting[]) => boolean;
     onDisable?: () => void;
     onEnable?: () => void;
     onUpdate?: () => void;
@@ -1735,8 +1757,13 @@ export const SettingsMenu: SettingsMenuSection[] = [
                         unit: 'mm',
                         description:
                             'The start location for probing. To not break bits, set it using a long tool with extra Z-axis space above the sensor. (Z should be negative)',
-                        hidden: () => {
-                            const strategy = store.get(
+                        hidden: (_settingsValues) => {
+                            // const strategy = getSettingValue<string>(
+                            //     settingsValues,
+                            //     'workspace.toolChangeOption',
+                            //     '',
+                            // );
+                                                        const strategy = store.get(
                                 'workspace.toolChangeOption',
                                 '',
                             );

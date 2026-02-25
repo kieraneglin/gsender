@@ -154,7 +154,7 @@ export const SettingRow = React.memo(function SettingRow({
     // Default function to not hidden
     let isHidden = false;
     if (setting && setting.hidden) {
-        isHidden = setting.hidden();
+        isHidden = setting.hidden(settingsValues);
     }
 
     const handleSettingsChange = (index: number) => (value: any) => {

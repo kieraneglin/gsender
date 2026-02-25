@@ -473,7 +473,7 @@ export function SettingsProvider({ children }: SettingsProviderProps) {
 
         // Hide hidden when filtering
         if ('hidden' in v && (!searchTerm || searchTerm.length === 0)) {
-            if (v.hidden()) {
+            if (v.hidden(settingsValues)) {
                 // only return if it's supposed to be hidden, otherwise we have more to check
                 return false;
             }

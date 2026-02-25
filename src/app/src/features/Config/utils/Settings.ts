@@ -186,4 +186,5 @@ export function updateAllSettings(
     }
 
     pubsub.publish('config:saved', settingsToUpdate);
+    pubsub.publish('repopulate');
 }
