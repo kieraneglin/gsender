@@ -1744,6 +1744,20 @@ export const SettingsMenu: SettingsMenuSection[] = [
                         },
                     },
                     {
+                        label: 'Move to toolchange location',
+                        type: 'boolean',
+                        key: 'workspace.toolChange.moveToLocation',
+                        description:
+                            'Move the CNC to a specified toolchange location as part of the toolchange routine.',
+                        hidden: () => {
+                            const strategy = store.get(
+                                'workspace.toolChangeOption',
+                                '',
+                            );
+                            return strategy === 'Ignore';
+                        },
+                    },
+                    {
                         label: 'Before tool change',
                         type: 'textarea',
                         key: 'workspace.toolChangeHooks.preHook',

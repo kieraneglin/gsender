@@ -72,6 +72,7 @@ const defaultState: State = {
         toolChange: {
             passthrough: false,
             skipDialog: false,
+            moveToLocation: false,
         },
         toolChangeOption: 'Ignore',
         toolChangePosition: {
