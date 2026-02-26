@@ -76,20 +76,36 @@ const probeInitialToolStep = [{
     ],
 }];
 
-const moveToToolchangePositionStep = [{
-    label: 'Move to Tool Change Location',
-    cb: () => {
-        const manualPosition = store.get('workspace.toolChange.manualPosition', { x: 0, y: 0, z: 0 });
-        controller.command('gcode', [
-            '(Moving to manual toolchange location)',
-            'G90 G53 G0 Z[global.toolchange.Z_SAFE_HEIGHT]',
-            `G90 G53 G0 X${manualPosition.x} Y${manualPosition.y}`,
-            `G90 G53 G0 Z${manualPosition.z}`,
-        ]);
-    },
-}]
+const moveToToolchangePositionSubstep = [{
+    title: 'Change Tool',
+    description: () => (
+        <div>
+            Ensure that your router/spindle is turned off
+            and has fully stopped spinning, and prepare to
+            change over to the next tool ({getToolString()}).
+        </div>
+    ),
+    overlay: false,
+    actions: [
+        {
+            label: 'Move to Tool Change Location',
+            cb: () => {
+                const manualPosition = store.get('workspace.toolChange.manualPosition', { x: 0, y: 0, z: 0 });
+
+                controller.command('gcode', [
+                    '(Moving to manual toolchange location)',
+                    'G90 G53 G0 Z[global.toolchange.Z_SAFE_HEIGHT]',
+                    `G90 G53 G0 X${manualPosition.x} Y${manualPosition.y}`,
+                    `G90 G53 G0 Z${manualPosition.z}`,
+                ]);
+            },
+        }
+    ]
+}];
 
 const createWizard = (count: number) => {
+    const hasManualToolchangePosition = store.get('workspace.toolChange.moveToManualPosition', false);
+
     return {
         intro: {
             icon: 'fas fa-caution',
@@ -130,27 +146,27 @@ const createWizard = (count: number) => {
                 '%global.toolchange.ZPOS=posz',
                 'G91 G21',
                 'G53 G0 Z[global.toolchange.Z_SAFE_HEIGHT]',
-                'G53 G0 X[global.toolchange.PROBE_POS_X] Y[global.toolchange.PROBE_POS_Y]',
                 '(Toolchange initiated)',
             ]);
         },
         steps: [
             ...(count >= 1 ? probeInitialToolStep : []),
             {
-                title: 'Probe New Tool',
+                title: 'Prepare New Tool',
                 substeps: [
+                    ...( hasManualToolchangePosition ? moveToToolchangePositionSubstep : []),
                     {
-                        title: 'Change Tool',
+                        title: 'Measure New Tool',
                         description: () => (
                             <div>
-                                Ensure that your router/spindle is turned off and
-                                has fully stopped spinning, then change over to the
-                                next tool ({getToolString()}) and prepare to probe.
+                                { hasManualToolchangePosition || 'Ensure that your router/spindle is turned off and has fully stopped spinning. ' }
+                                After you've switched to the new tool ({getToolString()}),
+                                click the button below to automatically probe and set the
+                                new tool's length offset.
                             </div>
                         ),
                         overlay: false,
                         actions: [
-                            ...(store.get('workspace.toolChange.moveToManualPosition', false) ? moveToToolchangePositionStep : []),
                             {
                                 label: 'Probe Changed Tool',
                                 cb: () => {
